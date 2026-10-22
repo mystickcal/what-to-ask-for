@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job status and progress UI: What To Ask For</title>
+<meta name="description" content="A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Job status and progress UI: What To Ask For">
+<meta property="og:description" content="A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/job-progress-ui/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Job status and progress UI: What To Ask For">
+<meta name="twitter:description" content="A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=background">Background work and scheduling</a></p>
+  <h1>Job status and progress UI</h1>
+  <p class="aka">Also called: progress bar, job status page, task status polling, long running task UI, processing status</p>
+  <p class="lead">A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Any background job a user waits for: exports, imports, AI generation, video or file processing.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The work finishes in under a couple of seconds. A plain loading state is enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Status row plus polling <span class="cost">$0</span></h3>
+<p>A jobs table the worker updates, and a GET /jobs/:id endpoint the page polls every 2 to 5 seconds, slowing down over time.</p><p class="trade"><strong>Tradeoff:</strong> Simple and robust behind any proxy. Updates arrive a few seconds late.</p></li>
+<li><h3>Server-sent events or websockets <span class="cost">$0 to low</span></h3>
+<p>Push status changes to the page as they happen over SSE or a websocket (or a hosted service like Pusher or Ably).</p><p class="trade"><strong>Tradeoff:</strong> Instant updates. More moving parts, and you still need the status row for refreshes.</p></li>
+<li><h3>Your queue&#x27;s built-in job state <span class="cost">$0</span></h3>
+<p>BullMQ job progress, Celery task state or Inngest run status, exposed through your own endpoint.</p><p class="trade"><strong>Tradeoff:</strong> Less code. Queue state usually expires, so keep your own record for anything users come back to.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a job status and progress screen for [long task].
+
+Requirements:
+- A jobs table: id, owner, type, status (queued, running, succeeded, failed, canceled), progress 0 to 100, message, result URL, error code, created, started, finished.
+- The worker updates progress at real milestones (rows processed, pages rendered), not a fake timer.
+- GET /jobs/:id returns the row to its owner only. Poll every 2 seconds, backing off to 10, and stop when finished.
+- The page survives refresh and works from a link in a notification email.
+- On failure, show a plain error and a retry button. Never leave a spinner running.
+- Mark jobs stuck in running past [timeout] as failed.
+- Let users cancel a queued or running job where the work allows it.
+
+Acceptance checks (run each and show me the result):
+1. Refreshing mid-job shows the same job and progress.
+2. Another user gets 404 for the job URL.
+3. A job that throws shows the failed state and retry button within one poll.
+4. A worker crash leaves the job marked failed after the timeout, not running forever.
+5. Polling stops once the job finishes.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users start the same export five times, or wait on a spinner for a job that died an hour ago.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;show a progress bar while the export runs&rdquo;</li><li>&ldquo;users refresh the page and lose track of their job&rdquo;</li><li>&ldquo;tell the user when the video is done processing&rdquo;</li><li>&ldquo;the spinner never stops after an error&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events">MDN: Server-sent events</a></li><li><a href="https://docs.bullmq.io/guide/jobs/job-data">BullMQ: job progress</a></li><li><a href="https://docs.celeryq.dev/en/stable/userguide/tasks.html#custom-states">Celery: custom task states</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/job-progress-ui.json">api/job-progress-ui.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../outbox-pattern/index.html">&larr; Transactional outbox</a><a href="../webhook-signature-verification/index.html">Webhook signature verification &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

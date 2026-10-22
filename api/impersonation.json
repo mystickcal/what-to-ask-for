@@ -1,0 +1,88 @@
+{
+  "id": "impersonation",
+  "name": "Support impersonation",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "log in as a customer",
+    "act as a customer",
+    "admin impersonation",
+    "account switching",
+    "support view",
+    "masquerade"
+  ],
+  "needs": [
+    "see what a customer sees to debug their problem",
+    "log in as a customer from the admin",
+    "support needs to reproduce a bug in someone's account",
+    "track what support did inside a customer account"
+  ],
+  "keywords": [
+    "impersonate",
+    "impersonation",
+    "login",
+    "as",
+    "support",
+    "admin",
+    "debug",
+    "customer",
+    "switch",
+    "act",
+    "view",
+    "masquerade"
+  ],
+  "summary": "A controlled way for staff to see the app as a specific user, with a banner that shows it's happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.",
+  "need_when": [
+    "Support tickets often say \"it looks wrong on my screen\" and screenshots aren't enough."
+  ],
+  "skip_when": [
+    "Your app holds very sensitive data and policy says staff should never see it. Use a read-only debug view or ask for consent instead."
+  ],
+  "ways": [
+    {
+      "title": "A library for your framework",
+      "cost": "$0",
+      "how": "django-hijack, the pretender gem (Rails), Laravel Impersonate, or your auth provider's impersonation feature (Clerk, Auth0, Supabase admin).",
+      "tradeoff": "Quick. Add the audit, banner and blocks if the library doesn't."
+    },
+    {
+      "title": "Your own impersonation session",
+      "cost": "$0",
+      "how": "A separate session that records the real staff id and the target user id, with an expiry.",
+      "tradeoff": "Exact control. Every permission check must know about it."
+    },
+    {
+      "title": "Read-only support view",
+      "cost": "$0",
+      "how": "An admin page that renders the user's data without logging in as them.",
+      "tradeoff": "Safest. Doesn't reproduce every bug."
+    }
+  ],
+  "prompt": "Add support impersonation so staff can see the app as a specific user.\n\nRequirements:\n- Only users with a [support] role can start it, from the admin, with a required reason.\n- Optional: require the user to grant access first, valid for [72 hours].\n- The session keeps both the staff id and the user id. All audit entries record both.\n- Show a fixed banner on every page with the user's email and a \"Stop\" button.\n- End after [30 minutes] automatically.\n- Block while impersonating: password, email, 2FA and payment changes, deleting the account, exporting data, and sending messages as the user.\n- Staff can't impersonate other staff or admins.\n- Email or notify the user that support viewed their account, if policy says so.\n\nAcceptance checks (run each and show me the result):\n1. A non-support account can't start impersonation, even by calling the endpoint.\n2. The banner shows on every page and Stop returns to the staff account.\n3. Changing the password while impersonating is refused.\n4. Every action taken is logged with both ids and the reason.\n5. The session ends on its own after the time limit.",
+  "acceptance_checks": [
+    "A non-support account can't start impersonation, even by calling the endpoint.",
+    "The banner shows on every page and Stop returns to the staff account.",
+    "Changing the password while impersonating is refused.",
+    "Every action taken is logged with both ids and the reason.",
+    "The session ends on its own after the time limit."
+  ],
+  "if_you_skip_it": "Support changes things in a customer's account with no record, or an attacker with a support login becomes any user.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "django-hijack",
+      "url": "https://github.com/django-hijack/django-hijack"
+    },
+    {
+      "title": "pretender (Rails)",
+      "url": "https://github.com/ankane/pretender"
+    },
+    {
+      "title": "Laravel Impersonate",
+      "url": "https://github.com/404labfr/laravel-impersonate"
+    }
+  ],
+  "page": "e/impersonation/index.html",
+  "json": "api/impersonation.json",
+  "updated": "2026-10-21"
+}

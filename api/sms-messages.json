@@ -1,0 +1,90 @@
+{
+  "id": "sms-messages",
+  "name": "SMS text messages",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "text messages",
+    "SMS alerts",
+    "send texts",
+    "10DLC",
+    "SMS verification codes"
+  ],
+  "needs": [
+    "text a reminder before an appointment",
+    "send a verification code by SMS",
+    "my texts aren't being delivered in the US",
+    "let users reply STOP"
+  ],
+  "keywords": [
+    "sms",
+    "text",
+    "texts",
+    "message",
+    "mobile",
+    "twilio",
+    "10dlc",
+    "stop",
+    "opt",
+    "reminder",
+    "otp",
+    "verification",
+    "carrier"
+  ],
+  "summary": "Sending text messages through a provider's API. The code is easy. The work is registration (in the US, 10DLC brand and campaign approval for business texting), consent, STOP handling, cost per message, and fraud on verification codes.",
+  "need_when": [
+    "Time-sensitive reminders where email is too slow, like appointments and deliveries.",
+    "Users ask for texts and agree to get them."
+  ],
+  "skip_when": [
+    "Push notifications or email would do. SMS costs money per message and needs consent paperwork.",
+    "Login codes only. Authenticator apps or passkeys are cheaper and safer."
+  ],
+  "ways": [
+    {
+      "title": "A messaging API",
+      "cost": "per message plus registration fees",
+      "how": "Twilio, Vonage, Plivo, Telnyx and Amazon SNS or End User Messaging send and receive texts over HTTP.",
+      "tradeoff": "Standard. US texting needs registration before delivery is reliable."
+    },
+    {
+      "title": "A verification API",
+      "cost": "per verification",
+      "how": "Twilio Verify, Vonage Verify and similar services handle codes, retries and some fraud blocking.",
+      "tradeoff": "Less to build. Still pay per attempt, and fraud can run up the bill."
+    },
+    {
+      "title": "A notification platform",
+      "cost": "free tiers, then paid",
+      "how": "Novu, Knock or Courier route one notification to email, SMS or push based on user preferences.",
+      "tradeoff": "One API for all channels. You still bring an SMS provider."
+    }
+  ],
+  "prompt": "Add SMS reminders with [provider].\n\nRequirements:\n- Collect phone numbers in E.164 format with an explicit, unchecked-by-default consent box that says what we'll text and how often. Store consent time and wording.\n- Confirm the number with a one-time code before sending anything else.\n- Every first message says who it's from and \"Reply STOP to opt out\". Handle STOP, START and HELP from the inbound webhook and stop all texts on STOP.\n- Send from a background job, respect quiet hours in the user's timezone, and cap messages per user per day.\n- Save delivery status callbacks and show failures in the admin.\n- Rate limit verification codes per number and per IP, and block number ranges I don't serve, to prevent SMS pumping fraud.\n- Keep the provider credentials in secrets, and log message ids, not message bodies with personal data.\n- Note what registration I need (US 10DLC brand and campaign) before going live.\n\nAcceptance checks (run each and show me the result):\n1. Replying STOP stops all further texts and the app shows the user as opted out.\n2. No text goes out between 9 PM and 8 AM in the user's timezone.\n3. Hammering the send-code endpoint gets throttled.\n4. Delivery failures show up in the admin.\n5. Consent time and wording are stored for every number.",
+  "acceptance_checks": [
+    "Replying STOP stops all further texts and the app shows the user as opted out.",
+    "No text goes out between 9 PM and 8 AM in the user's timezone.",
+    "Hammering the send-code endpoint gets throttled.",
+    "Delivery failures show up in the admin.",
+    "Consent time and wording are stored for every number."
+  ],
+  "if_you_skip_it": "Carriers filter your texts, you text people who opted out, or bots run up a large bill through your verification form.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Twilio: what is A2P 10DLC",
+      "url": "https://www.twilio.com/docs/messaging/compliance/a2p-10dlc"
+    },
+    {
+      "title": "Twilio: SMS pumping fraud",
+      "url": "https://www.twilio.com/docs/glossary/what-is-sms-pumping-fraud"
+    },
+    {
+      "title": "Novu (open source notifications)",
+      "url": "https://github.com/novuhq/novu"
+    }
+  ],
+  "page": "e/sms-messages/index.html",
+  "json": "api/sms-messages.json",
+  "updated": "2026-10-21"
+}

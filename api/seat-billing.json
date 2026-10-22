@@ -1,0 +1,83 @@
+{
+  "id": "seat-billing",
+  "name": "Per-seat team billing",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "seat-based pricing",
+    "per user pricing",
+    "team plans",
+    "seat count billing",
+    "license seats"
+  ],
+  "needs": [
+    "charge teams per member",
+    "update the bill when someone joins the team",
+    "how many seats does this workspace pay for",
+    "prorate when a team adds a user mid month"
+  ],
+  "keywords": [
+    "seat",
+    "seats",
+    "per",
+    "user",
+    "member",
+    "team",
+    "workspace",
+    "organization",
+    "quantity",
+    "prorate",
+    "proration",
+    "license"
+  ],
+  "summary": "A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.",
+  "need_when": [
+    "You sell to teams and price grows with the number of people using it."
+  ],
+  "skip_when": [
+    "Plans are flat per workspace, or most customers are solo users."
+  ],
+  "ways": [
+    {
+      "title": "Subscription quantity at your payment provider",
+      "cost": "payment fees only",
+      "how": "Stripe, Paddle and Lemon Squeezy subscriptions have a quantity. Update it when membership changes and let the provider prorate.",
+      "tradeoff": "Standard and well documented. You decide when to sync, and whether removals take effect now or at renewal."
+    },
+    {
+      "title": "Buy seats up front",
+      "cost": "payment fees only",
+      "how": "Admins pick a seat count. Invites beyond it ask them to buy more first.",
+      "tradeoff": "Predictable bills, no surprise charges. One more step before inviting."
+    },
+    {
+      "title": "True-up later",
+      "cost": "payment fees only",
+      "how": "Let teams add people freely and bill the extra seats on the next invoice.",
+      "tradeoff": "No friction. Some customers dislike surprise increases."
+    }
+  ],
+  "prompt": "Add per-seat billing for team workspaces using [Stripe] subscriptions.\n\nRequirements:\n- Each workspace has one subscription. Quantity = active paid members (pending invites [do / don't] count).\n- When a member is added or removed, update the subscription quantity with proration [now / at renewal]. Do it in a background job with retries.\n- Store seats_paid on the workspace from webhook events, not from the API response alone.\n- Only workspace owners and billing admins can change seats or see invoices.\n- Show the current seat count, price per seat and next invoice estimate on the billing page.\n- If seats_paid < members (failed sync or payment), block new invites and show a fix-it message. Never lock out existing members.\n- Write tests for add, remove, downgrade at renewal and failed payment.\n\nAcceptance checks (run each and show me the result):\n1. Adding a member raises the subscription quantity by one within a minute.\n2. Removing a member lowers it as configured, with the proration line on the next invoice.\n3. A non-admin can't open the billing page.\n4. A failed quantity update retries and alerts, and the app shows the mismatch.\n5. Seat count in your database matches the provider after replaying webhooks.",
+  "acceptance_checks": [
+    "Adding a member raises the subscription quantity by one within a minute.",
+    "Removing a member lowers it as configured, with the proration line on the next invoice.",
+    "A non-admin can't open the billing page.",
+    "A failed quantity update retries and alerts, and the app shows the mismatch.",
+    "Seat count in your database matches the provider after replaying webhooks."
+  ],
+  "if_you_skip_it": "Teams use 40 seats while paying for 5, or get charged for people they removed months ago.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: per-seat pricing",
+      "url": "https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing"
+    },
+    {
+      "title": "Stripe: prorations",
+      "url": "https://docs.stripe.com/billing/subscriptions/prorations"
+    }
+  ],
+  "page": "e/seat-billing/index.html",
+  "json": "api/seat-billing.json",
+  "updated": "2026-10-21"
+}

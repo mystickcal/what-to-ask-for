@@ -1,0 +1,87 @@
+{
+  "id": "job-progress-ui",
+  "name": "Job status and progress UI",
+  "category": "background",
+  "category_name": "Background work and scheduling",
+  "aliases": [
+    "progress bar",
+    "job status page",
+    "task status polling",
+    "long running task UI",
+    "processing status"
+  ],
+  "needs": [
+    "show a progress bar while the export runs",
+    "users refresh the page and lose track of their job",
+    "tell the user when the video is done processing",
+    "the spinner never stops after an error"
+  ],
+  "keywords": [
+    "progress",
+    "status",
+    "bar",
+    "percent",
+    "spinner",
+    "polling",
+    "processing",
+    "done",
+    "pending",
+    "export",
+    "render",
+    "eta"
+  ],
+  "summary": "A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.",
+  "need_when": [
+    "Any background job a user waits for: exports, imports, AI generation, video or file processing."
+  ],
+  "skip_when": [
+    "The work finishes in under a couple of seconds. A plain loading state is enough."
+  ],
+  "ways": [
+    {
+      "title": "Status row plus polling",
+      "cost": "$0",
+      "how": "A jobs table the worker updates, and a GET /jobs/:id endpoint the page polls every 2 to 5 seconds, slowing down over time.",
+      "tradeoff": "Simple and robust behind any proxy. Updates arrive a few seconds late."
+    },
+    {
+      "title": "Server-sent events or websockets",
+      "cost": "$0 to low",
+      "how": "Push status changes to the page as they happen over SSE or a websocket (or a hosted service like Pusher or Ably).",
+      "tradeoff": "Instant updates. More moving parts, and you still need the status row for refreshes."
+    },
+    {
+      "title": "Your queue's built-in job state",
+      "cost": "$0",
+      "how": "BullMQ job progress, Celery task state or Inngest run status, exposed through your own endpoint.",
+      "tradeoff": "Less code. Queue state usually expires, so keep your own record for anything users come back to."
+    }
+  ],
+  "prompt": "Add a job status and progress screen for [long task].\n\nRequirements:\n- A jobs table: id, owner, type, status (queued, running, succeeded, failed, canceled), progress 0 to 100, message, result URL, error code, created, started, finished.\n- The worker updates progress at real milestones (rows processed, pages rendered), not a fake timer.\n- GET /jobs/:id returns the row to its owner only. Poll every 2 seconds, backing off to 10, and stop when finished.\n- The page survives refresh and works from a link in a notification email.\n- On failure, show a plain error and a retry button. Never leave a spinner running.\n- Mark jobs stuck in running past [timeout] as failed.\n- Let users cancel a queued or running job where the work allows it.\n\nAcceptance checks (run each and show me the result):\n1. Refreshing mid-job shows the same job and progress.\n2. Another user gets 404 for the job URL.\n3. A job that throws shows the failed state and retry button within one poll.\n4. A worker crash leaves the job marked failed after the timeout, not running forever.\n5. Polling stops once the job finishes.",
+  "acceptance_checks": [
+    "Refreshing mid-job shows the same job and progress.",
+    "Another user gets 404 for the job URL.",
+    "A job that throws shows the failed state and retry button within one poll.",
+    "A worker crash leaves the job marked failed after the timeout, not running forever.",
+    "Polling stops once the job finishes."
+  ],
+  "if_you_skip_it": "Users start the same export five times, or wait on a spinner for a job that died an hour ago.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "MDN: Server-sent events",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+    },
+    {
+      "title": "BullMQ: job progress",
+      "url": "https://docs.bullmq.io/guide/jobs/job-data"
+    },
+    {
+      "title": "Celery: custom task states",
+      "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html#custom-states"
+    }
+  ],
+  "page": "e/job-progress-ui/index.html",
+  "json": "api/job-progress-ui.json",
+  "updated": "2026-10-21"
+}

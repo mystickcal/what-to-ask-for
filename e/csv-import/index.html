@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSV import: What To Ask For</title>
+<meta name="description" content="Taking a user&#x27;s spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="CSV import: What To Ask For">
+<meta property="og:description" content="Taking a user&#x27;s spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/csv-import/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CSV import: What To Ask For">
+<meta name="twitter:description" content="Taking a user&#x27;s spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>CSV import</h1>
+  <p class="aka">Also called: spreadsheet import, bulk upload, Excel import, data import, import contacts</p>
+  <p class="lead">Taking a user&#x27;s spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users are switching from a spreadsheet or another tool.</li><li>Adding records one at a time would take them hours.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Users only ever have a handful of records.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your own upload, preview, commit flow <span class="cost">$0</span></h3>
+<p>Parse with Python&#x27;s csv module, Papa Parse (JavaScript) or openpyxl for Excel. Keep the parsed rows between steps, then save in one transaction.</p><p class="trade"><strong>Tradeoff:</strong> Full control and private. Column mapping UI is the hard part.</p></li>
+<li><h3>An embeddable importer <span class="cost">free tiers or open source, then paid</span></h3>
+<p>Flatfile, OneSchema, CSVBox or the open source react-spreadsheet-import give users a mapping and cleanup screen.</p><p class="trade"><strong>Tradeoff:</strong> Great UX quickly. Data may pass through a vendor.</p></li>
+<li><h3>Background import for big files <span class="cost">$0</span></h3>
+<p>Upload to storage, process in a job, email a report of what failed.</p><p class="trade"><strong>Tradeoff:</strong> Handles large files. Users wait and come back.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add CSV import for [record type].
+
+Requirements:
+- Steps: upload, map columns (auto-match by header name), preview, commit.
+- Limits: [500] rows and [5 MB] per file. Accept UTF-8 and UTF-8 with BOM. Detect comma or semicolon.
+- Validate each row with the same rules as the normal create form. The preview shows each row&#x27;s errors with row number and column.
+- Commit valid rows in one transaction, or nothing on failure. Show &quot;imported X, skipped Y&quot; and offer a CSV of the skipped rows with reasons.
+- Respect plan limits: check before commit that the import won&#x27;t exceed them.
+- Detect duplicates by [key] and let the user choose skip or update.
+- Escape cells starting with =, +, -, @ when exporting the error file back, to block formula injection.
+- Provide a downloadable template CSV.
+
+Acceptance checks (run each and show me the result):
+1. A file with 3 bad rows shows exactly those rows and reasons in the preview.
+2. Killing the process during commit leaves no half import.
+3. A file over the row limit gets a clear message.
+4. Importing the same file twice doesn&#x27;t create duplicates when skip is chosen.
+5. A cell with =HYPERLINK(...) is neutralized in the error CSV.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users import 10,000 broken rows they then have to delete by hand, or blow past plan limits in one upload.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s CSV import covers journal entries, expenses and calendar events. It goes upload, preview, commit, caps files at 500 data rows, and checks the free-tier monthly limit before committing.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users upload a spreadsheet of their contacts&rdquo;</li><li>&ldquo;import data from their old tool&rdquo;</li><li>&ldquo;bulk add 500 products from a CSV&rdquo;</li><li>&ldquo;the import half worked and left a mess&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.papaparse.com/">Papa Parse</a></li><li><a href="https://community.owasp.org/attacks/CSV_Injection">OWASP: CSV injection</a></li><li><a href="https://github.com/UgnisSoftware/react-spreadsheet-import">react-spreadsheet-import (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/csv-import.json">api/csv-import.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../upload-validation-scanning/index.html">&larr; Upload validation and scanning</a><a href="../pdf-generation/index.html">PDF generation &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

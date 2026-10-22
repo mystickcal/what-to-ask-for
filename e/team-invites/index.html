@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team invite flow: What To Ask For</title>
+<meta name="description" content="A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Team invite flow: What To Ask For">
+<meta property="og:description" content="A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/team-invites/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Team invite flow: What To Ask For">
+<meta name="twitter:description" content="A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Team invite flow</h1>
+  <p class="aka">Also called: invite teammates, invitation links, workspace invites, join a team, invite by email</p>
+  <p class="lead">A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Accounts are shared by more than one person: teams, families, clients and advisors.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Every account is single-user.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An invites table <span class="cost">$0</span></h3>
+<p>Rows with inviter, email, workspace, role, token hash, status (pending, accepted, declined, revoked), expires_at.</p><p class="trade"><strong>Tradeoff:</strong> Full control over roles and edge cases. You write the emails and screens.</p></li>
+<li><h3>Hosted organizations <span class="cost">free tiers, then plan-based</span></h3>
+<p>Clerk Organizations, WorkOS, Auth0 Organizations and Supabase-based kits ship invites and roles.</p><p class="trade"><strong>Tradeoff:</strong> Fast. Your team model has to fit theirs.</p></li>
+<li><h3>Shareable join links <span class="cost">$0</span></h3>
+<p>A link anyone with it can use to join, optionally limited to an email domain.</p><p class="trade"><strong>Tradeoff:</strong> Easy for big teams. A forwarded link lets the wrong people in.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add an invite flow so members can add people to a workspace.
+
+Requirements:
+- Invite form: email and role. Only roles at or below the inviter&#x27;s are allowed.
+- Store invite: inviter, workspace, normalized email, role, random token (stored as a hash), status (pending, accepted, declined, revoked) and expiry of [14 days].
+- Email a link. If the person has no account, the link leads to signup and returns to the invite after.
+- On accept, require the signed-in account&#x27;s verified email to match the invited email (case-insensitive). Otherwise show who it was for.
+- Accepting twice, after expiry, or after revoke shows a clear message and changes nothing.
+- Admins see pending invites and can resend (new token) or revoke.
+- Don&#x27;t reveal whether an email already has an account. Rate limit invites per workspace.
+- Log invite sent, accepted and revoked in the audit log.
+
+Acceptance checks (run each and show me the result):
+1. A user signed in as a different email can&#x27;t accept someone else&#x27;s invite.
+2. An expired or revoked link does nothing.
+3. A member can&#x27;t invite someone as admin.
+4. A brand-new user can sign up from the link and land in the workspace.
+5. Resending invalidates the old link.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A forwarded invite email gives a stranger access to a private workspace, or old links work forever.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s co-parent invites use a random token with a 14-day expiry and pending, accepted, declined and revoked states, and set calendar and exchange-log permissions per invite. Accepting requires the signed-in account&#x27;s email to match the invited email.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users invite their coworkers&rdquo;</li><li>&ldquo;send an invite link that adds someone to a workspace&rdquo;</li><li>&ldquo;invited person doesn&#x27;t have an account yet&rdquo;</li><li>&ldquo;revoke an invite that went to the wrong person&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://clerk.com/docs/guides/development/custom-flows/organizations/manage-organization-invitations">Clerk: organization invitations</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">OWASP Authorization Cheat Sheet</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/team-invites.json">api/team-invites.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../email-verification/index.html">&larr; Email verification</a><a href="../impersonation/index.html">Support impersonation &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

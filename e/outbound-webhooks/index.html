@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outgoing webhooks: What To Ask For</title>
+<meta name="description" content="Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer&#x27;s slow server can&#x27;t slow you down.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Outgoing webhooks: What To Ask For">
+<meta property="og:description" content="Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer&#x27;s slow server can&#x27;t slow you down.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/outbound-webhooks/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Outgoing webhooks: What To Ask For">
+<meta name="twitter:description" content="Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer&#x27;s slow server can&#x27;t slow you down.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>Outgoing webhooks</h1>
+  <p class="aka">Also called: webhooks you send, sending webhooks, webhook delivery, event notifications to customers, HTTP callbacks</p>
+  <p class="lead">Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer&#x27;s slow server can&#x27;t slow you down.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users want other tools (Zapier, Make, n8n, their own code) to react to events in your app.</li><li>Customers keep polling your API to ask if something changed.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>No user has asked for integrations yet. A CSV export or email may be enough for now.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A deliveries table and your own worker <span class="cost">$0</span></h3>
+<p>Save one row per (endpoint, event) when the event happens. A background worker sends it, records the response code and schedules a retry on failure.</p><p class="trade"><strong>Tradeoff:</strong> Full control and no vendor. You build the retry schedule, signing, logs and the customer-facing settings page yourself.</p></li>
+<li><h3>A webhook delivery service <span class="cost">free tier, then paid</span></h3>
+<p>Svix or Hookdeck take your events and handle signing, retries, logs and an endpoint portal you can embed.</p><p class="trade"><strong>Tradeoff:</strong> Saves weeks. Another vendor sees your event payloads and bills per message at volume.</p></li>
+<li><h3>Queue plus a serverless sender <span class="cost">free tiers</span></h3>
+<p>Push events to a queue (SQS, Cloudflare Queues) and let a function deliver them with the queue&#x27;s retry and dead-letter settings.</p><p class="trade"><strong>Tradeoff:</strong> Scales well. Per-endpoint logs and a replay button are still yours to build.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add outgoing webhooks so users can subscribe a URL to events in my app.
+
+Requirements:
+- Users can add an endpoint (HTTPS only), pick which events it gets, and see its signing secret once.
+- When an event happens, save a delivery row per endpoint in the same database transaction as the change. A background worker sends it.
+- Body is JSON with id, type, created timestamp and data. Sign the timestamp plus body with HMAC-SHA256 and send the signature, timestamp and event id as headers.
+- 10 second timeout. Don&#x27;t follow redirects. Treat any 2xx as success.
+- Retry failures with exponential backoff and jitter for about [8] attempts over a day, then mark the delivery dead.
+- Block destinations that resolve to private, loopback or link-local addresses.
+- Give users a delivery log (time, event, status code, attempt count) and a &quot;resend&quot; button.
+- Disable an endpoint after [N] days of only failures and email its owner.
+
+Acceptance checks (run each and show me the result):
+1. A receiver can verify the signature with the secret and a 10-line script.
+2. Pointing an endpoint at a server that returns 500 shows retries spreading out in the log.
+3. An endpoint at http://127.0.0.1 or a private IP is rejected.
+4. A receiver that sleeps 60 seconds does not hold up other deliveries.
+5. Resending a delivery uses the same event id, so receivers can drop the duplicate.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Customers miss events whenever their server blips, nobody can tell what was sent, or your server gets used to probe internal addresses.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal can send webhooks to URLs its users register. Each delivery is a saved row that a webhook worker sends with HMAC-SHA256 signatures, an event id that doubles as an Idempotency-Key header and a 10 second timeout. Failures retry with jittered backoff starting at 30 seconds and capped at 6 hours, for up to 8 attempts, then the delivery is marked dead. Destinations must be HTTPS, redirects aren&#x27;t followed and private addresses are blocked.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let my users get notified in Zapier when something happens&rdquo;</li><li>&ldquo;send an event to a customer&#x27;s URL&rdquo;</li><li>&ldquo;customers want a callback when a job finishes&rdquo;</li><li>&ldquo;my webhook calls fail and nobody retries them&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.standardwebhooks.com/">Standard Webhooks spec</a></li><li><a href="https://www.svix.com/">Svix</a></li><li><a href="https://hookdeck.com/">Hookdeck</a></li><li><a href="https://docs.stripe.com/webhooks">Stripe: how its webhooks retry (a good model to copy)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/outbound-webhooks.json">api/outbound-webhooks.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../pagination/index.html">&larr; Pagination</a><a href="../api-keys/index.html">API keys for your own API &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

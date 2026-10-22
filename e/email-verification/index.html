@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email verification: What To Ask For</title>
+<meta name="description" content="Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Email verification: What To Ask For">
+<meta property="og:description" content="Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/email-verification/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Email verification: What To Ask For">
+<meta name="twitter:description" content="Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Email verification</h1>
+  <p class="aka">Also called: confirm email address, verify email, email confirmation link, verified email, change email flow</p>
+  <p class="lead">Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Email is used for password reset, billing, invites or anything private.</li><li>Users can change their email address.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Sign-in is only by magic link or a provider that already verified the email.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your auth library&#x27;s verification <span class="cost">$0</span></h3>
+<p>django-allauth, Devise confirmable, Laravel MustVerifyEmail, Better Auth and Auth.js email flows.</p><p class="trade"><strong>Tradeoff:</strong> Handled for you. Decide whether unverified users can use the app at all.</p></li>
+<li><h3>Hosted auth <span class="cost">free tiers</span></h3>
+<p>Clerk, Supabase Auth, Firebase Auth and Auth0 send verification emails and expose a verified flag.</p><p class="trade"><strong>Tradeoff:</strong> No code. Their email templates and sending domain unless you configure yours.</p></li>
+<li><h3>Your own signed tokens <span class="cost">$0</span></h3>
+<p>A random token stored as a hash with user id, email and expiry, or a signed token with your framework&#x27;s signer.</p><p class="trade"><strong>Tradeoff:</strong> Simple. Remember to bind it to the exact email being verified.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add email verification at signup and on email change.
+
+Requirements:
+- After signup, send a link with a random single-use token (stored as a hash) that expires in [24 hours]. The token is tied to the user id and the exact email.
+- Until verified, allow [limited use] and block [billing, invites, exports].
+- Resend button with a rate limit. Old links stop working when a new one is sent.
+- Email change: keep the old address active, send the link to the new one, switch only after it&#x27;s clicked, and notify the old address.
+- Password reset never goes to an unverified address.
+- The same &quot;check your inbox&quot; message whether or not the address exists, so the form can&#x27;t be used to find accounts.
+- Clicking the link while logged out still verifies, then asks the user to log in.
+
+Acceptance checks (run each and show me the result):
+1. A link works once and fails after expiry.
+2. Changing email doesn&#x27;t switch until the new address confirms, and the old address gets a notice.
+3. A token made for one email can&#x27;t verify a different email on the same account.
+4. Resend is throttled.
+5. Unverified accounts can&#x27;t reach the blocked features through the API.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Someone signs up with another person&#x27;s email and later takes over their account, or your sending reputation sinks from typo addresses.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;make sure users own the email they signed up with&rdquo;</li><li>&ldquo;people sign up with fake emails&rdquo;</li><li>&ldquo;someone signed up with my email address&rdquo;</li><li>&ldquo;let users change their email safely&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html">OWASP Authentication Cheat Sheet</a></li><li><a href="https://docs.allauth.org/en/latest/account/configuration.html">django-allauth: email verification settings</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/email-verification.json">api/email-verification.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../passkeys/index.html">&larr; Passkeys (WebAuthn)</a><a href="../team-invites/index.html">Team invite flow &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

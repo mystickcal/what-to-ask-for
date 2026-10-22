@@ -1,0 +1,89 @@
+{
+  "id": "api-keys",
+  "name": "API keys for your own API",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "personal access tokens",
+    "developer API keys",
+    "API tokens",
+    "secret keys",
+    "service tokens"
+  ],
+  "needs": [
+    "let customers call my API from their own code",
+    "generate API keys for users",
+    "how do I store API keys safely",
+    "a customer leaked their key and needs a new one"
+  ],
+  "keywords": [
+    "api",
+    "key",
+    "token",
+    "developer",
+    "personal",
+    "access",
+    "revoke",
+    "rotate",
+    "hash",
+    "prefix",
+    "scope",
+    "bearer",
+    "header"
+  ],
+  "summary": "Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.",
+  "need_when": [
+    "Customers or their tools need to call your API from servers, scripts or no-code tools."
+  ],
+  "skip_when": [
+    "Only your own frontend calls the API. Use normal login sessions.",
+    "Third-party apps act on behalf of users. That calls for OAuth, not pasted keys."
+  ],
+  "ways": [
+    {
+      "title": "Hashed keys in your own table",
+      "cost": "$0",
+      "how": "Generate 32 random bytes with a readable prefix like myapp_live_. Store a SHA-256 hash, the last 4 characters, scopes, created and last-used times.",
+      "tradeoff": "Simple and safe. You build the settings page, scopes and usage tracking."
+    },
+    {
+      "title": "An API key service",
+      "cost": "free tier, then paid",
+      "how": "Unkey or Zuplo issue, verify and rate limit keys for you, with per-key analytics.",
+      "tradeoff": "Fast to ship. Every API call now depends on their verify step."
+    },
+    {
+      "title": "Your auth provider's machine tokens",
+      "cost": "depends on plan",
+      "how": "Some auth providers (Clerk, WorkOS, Auth0) offer API keys or machine-to-machine tokens tied to your users or orgs.",
+      "tradeoff": "One less system. Features and limits vary a lot by plan."
+    }
+  ],
+  "prompt": "Add API keys so users can call my API from their own code.\n\nRequirements:\n- Settings page: create a key with a name and scopes ([read], [write]), list keys (name, prefix, last 4, scopes, created, last used) and revoke.\n- Key format: a fixed prefix like [myapp_live_] plus at least 32 random bytes, base62 or base64url.\n- Show the full key exactly once. Store only a SHA-256 hash and look keys up by that hash.\n- Accept keys in the Authorization: Bearer header only, never in the URL.\n- Check scopes on every endpoint. Revoked keys fail right away.\n- Rate limit per key, and update last_used_at at most once a minute.\n- Log key creation and revocation in the audit log.\n- Never log full keys. Add the prefix pattern to secret scanning if the host supports it.\n\nAcceptance checks (run each and show me the result):\n1. The database has no column that holds a usable key.\n2. A revoked key gets 401 on the next request.\n3. A read-only key gets 403 on a write endpoint.\n4. A key passed in the query string is refused.\n5. Request logs show the key prefix, never the full key.",
+  "acceptance_checks": [
+    "The database has no column that holds a usable key.",
+    "A revoked key gets 401 on the next request.",
+    "A read-only key gets 403 on a write endpoint.",
+    "A key passed in the query string is refused.",
+    "Request logs show the key prefix, never the full key."
+  ],
+  "if_you_skip_it": "A database leak hands out working keys for every customer, or a leaked key can't be shut off without breaking everyone.",
+  "how_derek_runs_it": "Custody Journal's mobile app tokens follow the same storage rule: the database keeps only a SHA-256 hash of each token, plus an expiry time.",
+  "links": [
+    {
+      "title": "OWASP REST Security Cheat Sheet: API keys",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
+    },
+    {
+      "title": "GitHub: secret scanning partner program (key prefixes)",
+      "url": "https://docs.github.com/en/code-security/tutorials/secret-scanning-partner-program"
+    },
+    {
+      "title": "Unkey (open source)",
+      "url": "https://github.com/unkeyed/unkey"
+    }
+  ],
+  "page": "e/api-keys/index.html",
+  "json": "api/api-keys.json",
+  "updated": "2026-10-21"
+}

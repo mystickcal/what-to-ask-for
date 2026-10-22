@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan limits and entitlements: What To Ask For</title>
+<meta name="description" content="One place in your code that answers &quot;is this account allowed to do this, and how much is left?&quot; based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Plan limits and entitlements: What To Ask For">
+<meta property="og:description" content="One place in your code that answers &quot;is this account allowed to do this, and how much is left?&quot; based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/plan-limits/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plan limits and entitlements: What To Ask For">
+<meta name="twitter:description" content="One place in your code that answers &quot;is this account allowed to do this, and how much is left?&quot; based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Plan limits and entitlements</h1>
+  <p class="aka">Also called: feature gating, entitlements, paywall, quota enforcement, free tier limits, usage limits per plan</p>
+  <p class="lead">One place in your code that answers &quot;is this account allowed to do this, and how much is left?&quot; based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You have a free tier, or more than one paid plan with different limits.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>One plan, everything included.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An entitlements module in your code <span class="cost">$0</span></h3>
+<p>A map from plan to features and limits, plus functions like can(account, feature) and remaining(account, limit). Plan comes from your subscription records.</p><p class="trade"><strong>Tradeoff:</strong> Simple and fast. Changing a plan means a deploy.</p></li>
+<li><h3>Your payment provider&#x27;s entitlements <span class="cost">included or paid add-on</span></h3>
+<p>Stripe Entitlements attach features to products and tell you which ones a customer has.</p><p class="trade"><strong>Tradeoff:</strong> Plans live next to prices. You still enforce counts in your own code.</p></li>
+<li><h3>A pricing and entitlements service <span class="cost">free tiers, then paid</span></h3>
+<p>Tools like Schematic, Stigg or Autumn manage plans, limits and metering and expose a check API.</p><p class="trade"><strong>Tradeoff:</strong> Change plans without deploys. Another dependency in your request path.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add plan limits and feature entitlements to my app.
+
+Requirements:
+- One module defines each plan&#x27;s features and limits: [free: 10 projects, no export; pro: unlimited, export].
+- Functions: can(account, feature) and remaining(account, limit). No other code checks plan names.
+- Read the plan from my subscription records (kept current by webhooks), with a safe default of free.
+- Enforce on the server. Hide or disable locked buttons in the UI too, with an upgrade link.
+- Check and create in one transaction with a row lock on the account, so two requests at once can&#x27;t both pass the last slot.
+- Count what users can&#x27;t easily dodge, for example items created this month even if later deleted or archived.
+- On downgrade, keep existing data readable and block only new creation past the limit.
+- Tests for each plan and limit, including two requests at the same moment.
+
+Acceptance checks (run each and show me the result):
+1. A free user creating the 11th project gets a clear upgrade message from the API, not only the UI.
+2. Firing 5 create requests at once at 9 used gives 10, not 14.
+3. Deleting items doesn&#x27;t reset a monthly cap if the rule says it shouldn&#x27;t.
+4. Downgrading keeps old data readable.
+5. Searching the code for plan names finds them only in the entitlements module.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Free users get paid features through the API or a race, or paying users hit walls meant for the free tier.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal keeps its free-tier entry cap in one quota module used by the journal, calendar and bulk import. It counts entries created this month whether or not they were later archived, skips auto-saved drafts, and runs the check and the creation inside one lock so two requests can&#x27;t both take the last slot.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;free users get 10 projects and paid users get unlimited&rdquo;</li><li>&ldquo;lock a feature behind the Pro plan&rdquo;</li><li>&ldquo;users get around the free tier limit&rdquo;</li><li>&ldquo;check what plan a user is on before running something&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/entitlements">Stripe Entitlements</a></li><li><a href="https://github.com/useautumn/autumn">Autumn (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/plan-limits.json">api/plan-limits.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../seat-billing/index.html">&larr; Per-seat team billing</a><a href="../refunds-disputes/index.html">Refunds and chargebacks &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

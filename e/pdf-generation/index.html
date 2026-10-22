@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF generation: What To Ask For</title>
+<meta name="description" content="Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="PDF generation: What To Ask For">
+<meta property="og:description" content="Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/pdf-generation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PDF generation: What To Ask For">
+<meta name="twitter:description" content="Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>PDF generation</h1>
+  <p class="aka">Also called: generate PDF, HTML to PDF, invoice PDF, PDF reports, export to PDF</p>
+  <p class="lead">Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Invoices, receipts, reports, certificates or anything users print or hand to someone else.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>A print stylesheet on the web page is enough and users can &quot;Save as PDF&quot; themselves.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Headless Chromium <span class="cost">$0, needs memory</span></h3>
+<p>Playwright or Puppeteer load an HTML page and call page.pdf().</p><p class="trade"><strong>Tradeoff:</strong> Matches your web styling. Heavy to run, and pages must not load untrusted URLs.</p></li>
+<li><h3>A print-CSS engine <span class="cost">$0</span></h3>
+<p>WeasyPrint (Python) renders HTML and CSS to PDF without a browser, with good page headers and footers.</p><p class="trade"><strong>Tradeoff:</strong> Lighter than Chromium. No JavaScript, and some modern CSS is missing.</p></li>
+<li><h3>Draw it with a PDF library <span class="cost">$0</span></h3>
+<p>ReportLab (Python), PDFKit or pdf-lib (JavaScript), or React-PDF lay out text and tables in code.</p><p class="trade"><strong>Tradeoff:</strong> Fast and exact. Layout changes take code.</p></li>
+<li><h3>A PDF API <span class="cost">free tiers, then per document</span></h3>
+<p>Services such as DocRaptor or PDFShift convert HTML for you.</p><p class="trade"><strong>Tradeoff:</strong> Nothing to host. Your documents leave your servers.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add PDF generation for [document type] using [tool].
+
+Requirements:
+- Build the PDF from a template plus data, in a background job if it takes over [3 seconds].
+- Page size [Letter / A4], margins, page numbers in the footer, and a header with the date generated.
+- Embed fonts so it looks the same everywhere. Tables split across pages with the header row repeated.
+- Escape all user text. If rendering HTML in a browser, block network requests except my own static files.
+- Store the file privately and serve it through a signed or owner-checked link.
+- Set a filename like [invoice-2026-001.pdf] and Content-Disposition attachment.
+- Add a test that generates a sample and checks the page count and some text.
+
+Acceptance checks (run each and show me the result):
+1. A 30-page report generates without timing out the web request.
+2. User text with HTML tags appears as text, not markup.
+3. Another user can&#x27;t download the file by changing the id.
+4. The PDF opens correctly in Acrobat, Preview and Chrome.
+5. Long tables repeat their header on each page.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Requests time out on big documents, a user&#x27;s text injects markup into an invoice, or private PDFs are readable by anyone with the link.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal builds its PDFs, including court summaries, parenting plans and calendar event lists, in Python with ReportLab.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;generate invoices as PDF&rdquo;</li><li>&ldquo;let users download a report as a PDF&rdquo;</li><li>&ldquo;my PDF looks different from the web page&rdquo;</li><li>&ldquo;PDF generation is slow and times out&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://playwright.dev/docs/api/class-page#page-pdf">Playwright: page.pdf()</a></li><li><a href="https://weasyprint.org/">WeasyPrint</a></li><li><a href="https://docs.reportlab.com/">ReportLab docs</a></li><li><a href="https://pdf-lib.js.org/">pdf-lib</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/pdf-generation.json">api/pdf-generation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../csv-import/index.html">&larr; CSV import</a><a href="../backups-tested-restore/index.html">Backups with a tested restore &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

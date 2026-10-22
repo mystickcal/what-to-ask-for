@@ -1,0 +1,88 @@
+{
+  "id": "csv-import",
+  "name": "CSV import",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "spreadsheet import",
+    "bulk upload",
+    "Excel import",
+    "data import",
+    "import contacts"
+  ],
+  "needs": [
+    "let users upload a spreadsheet of their contacts",
+    "import data from their old tool",
+    "bulk add 500 products from a CSV",
+    "the import half worked and left a mess"
+  ],
+  "keywords": [
+    "csv",
+    "import",
+    "spreadsheet",
+    "excel",
+    "xlsx",
+    "bulk",
+    "upload",
+    "rows",
+    "columns",
+    "mapping",
+    "migrate",
+    "preview"
+  ],
+  "summary": "Taking a user's spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.",
+  "need_when": [
+    "Users are switching from a spreadsheet or another tool.",
+    "Adding records one at a time would take them hours."
+  ],
+  "skip_when": [
+    "Users only ever have a handful of records."
+  ],
+  "ways": [
+    {
+      "title": "Your own upload, preview, commit flow",
+      "cost": "$0",
+      "how": "Parse with Python's csv module, Papa Parse (JavaScript) or openpyxl for Excel. Keep the parsed rows between steps, then save in one transaction.",
+      "tradeoff": "Full control and private. Column mapping UI is the hard part."
+    },
+    {
+      "title": "An embeddable importer",
+      "cost": "free tiers or open source, then paid",
+      "how": "Flatfile, OneSchema, CSVBox or the open source react-spreadsheet-import give users a mapping and cleanup screen.",
+      "tradeoff": "Great UX quickly. Data may pass through a vendor."
+    },
+    {
+      "title": "Background import for big files",
+      "cost": "$0",
+      "how": "Upload to storage, process in a job, email a report of what failed.",
+      "tradeoff": "Handles large files. Users wait and come back."
+    }
+  ],
+  "prompt": "Add CSV import for [record type].\n\nRequirements:\n- Steps: upload, map columns (auto-match by header name), preview, commit.\n- Limits: [500] rows and [5 MB] per file. Accept UTF-8 and UTF-8 with BOM. Detect comma or semicolon.\n- Validate each row with the same rules as the normal create form. The preview shows each row's errors with row number and column.\n- Commit valid rows in one transaction, or nothing on failure. Show \"imported X, skipped Y\" and offer a CSV of the skipped rows with reasons.\n- Respect plan limits: check before commit that the import won't exceed them.\n- Detect duplicates by [key] and let the user choose skip or update.\n- Escape cells starting with =, +, -, @ when exporting the error file back, to block formula injection.\n- Provide a downloadable template CSV.\n\nAcceptance checks (run each and show me the result):\n1. A file with 3 bad rows shows exactly those rows and reasons in the preview.\n2. Killing the process during commit leaves no half import.\n3. A file over the row limit gets a clear message.\n4. Importing the same file twice doesn't create duplicates when skip is chosen.\n5. A cell with =HYPERLINK(...) is neutralized in the error CSV.",
+  "acceptance_checks": [
+    "A file with 3 bad rows shows exactly those rows and reasons in the preview.",
+    "Killing the process during commit leaves no half import.",
+    "A file over the row limit gets a clear message.",
+    "Importing the same file twice doesn't create duplicates when skip is chosen.",
+    "A cell with =HYPERLINK(...) is neutralized in the error CSV."
+  ],
+  "if_you_skip_it": "Users import 10,000 broken rows they then have to delete by hand, or blow past plan limits in one upload.",
+  "how_derek_runs_it": "Custody Journal's CSV import covers journal entries, expenses and calendar events. It goes upload, preview, commit, caps files at 500 data rows, and checks the free-tier monthly limit before committing.",
+  "links": [
+    {
+      "title": "Papa Parse",
+      "url": "https://www.papaparse.com/"
+    },
+    {
+      "title": "OWASP: CSV injection",
+      "url": "https://community.owasp.org/attacks/CSV_Injection"
+    },
+    {
+      "title": "react-spreadsheet-import (open source)",
+      "url": "https://github.com/UgnisSoftware/react-spreadsheet-import"
+    }
+  ],
+  "page": "e/csv-import/index.html",
+  "json": "api/csv-import.json",
+  "updated": "2026-10-21"
+}

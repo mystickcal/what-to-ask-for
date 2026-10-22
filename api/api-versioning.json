@@ -1,0 +1,87 @@
+{
+  "id": "api-versioning",
+  "name": "API versioning plan",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "API versions",
+    "breaking changes",
+    "API deprecation",
+    "backward compatibility",
+    "v1 v2"
+  ],
+  "needs": [
+    "change my API without breaking customers' code",
+    "should I put v1 in the URL",
+    "rename a field in a public API",
+    "old mobile app versions still call the API"
+  ],
+  "keywords": [
+    "version",
+    "versioning",
+    "v1",
+    "v2",
+    "breaking",
+    "deprecate",
+    "deprecation",
+    "sunset",
+    "compatible",
+    "rename",
+    "field",
+    "mobile"
+  ],
+  "summary": "A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.",
+  "need_when": [
+    "Anyone outside your own frontend calls your API, including your own mobile app that users don't update."
+  ],
+  "skip_when": [
+    "The API is only used by a web frontend you deploy at the same time."
+  ],
+  "ways": [
+    {
+      "title": "Version in the URL",
+      "cost": "$0",
+      "how": "/v1/orders and later /v2/orders. Old routes keep working until a published sunset date.",
+      "tradeoff": "Obvious and easy to cache. Big jumps tend to bundle many changes at once."
+    },
+    {
+      "title": "Dated versions per account",
+      "cost": "$0",
+      "how": "Each account is pinned to the version it started on and can send a version header to upgrade. Small transform layers translate old shapes.",
+      "tradeoff": "Smooth for customers, and it is the model Stripe documents. More code to keep each old shape alive."
+    },
+    {
+      "title": "Additive changes only",
+      "cost": "$0",
+      "how": "Never remove or rename. Add new fields and endpoints, mark old ones deprecated in docs and responses.",
+      "tradeoff": "No version math. The API slowly collects leftovers."
+    }
+  ],
+  "prompt": "Write and apply an API versioning plan for my API.\n\nRequirements:\n- List what counts as a breaking change (removing or renaming a field or endpoint, changing a type, new required input, changed error codes) and what doesn't (new optional fields, new endpoints).\n- Use [URL versions like /v1/] and route all current endpoints under v1.\n- Add Deprecation and Sunset headers to anything scheduled for removal, plus a changelog page.\n- Keep contract tests that pin the v1 response shapes so an accidental break fails CI.\n- Log which version each API key or app build uses, so I know who still calls old versions.\n- Document the policy: how much notice before removal ([6 months]) and how customers are told.\n\nAcceptance checks (run each and show me the result):\n1. Renaming a field in a v1 response makes a contract test fail.\n2. Deprecated endpoints return Deprecation and Sunset headers.\n3. A dashboard or query shows request counts per version.\n4. The changelog lists every breaking change with a date.\n5. An old mobile build can still log in and load data.",
+  "acceptance_checks": [
+    "Renaming a field in a v1 response makes a contract test fail.",
+    "Deprecated endpoints return Deprecation and Sunset headers.",
+    "A dashboard or query shows request counts per version.",
+    "The changelog lists every breaking change with a date.",
+    "An old mobile build can still log in and load data."
+  ],
+  "if_you_skip_it": "One deploy breaks every customer integration and older app installs at once, with no warning.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: API upgrades and versioning",
+      "url": "https://docs.stripe.com/upgrades"
+    },
+    {
+      "title": "RFC 8594: the Sunset header",
+      "url": "https://datatracker.ietf.org/doc/html/rfc8594"
+    },
+    {
+      "title": "Microsoft REST API guidelines (versioning section)",
+      "url": "https://github.com/microsoft/api-guidelines"
+    }
+  ],
+  "page": "e/api-versioning/index.html",
+  "json": "api/api-versioning.json",
+  "updated": "2026-10-21"
+}

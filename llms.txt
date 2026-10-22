@@ -4,7 +4,7 @@
 
 Agents: fetch /entries.json for everything in one file (search the needs, aliases and keywords fields), or /api/<id>.json for one entry. Each entry page is plain HTML at /e/<id>/index.html.
 
-Each entry in entries.json has a category field. Categories: background (Background work and scheduling), payments (Payments and billing), auth (Auth and accounts), email (Email and notifications), files (Files and uploads), data (Data and databases), security (Security and abuse), deploys (Deploys, uptime and monitoring), ai (AI features), performance (Performance and caching), search (Search), privacy (Analytics and privacy).
+Each entry in entries.json has a category field. Categories: background (Background work and scheduling), payments (Payments and billing), auth (Auth and accounts), email (Email and notifications), files (Files and uploads), data (Data and databases), api (APIs and integrations), security (Security and abuse), deploys (Deploys, uptime and monitoring), ai (AI features), performance (Performance and caching), search (Search), privacy (Analytics and privacy).
 
 ## Entries
 
@@ -14,6 +14,8 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Background job queue](e/background-job-queue/index.html): The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it. JSON: api/background-job-queue.json
 - [Retries with backoff and a dead-letter queue](e/retries-and-dead-letter-queue/index.html): When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don't all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it. JSON: api/retries-and-dead-letter-queue.json
 - [Time zone handling](e/time-zones/index.html): Store moments in time as UTC, store each user's time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving. JSON: api/time-zones.json
+- [Transactional outbox](e/outbox-pattern/index.html): Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done. JSON: api/outbox-pattern.json
+- [Job status and progress UI](e/job-progress-ui/index.html): A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails. JSON: api/job-progress-ui.json
 
 ### Payments and billing
 
@@ -23,6 +25,9 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Failed payment recovery (dunning)](e/failed-payment-recovery/index.html): Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid. JSON: api/failed-payment-recovery.json
 - [Usage-based billing](e/usage-based-billing/index.html): Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down. JSON: api/usage-based-billing.json
 - [Free trial (with or without a card)](e/free-trials/index.html): A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card. JSON: api/free-trials.json
+- [Per-seat team billing](e/seat-billing/index.html): A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits. JSON: api/seat-billing.json
+- [Plan limits and entitlements](e/plan-limits/index.html): One place in your code that answers "is this account allowed to do this, and how much is left?" based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard. JSON: api/plan-limits.json
+- [Refunds and chargebacks](e/refunds-disputes/index.html): The flow for giving money back, and for answering when a customer's bank pulls it back for you. Your app listens for refund and dispute events, updates access, and keeps the records you need to respond to a dispute before the deadline. JSON: api/refunds-disputes.json
 
 ### Auth and accounts
 
@@ -32,6 +37,11 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Sessions vs JWT](e/sessions-vs-jwt/index.html): Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user's details itself, so the server doesn't look anything up, but it stays valid until it expires unless you add a revocation list. JSON: api/sessions-vs-jwt.json
 - [Roles and permissions](e/roles-and-permissions/index.html): Rules for who may do what. Users get a role (owner, admin, member, viewer) and each action checks the role on the server. Hiding a button only changes what people see. The server must refuse the request too. JSON: api/roles-and-permissions.json
 - [Multi-tenant data isolation](e/multi-tenant-isolation/index.html): Keeping each customer's data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets. JSON: api/multi-tenant-isolation.json
+- [Two-factor authentication (TOTP)](e/two-factor-auth/index.html): After the password, the user types a 6-digit code from an authenticator app. You store a secret per user, check codes with a small time window, and give recovery codes for when the phone is gone. JSON: api/two-factor-auth.json
+- [Passkeys (WebAuthn)](e/passkeys/index.html): Sign-in with a key pair stored on the user's phone, laptop or password manager, unlocked with Face ID, a fingerprint or a PIN. Your server keeps only the public key, so there's no password to phish or leak. JSON: api/passkeys.json
+- [Email verification](e/email-verification/index.html): Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password. JSON: api/email-verification.json
+- [Team invite flow](e/team-invites/index.html): A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them. JSON: api/team-invites.json
+- [Support impersonation](e/impersonation/index.html): A controlled way for staff to see the app as a specific user, with a banner that shows it's happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments. JSON: api/impersonation.json
 
 ### Email and notifications
 
@@ -39,6 +49,9 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Transactional vs bulk email](e/transactional-vs-bulk-email/index.html): Transactional email is one message to one person because of something they did: a sign-in link, a receipt, a reset. Bulk email is the same message to many people: newsletters, announcements. Send them through separate streams or providers so complaints about one don't hurt delivery of the other, and send from a background job, not inside the web request. JSON: api/transactional-vs-bulk-email.json
 - [Unsubscribe and suppression list](e/unsubscribe-handling/index.html): A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058). JSON: api/unsubscribe-handling.json
 - [Push notifications](e/push-notifications/index.html): Messages that appear on a device even when your app isn't open. On the web, a service worker receives them through the browser's push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google). JSON: api/push-notifications.json
+- [Inbound email parsing](e/inbound-email/index.html): Letting your app receive email. A provider accepts mail for an address or domain you own, turns each message into JSON (sender, subject, text, attachments) and posts it to a webhook in your app. JSON: api/inbound-email.json
+- [SMS text messages](e/sms-messages/index.html): Sending text messages through a provider's API. The code is easy. The work is registration (in the US, 10DLC brand and campaign approval for business texting), consent, STOP handling, cost per message, and fraud on verification codes. JSON: api/sms-messages.json
+- [Notification preferences and inbox](e/notification-preferences/index.html): A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first. JSON: api/notification-preferences.json
 
 ### Files and uploads
 
@@ -46,6 +59,8 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Direct-to-storage uploads](e/direct-uploads/index.html): Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don't tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be. JSON: api/direct-uploads.json
 - [Image resizing and thumbnails](e/image-resizing/index.html): Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result. JSON: api/image-resizing.json
 - [Upload validation and scanning](e/upload-validation-scanning/index.html): Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can't run it as a page. JSON: api/upload-validation-scanning.json
+- [CSV import](e/csv-import/index.html): Taking a user's spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms. JSON: api/csv-import.json
+- [PDF generation](e/pdf-generation/index.html): Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job. JSON: api/pdf-generation.json
 
 ### Data and databases
 
@@ -56,6 +71,14 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Audit log](e/audit-log/index.html): An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it. JSON: api/audit-log.json
 - [Transactions and race conditions](e/transactions-race-conditions/index.html): Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can't both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes. JSON: api/transactions-race-conditions.json
 - [Pagination](e/pagination/index.html): Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn't skip or repeat items when rows are added while someone scrolls. JSON: api/pagination.json
+
+### APIs and integrations
+
+- [Outgoing webhooks](e/outbound-webhooks/index.html): Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer's slow server can't slow you down. JSON: api/outbound-webhooks.json
+- [API keys for your own API](e/api-keys/index.html): Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one. JSON: api/api-keys.json
+- [API versioning plan](e/api-versioning/index.html): A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not. JSON: api/api-versioning.json
+- [Idempotency keys for your API](e/idempotency-keys/index.html): The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe. JSON: api/idempotency-keys.json
+- [API docs from an OpenAPI spec](e/api-docs-openapi/index.html): One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can't drift far from the code. JSON: api/api-docs-openapi.json
 
 ### Security and abuse
 

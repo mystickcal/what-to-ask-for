@@ -1,0 +1,84 @@
+{
+  "id": "email-verification",
+  "name": "Email verification",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "confirm email address",
+    "verify email",
+    "email confirmation link",
+    "verified email",
+    "change email flow"
+  ],
+  "needs": [
+    "make sure users own the email they signed up with",
+    "people sign up with fake emails",
+    "someone signed up with my email address",
+    "let users change their email safely"
+  ],
+  "keywords": [
+    "verify",
+    "verification",
+    "confirm",
+    "confirmation",
+    "email",
+    "fake",
+    "typo",
+    "change",
+    "owner",
+    "link",
+    "code",
+    "signup"
+  ],
+  "summary": "Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.",
+  "need_when": [
+    "Email is used for password reset, billing, invites or anything private.",
+    "Users can change their email address."
+  ],
+  "skip_when": [
+    "Sign-in is only by magic link or a provider that already verified the email."
+  ],
+  "ways": [
+    {
+      "title": "Your auth library's verification",
+      "cost": "$0",
+      "how": "django-allauth, Devise confirmable, Laravel MustVerifyEmail, Better Auth and Auth.js email flows.",
+      "tradeoff": "Handled for you. Decide whether unverified users can use the app at all."
+    },
+    {
+      "title": "Hosted auth",
+      "cost": "free tiers",
+      "how": "Clerk, Supabase Auth, Firebase Auth and Auth0 send verification emails and expose a verified flag.",
+      "tradeoff": "No code. Their email templates and sending domain unless you configure yours."
+    },
+    {
+      "title": "Your own signed tokens",
+      "cost": "$0",
+      "how": "A random token stored as a hash with user id, email and expiry, or a signed token with your framework's signer.",
+      "tradeoff": "Simple. Remember to bind it to the exact email being verified."
+    }
+  ],
+  "prompt": "Add email verification at signup and on email change.\n\nRequirements:\n- After signup, send a link with a random single-use token (stored as a hash) that expires in [24 hours]. The token is tied to the user id and the exact email.\n- Until verified, allow [limited use] and block [billing, invites, exports].\n- Resend button with a rate limit. Old links stop working when a new one is sent.\n- Email change: keep the old address active, send the link to the new one, switch only after it's clicked, and notify the old address.\n- Password reset never goes to an unverified address.\n- The same \"check your inbox\" message whether or not the address exists, so the form can't be used to find accounts.\n- Clicking the link while logged out still verifies, then asks the user to log in.\n\nAcceptance checks (run each and show me the result):\n1. A link works once and fails after expiry.\n2. Changing email doesn't switch until the new address confirms, and the old address gets a notice.\n3. A token made for one email can't verify a different email on the same account.\n4. Resend is throttled.\n5. Unverified accounts can't reach the blocked features through the API.",
+  "acceptance_checks": [
+    "A link works once and fails after expiry.",
+    "Changing email doesn't switch until the new address confirms, and the old address gets a notice.",
+    "A token made for one email can't verify a different email on the same account.",
+    "Resend is throttled.",
+    "Unverified accounts can't reach the blocked features through the API."
+  ],
+  "if_you_skip_it": "Someone signs up with another person's email and later takes over their account, or your sending reputation sinks from typo addresses.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OWASP Authentication Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    },
+    {
+      "title": "django-allauth: email verification settings",
+      "url": "https://docs.allauth.org/en/latest/account/configuration.html"
+    }
+  ],
+  "page": "e/email-verification/index.html",
+  "json": "api/email-verification.json",
+  "updated": "2026-10-21"
+}

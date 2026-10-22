@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API docs from an OpenAPI spec: What To Ask For</title>
+<meta name="description" content="One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can&#x27;t drift far from the code.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="API docs from an OpenAPI spec: What To Ask For">
+<meta property="og:description" content="One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can&#x27;t drift far from the code.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/api-docs-openapi/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API docs from an OpenAPI spec: What To Ask For">
+<meta name="twitter:description" content="One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can&#x27;t drift far from the code.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>API docs from an OpenAPI spec</h1>
+  <p class="aka">Also called: OpenAPI, Swagger, API reference, API documentation, SDK generation</p>
+  <p class="lead">One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can&#x27;t drift far from the code.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Anyone besides you calls your API, including AI agents and no-code tools.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Private endpoints used only by your own frontend.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Generate the spec from code <span class="cost">$0</span></h3>
+<p>FastAPI does it built in. drf-spectacular (Django REST), NestJS Swagger and zod-openapi build the file from your routes and schemas.</p><p class="trade"><strong>Tradeoff:</strong> Stays in sync with the code. Descriptions and examples still need writing.</p></li>
+<li><h3>Write the spec first <span class="cost">$0</span></h3>
+<p>Edit openapi.yaml by hand or in an editor, then generate server stubs and validate requests against it.</p><p class="trade"><strong>Tradeoff:</strong> Forces design up front. Easy to let code and file drift without a CI check.</p></li>
+<li><h3>A hosted docs platform <span class="cost">free tiers, then paid</span></h3>
+<p>Scalar, Redocly, Mintlify or ReadMe render the spec into searchable docs with a try-it console.</p><p class="trade"><strong>Tradeoff:</strong> Polished fast. Monthly cost as you grow.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Publish accurate API docs for my API from an OpenAPI 3.1 spec.
+
+Requirements:
+- Generate the spec from the code with [tool for my framework], or write openapi.yaml if no generator fits.
+- Every endpoint gets a summary, auth requirement, request schema, response schemas for success and each error, and one realistic example.
+- Serve the reference at /docs with [Scalar or Redoc] and the raw file at /openapi.json.
+- Add a CI step that fails when the spec is invalid or when the code and spec disagree (validate real responses in tests).
+- Add a short &quot;quick start&quot; page: get a key, make one call with curl, read the response.
+- Don&#x27;t include internal or admin endpoints in the public spec.
+
+Acceptance checks (run each and show me the result):
+1. The spec passes a linter such as Redocly CLI or Spectral.
+2. Changing a response field without updating the spec fails CI.
+3. The curl example in the quick start works as pasted.
+4. Admin endpoints are absent from /openapi.json.
+5. An AI coding tool can call the API correctly from the spec alone.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Support time goes to explaining endpoints, and integrations break because the docs describe last month&#x27;s API.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;customers keep asking how to call my API&rdquo;</li><li>&ldquo;write docs for my API&rdquo;</li><li>&ldquo;generate a client library for my API&rdquo;</li><li>&ldquo;my API docs are out of date&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://spec.openapis.org/oas/latest.html">OpenAPI Specification</a></li><li><a href="https://github.com/scalar/scalar">Scalar API reference (open source)</a></li><li><a href="https://redocly.com/docs/cli/">Redocly CLI (lint and preview)</a></li><li><a href="https://fastapi.tiangolo.com/features/">FastAPI: automatic docs</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/api-docs-openapi.json">api/api-docs-openapi.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../idempotency-keys/index.html">&larr; Idempotency keys for your API</a><a href="../rate-limiting/index.html">Rate limiting &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

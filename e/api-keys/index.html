@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API keys for your own API: What To Ask For</title>
+<meta name="description" content="Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="API keys for your own API: What To Ask For">
+<meta property="og:description" content="Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/api-keys/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API keys for your own API: What To Ask For">
+<meta name="twitter:description" content="Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>API keys for your own API</h1>
+  <p class="aka">Also called: personal access tokens, developer API keys, API tokens, secret keys, service tokens</p>
+  <p class="lead">Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Customers or their tools need to call your API from servers, scripts or no-code tools.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Only your own frontend calls the API. Use normal login sessions.</li><li>Third-party apps act on behalf of users. That calls for OAuth, not pasted keys.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Hashed keys in your own table <span class="cost">$0</span></h3>
+<p>Generate 32 random bytes with a readable prefix like myapp_live_. Store a SHA-256 hash, the last 4 characters, scopes, created and last-used times.</p><p class="trade"><strong>Tradeoff:</strong> Simple and safe. You build the settings page, scopes and usage tracking.</p></li>
+<li><h3>An API key service <span class="cost">free tier, then paid</span></h3>
+<p>Unkey or Zuplo issue, verify and rate limit keys for you, with per-key analytics.</p><p class="trade"><strong>Tradeoff:</strong> Fast to ship. Every API call now depends on their verify step.</p></li>
+<li><h3>Your auth provider&#x27;s machine tokens <span class="cost">depends on plan</span></h3>
+<p>Some auth providers (Clerk, WorkOS, Auth0) offer API keys or machine-to-machine tokens tied to your users or orgs.</p><p class="trade"><strong>Tradeoff:</strong> One less system. Features and limits vary a lot by plan.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add API keys so users can call my API from their own code.
+
+Requirements:
+- Settings page: create a key with a name and scopes ([read], [write]), list keys (name, prefix, last 4, scopes, created, last used) and revoke.
+- Key format: a fixed prefix like [myapp_live_] plus at least 32 random bytes, base62 or base64url.
+- Show the full key exactly once. Store only a SHA-256 hash and look keys up by that hash.
+- Accept keys in the Authorization: Bearer header only, never in the URL.
+- Check scopes on every endpoint. Revoked keys fail right away.
+- Rate limit per key, and update last_used_at at most once a minute.
+- Log key creation and revocation in the audit log.
+- Never log full keys. Add the prefix pattern to secret scanning if the host supports it.
+
+Acceptance checks (run each and show me the result):
+1. The database has no column that holds a usable key.
+2. A revoked key gets 401 on the next request.
+3. A read-only key gets 403 on a write endpoint.
+4. A key passed in the query string is refused.
+5. Request logs show the key prefix, never the full key.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A database leak hands out working keys for every customer, or a leaked key can&#x27;t be shut off without breaking everyone.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s mobile app tokens follow the same storage rule: the database keeps only a SHA-256 hash of each token, plus an expiry time.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let customers call my API from their own code&rdquo;</li><li>&ldquo;generate API keys for users&rdquo;</li><li>&ldquo;how do I store API keys safely&rdquo;</li><li>&ldquo;a customer leaked their key and needs a new one&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html">OWASP REST Security Cheat Sheet: API keys</a></li><li><a href="https://docs.github.com/en/code-security/tutorials/secret-scanning-partner-program">GitHub: secret scanning partner program (key prefixes)</a></li><li><a href="https://github.com/unkeyed/unkey">Unkey (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/api-keys.json">api/api-keys.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../outbound-webhooks/index.html">&larr; Outgoing webhooks</a><a href="../api-versioning/index.html">API versioning plan &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

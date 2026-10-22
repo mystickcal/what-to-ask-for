@@ -1,0 +1,92 @@
+{
+  "id": "inbound-email",
+  "name": "Inbound email parsing",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "receive email",
+    "email to app",
+    "reply by email",
+    "email webhooks",
+    "parse incoming email"
+  ],
+  "needs": [
+    "let users reply to a notification email and have it show up in the app",
+    "forward receipts to a special address",
+    "create a ticket when someone emails support",
+    "each user gets their own email address in my app"
+  ],
+  "keywords": [
+    "inbound",
+    "incoming",
+    "receive",
+    "reply",
+    "forward",
+    "parse",
+    "mx",
+    "email",
+    "address",
+    "mailbox",
+    "ticket",
+    "receipt",
+    "attachments"
+  ],
+  "summary": "Letting your app receive email. A provider accepts mail for an address or domain you own, turns each message into JSON (sender, subject, text, attachments) and posts it to a webhook in your app.",
+  "need_when": [
+    "Users should reply to notifications by email, forward things in, or email a unique address to add data."
+  ],
+  "skip_when": [
+    "You only need to read one mailbox occasionally. A shared inbox tool may be enough."
+  ],
+  "ways": [
+    {
+      "title": "Your email provider's inbound webhook",
+      "cost": "free tiers, then paid",
+      "how": "Postmark, SendGrid Inbound Parse, Mailgun Routes, Resend and Amazon SES receiving post parsed messages to your URL.",
+      "tradeoff": "Reliable and simple. You point a subdomain's MX record at them."
+    },
+    {
+      "title": "Cloudflare Email Routing with a Worker",
+      "cost": "free",
+      "how": "Email Workers receive messages for your domain and can forward or post them to your app.",
+      "tradeoff": "Free and flexible. You parse MIME yourself (postal-mime helps)."
+    },
+    {
+      "title": "Poll a mailbox over IMAP",
+      "cost": "$0",
+      "how": "A scheduled job reads a dedicated mailbox and processes new messages.",
+      "tradeoff": "Works with any mailbox. Slower, and fragile with folder states and logins."
+    }
+  ],
+  "prompt": "Let my app receive email at [reply.mydomain.com] using [provider]'s inbound webhook.\n\nRequirements:\n- Use a subdomain for MX so normal company mail is unaffected.\n- Verify each webhook is from the provider (signature, basic auth or secret path) and store the raw message id so retries aren't processed twice.\n- Route by address: reply+<token>@ maps to a thread with a random token, not a guessable id.\n- Check the sender matches the user the token belongs to. Look at SPF and DKIM results from the provider and drop failures.\n- Strip quoted replies and signatures so only the new text is saved.\n- Accept attachments up to [10 MB], check type and size, and store them like other uploads.\n- Process in a background job. Return 200 quickly.\n- Ignore auto-replies and bounce messages (Auto-Submitted header, empty return path) to avoid mail loops.\n\nAcceptance checks (run each and show me the result):\n1. Replying to a notification adds the reply text, without the quoted history, to the right thread.\n2. An email from a different sender to the same reply address is rejected.\n3. An out-of-office reply doesn't create anything or trigger another email.\n4. The same webhook delivered twice creates one record.\n5. A 50 MB attachment is refused cleanly.",
+  "acceptance_checks": [
+    "Replying to a notification adds the reply text, without the quoted history, to the right thread.",
+    "An email from a different sender to the same reply address is rejected.",
+    "An out-of-office reply doesn't create anything or trigger another email.",
+    "The same webhook delivered twice creates one record.",
+    "A 50 MB attachment is refused cleanly."
+  ],
+  "if_you_skip_it": "Anyone who learns an address can post into a user's account, or two auto-responders email each other forever.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Postmark: inbound email",
+      "url": "https://postmarkapp.com/developer/user-guide/inbound"
+    },
+    {
+      "title": "SendGrid Inbound Parse",
+      "url": "https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/setting-up-the-inbound-parse-webhook"
+    },
+    {
+      "title": "Cloudflare: Email Workers API",
+      "url": "https://developers.cloudflare.com/email-service/api/route-emails/email-handler/"
+    },
+    {
+      "title": "RFC 3834: auto-reply rules",
+      "url": "https://datatracker.ietf.org/doc/html/rfc3834"
+    }
+  ],
+  "page": "e/inbound-email/index.html",
+  "json": "api/inbound-email.json",
+  "updated": "2026-10-21"
+}

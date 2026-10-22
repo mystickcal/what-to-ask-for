@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notification preferences and inbox: What To Ask For</title>
+<meta name="description" content="A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Notification preferences and inbox: What To Ask For">
+<meta property="og:description" content="A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/notification-preferences/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Notification preferences and inbox: What To Ask For">
+<meta name="twitter:description" content="A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=email">Email and notifications</a></p>
+  <h1>Notification preferences and inbox</h1>
+  <p class="aka">Also called: notification settings, in-app notifications, notification center, bell icon, quiet hours, digest emails</p>
+  <p class="lead">A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You send more than two or three kinds of notifications.</li><li>Users ask how to get fewer emails.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You only send receipts and password resets. Those are transactional and always go out.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Preferences table and notifications table <span class="cost">$0</span></h3>
+<p>One row per user with a toggle per type and channel, plus a notifications table for the in-app list. A single notify() function checks preferences.</p><p class="trade"><strong>Tradeoff:</strong> Simple and private. You build the bell UI and digests.</p></li>
+<li><h3>A notification platform <span class="cost">free tiers, then paid</span></h3>
+<p>Knock, Novu, Courier or MagicBell store preferences, render an in-app inbox component and route to email, SMS and push.</p><p class="trade"><strong>Tradeoff:</strong> Fast and full-featured. User activity data goes to a vendor.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add notification preferences and an in-app notification list.
+
+Requirements:
+- List every notification type the app sends: [types]. Mark which are transactional (always sent) and which are optional.
+- Preferences per user: a toggle per optional type and channel (email, in-app, push), sensible defaults, and quiet hours in the user&#x27;s timezone with an override for urgent ones.
+- One notify(user, type, data) function. It checks preferences and quiet hours, writes the in-app row, and queues the email or push. Nothing else sends notifications directly.
+- In-app: bell icon with unread count, list with mark read and mark all read, newest first, paginated.
+- Optional digest: group low-priority types into one [daily / weekly] email.
+- Every optional email links straight to the preferences page.
+
+Acceptance checks (run each and show me the result):
+1. Turning off one type stops that email but leaves the others.
+2. Nothing optional is sent during quiet hours; urgent items still go out if allowed.
+3. Searching the code shows no sends that bypass notify().
+4. Unread count updates after marking items read.
+5. Password reset and receipts still send with everything turned off.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users mute you completely, or mark you as spam, because the only choice is all or nothing.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal keeps a preferences row per user with a separate toggle for each email type (exchange reminders, missed exchanges, weekly digest, deadline reminders and more) and quiet hours with an emergency override.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users choose which emails they get&rdquo;</li><li>&ldquo;add a bell icon with unread notifications&rdquo;</li><li>&ldquo;users complain about too many notifications&rdquo;</li><li>&ldquo;send a daily digest instead of every event&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/novuhq/novu">Novu (open source)</a></li><li><a href="https://docs.knock.app/preferences/overview">Knock: preferences</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/notification-preferences.json">api/notification-preferences.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../sms-messages/index.html">&larr; SMS text messages</a><a href="../signed-download-links/index.html">Signed download link &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

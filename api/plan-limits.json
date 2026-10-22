@@ -1,0 +1,86 @@
+{
+  "id": "plan-limits",
+  "name": "Plan limits and entitlements",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "feature gating",
+    "entitlements",
+    "paywall",
+    "quota enforcement",
+    "free tier limits",
+    "usage limits per plan"
+  ],
+  "needs": [
+    "free users get 10 projects and paid users get unlimited",
+    "lock a feature behind the Pro plan",
+    "users get around the free tier limit",
+    "check what plan a user is on before running something"
+  ],
+  "keywords": [
+    "plan",
+    "limit",
+    "limits",
+    "entitlement",
+    "gate",
+    "gating",
+    "paywall",
+    "pro",
+    "free",
+    "tier",
+    "quota",
+    "upgrade",
+    "feature",
+    "cap"
+  ],
+  "summary": "One place in your code that answers \"is this account allowed to do this, and how much is left?\" based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.",
+  "need_when": [
+    "You have a free tier, or more than one paid plan with different limits."
+  ],
+  "skip_when": [
+    "One plan, everything included."
+  ],
+  "ways": [
+    {
+      "title": "An entitlements module in your code",
+      "cost": "$0",
+      "how": "A map from plan to features and limits, plus functions like can(account, feature) and remaining(account, limit). Plan comes from your subscription records.",
+      "tradeoff": "Simple and fast. Changing a plan means a deploy."
+    },
+    {
+      "title": "Your payment provider's entitlements",
+      "cost": "included or paid add-on",
+      "how": "Stripe Entitlements attach features to products and tell you which ones a customer has.",
+      "tradeoff": "Plans live next to prices. You still enforce counts in your own code."
+    },
+    {
+      "title": "A pricing and entitlements service",
+      "cost": "free tiers, then paid",
+      "how": "Tools like Schematic, Stigg or Autumn manage plans, limits and metering and expose a check API.",
+      "tradeoff": "Change plans without deploys. Another dependency in your request path."
+    }
+  ],
+  "prompt": "Add plan limits and feature entitlements to my app.\n\nRequirements:\n- One module defines each plan's features and limits: [free: 10 projects, no export; pro: unlimited, export].\n- Functions: can(account, feature) and remaining(account, limit). No other code checks plan names.\n- Read the plan from my subscription records (kept current by webhooks), with a safe default of free.\n- Enforce on the server. Hide or disable locked buttons in the UI too, with an upgrade link.\n- Check and create in one transaction with a row lock on the account, so two requests at once can't both pass the last slot.\n- Count what users can't easily dodge, for example items created this month even if later deleted or archived.\n- On downgrade, keep existing data readable and block only new creation past the limit.\n- Tests for each plan and limit, including two requests at the same moment.\n\nAcceptance checks (run each and show me the result):\n1. A free user creating the 11th project gets a clear upgrade message from the API, not only the UI.\n2. Firing 5 create requests at once at 9 used gives 10, not 14.\n3. Deleting items doesn't reset a monthly cap if the rule says it shouldn't.\n4. Downgrading keeps old data readable.\n5. Searching the code for plan names finds them only in the entitlements module.",
+  "acceptance_checks": [
+    "A free user creating the 11th project gets a clear upgrade message from the API, not only the UI.",
+    "Firing 5 create requests at once at 9 used gives 10, not 14.",
+    "Deleting items doesn't reset a monthly cap if the rule says it shouldn't.",
+    "Downgrading keeps old data readable.",
+    "Searching the code for plan names finds them only in the entitlements module."
+  ],
+  "if_you_skip_it": "Free users get paid features through the API or a race, or paying users hit walls meant for the free tier.",
+  "how_derek_runs_it": "Custody Journal keeps its free-tier entry cap in one quota module used by the journal, calendar and bulk import. It counts entries created this month whether or not they were later archived, skips auto-saved drafts, and runs the check and the creation inside one lock so two requests can't both take the last slot.",
+  "links": [
+    {
+      "title": "Stripe Entitlements",
+      "url": "https://docs.stripe.com/billing/entitlements"
+    },
+    {
+      "title": "Autumn (open source)",
+      "url": "https://github.com/useautumn/autumn"
+    }
+  ],
+  "page": "e/plan-limits/index.html",
+  "json": "api/plan-limits.json",
+  "updated": "2026-10-21"
+}

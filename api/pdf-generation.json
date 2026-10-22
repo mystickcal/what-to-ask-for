@@ -1,0 +1,98 @@
+{
+  "id": "pdf-generation",
+  "name": "PDF generation",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "generate PDF",
+    "HTML to PDF",
+    "invoice PDF",
+    "PDF reports",
+    "export to PDF"
+  ],
+  "needs": [
+    "generate invoices as PDF",
+    "let users download a report as a PDF",
+    "my PDF looks different from the web page",
+    "PDF generation is slow and times out"
+  ],
+  "keywords": [
+    "pdf",
+    "invoice",
+    "report",
+    "print",
+    "export",
+    "download",
+    "html",
+    "chromium",
+    "puppeteer",
+    "playwright",
+    "weasyprint",
+    "reportlab",
+    "receipt"
+  ],
+  "summary": "Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.",
+  "need_when": [
+    "Invoices, receipts, reports, certificates or anything users print or hand to someone else."
+  ],
+  "skip_when": [
+    "A print stylesheet on the web page is enough and users can \"Save as PDF\" themselves."
+  ],
+  "ways": [
+    {
+      "title": "Headless Chromium",
+      "cost": "$0, needs memory",
+      "how": "Playwright or Puppeteer load an HTML page and call page.pdf().",
+      "tradeoff": "Matches your web styling. Heavy to run, and pages must not load untrusted URLs."
+    },
+    {
+      "title": "A print-CSS engine",
+      "cost": "$0",
+      "how": "WeasyPrint (Python) renders HTML and CSS to PDF without a browser, with good page headers and footers.",
+      "tradeoff": "Lighter than Chromium. No JavaScript, and some modern CSS is missing."
+    },
+    {
+      "title": "Draw it with a PDF library",
+      "cost": "$0",
+      "how": "ReportLab (Python), PDFKit or pdf-lib (JavaScript), or React-PDF lay out text and tables in code.",
+      "tradeoff": "Fast and exact. Layout changes take code."
+    },
+    {
+      "title": "A PDF API",
+      "cost": "free tiers, then per document",
+      "how": "Services such as DocRaptor or PDFShift convert HTML for you.",
+      "tradeoff": "Nothing to host. Your documents leave your servers."
+    }
+  ],
+  "prompt": "Add PDF generation for [document type] using [tool].\n\nRequirements:\n- Build the PDF from a template plus data, in a background job if it takes over [3 seconds].\n- Page size [Letter / A4], margins, page numbers in the footer, and a header with the date generated.\n- Embed fonts so it looks the same everywhere. Tables split across pages with the header row repeated.\n- Escape all user text. If rendering HTML in a browser, block network requests except my own static files.\n- Store the file privately and serve it through a signed or owner-checked link.\n- Set a filename like [invoice-2026-001.pdf] and Content-Disposition attachment.\n- Add a test that generates a sample and checks the page count and some text.\n\nAcceptance checks (run each and show me the result):\n1. A 30-page report generates without timing out the web request.\n2. User text with HTML tags appears as text, not markup.\n3. Another user can't download the file by changing the id.\n4. The PDF opens correctly in Acrobat, Preview and Chrome.\n5. Long tables repeat their header on each page.",
+  "acceptance_checks": [
+    "A 30-page report generates without timing out the web request.",
+    "User text with HTML tags appears as text, not markup.",
+    "Another user can't download the file by changing the id.",
+    "The PDF opens correctly in Acrobat, Preview and Chrome.",
+    "Long tables repeat their header on each page."
+  ],
+  "if_you_skip_it": "Requests time out on big documents, a user's text injects markup into an invoice, or private PDFs are readable by anyone with the link.",
+  "how_derek_runs_it": "Custody Journal builds its PDFs, including court summaries, parenting plans and calendar event lists, in Python with ReportLab.",
+  "links": [
+    {
+      "title": "Playwright: page.pdf()",
+      "url": "https://playwright.dev/docs/api/class-page#page-pdf"
+    },
+    {
+      "title": "WeasyPrint",
+      "url": "https://weasyprint.org/"
+    },
+    {
+      "title": "ReportLab docs",
+      "url": "https://docs.reportlab.com/"
+    },
+    {
+      "title": "pdf-lib",
+      "url": "https://pdf-lib.js.org/"
+    }
+  ],
+  "page": "e/pdf-generation/index.html",
+  "json": "api/pdf-generation.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,80 @@
+{
+  "id": "notification-preferences",
+  "name": "Notification preferences and inbox",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "notification settings",
+    "in-app notifications",
+    "notification center",
+    "bell icon",
+    "quiet hours",
+    "digest emails"
+  ],
+  "needs": [
+    "let users choose which emails they get",
+    "add a bell icon with unread notifications",
+    "users complain about too many notifications",
+    "send a daily digest instead of every event"
+  ],
+  "keywords": [
+    "notification",
+    "notifications",
+    "preferences",
+    "settings",
+    "bell",
+    "inbox",
+    "unread",
+    "digest",
+    "quiet",
+    "hours",
+    "channel",
+    "mute",
+    "frequency"
+  ],
+  "summary": "A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.",
+  "need_when": [
+    "You send more than two or three kinds of notifications.",
+    "Users ask how to get fewer emails."
+  ],
+  "skip_when": [
+    "You only send receipts and password resets. Those are transactional and always go out."
+  ],
+  "ways": [
+    {
+      "title": "Preferences table and notifications table",
+      "cost": "$0",
+      "how": "One row per user with a toggle per type and channel, plus a notifications table for the in-app list. A single notify() function checks preferences.",
+      "tradeoff": "Simple and private. You build the bell UI and digests."
+    },
+    {
+      "title": "A notification platform",
+      "cost": "free tiers, then paid",
+      "how": "Knock, Novu, Courier or MagicBell store preferences, render an in-app inbox component and route to email, SMS and push.",
+      "tradeoff": "Fast and full-featured. User activity data goes to a vendor."
+    }
+  ],
+  "prompt": "Add notification preferences and an in-app notification list.\n\nRequirements:\n- List every notification type the app sends: [types]. Mark which are transactional (always sent) and which are optional.\n- Preferences per user: a toggle per optional type and channel (email, in-app, push), sensible defaults, and quiet hours in the user's timezone with an override for urgent ones.\n- One notify(user, type, data) function. It checks preferences and quiet hours, writes the in-app row, and queues the email or push. Nothing else sends notifications directly.\n- In-app: bell icon with unread count, list with mark read and mark all read, newest first, paginated.\n- Optional digest: group low-priority types into one [daily / weekly] email.\n- Every optional email links straight to the preferences page.\n\nAcceptance checks (run each and show me the result):\n1. Turning off one type stops that email but leaves the others.\n2. Nothing optional is sent during quiet hours; urgent items still go out if allowed.\n3. Searching the code shows no sends that bypass notify().\n4. Unread count updates after marking items read.\n5. Password reset and receipts still send with everything turned off.",
+  "acceptance_checks": [
+    "Turning off one type stops that email but leaves the others.",
+    "Nothing optional is sent during quiet hours; urgent items still go out if allowed.",
+    "Searching the code shows no sends that bypass notify().",
+    "Unread count updates after marking items read.",
+    "Password reset and receipts still send with everything turned off."
+  ],
+  "if_you_skip_it": "Users mute you completely, or mark you as spam, because the only choice is all or nothing.",
+  "how_derek_runs_it": "Custody Journal keeps a preferences row per user with a separate toggle for each email type (exchange reminders, missed exchanges, weekly digest, deadline reminders and more) and quiet hours with an emergency override.",
+  "links": [
+    {
+      "title": "Novu (open source)",
+      "url": "https://github.com/novuhq/novu"
+    },
+    {
+      "title": "Knock: preferences",
+      "url": "https://docs.knock.app/preferences/overview"
+    }
+  ],
+  "page": "e/notification-preferences/index.html",
+  "json": "api/notification-preferences.json",
+  "updated": "2026-10-21"
+}

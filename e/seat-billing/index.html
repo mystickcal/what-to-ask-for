@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per-seat team billing: What To Ask For</title>
+<meta name="description" content="A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Per-seat team billing: What To Ask For">
+<meta property="og:description" content="A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/seat-billing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Per-seat team billing: What To Ask For">
+<meta name="twitter:description" content="A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Per-seat team billing</h1>
+  <p class="aka">Also called: seat-based pricing, per user pricing, team plans, seat count billing, license seats</p>
+  <p class="lead">A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You sell to teams and price grows with the number of people using it.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Plans are flat per workspace, or most customers are solo users.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Subscription quantity at your payment provider <span class="cost">payment fees only</span></h3>
+<p>Stripe, Paddle and Lemon Squeezy subscriptions have a quantity. Update it when membership changes and let the provider prorate.</p><p class="trade"><strong>Tradeoff:</strong> Standard and well documented. You decide when to sync, and whether removals take effect now or at renewal.</p></li>
+<li><h3>Buy seats up front <span class="cost">payment fees only</span></h3>
+<p>Admins pick a seat count. Invites beyond it ask them to buy more first.</p><p class="trade"><strong>Tradeoff:</strong> Predictable bills, no surprise charges. One more step before inviting.</p></li>
+<li><h3>True-up later <span class="cost">payment fees only</span></h3>
+<p>Let teams add people freely and bill the extra seats on the next invoice.</p><p class="trade"><strong>Tradeoff:</strong> No friction. Some customers dislike surprise increases.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add per-seat billing for team workspaces using [Stripe] subscriptions.
+
+Requirements:
+- Each workspace has one subscription. Quantity = active paid members (pending invites [do / don&#x27;t] count).
+- When a member is added or removed, update the subscription quantity with proration [now / at renewal]. Do it in a background job with retries.
+- Store seats_paid on the workspace from webhook events, not from the API response alone.
+- Only workspace owners and billing admins can change seats or see invoices.
+- Show the current seat count, price per seat and next invoice estimate on the billing page.
+- If seats_paid &lt; members (failed sync or payment), block new invites and show a fix-it message. Never lock out existing members.
+- Write tests for add, remove, downgrade at renewal and failed payment.
+
+Acceptance checks (run each and show me the result):
+1. Adding a member raises the subscription quantity by one within a minute.
+2. Removing a member lowers it as configured, with the proration line on the next invoice.
+3. A non-admin can&#x27;t open the billing page.
+4. A failed quantity update retries and alerts, and the app shows the mismatch.
+5. Seat count in your database matches the provider after replaying webhooks.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Teams use 40 seats while paying for 5, or get charged for people they removed months ago.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;charge teams per member&rdquo;</li><li>&ldquo;update the bill when someone joins the team&rdquo;</li><li>&ldquo;how many seats does this workspace pay for&rdquo;</li><li>&ldquo;prorate when a team adds a user mid month&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing">Stripe: per-seat pricing</a></li><li><a href="https://docs.stripe.com/billing/subscriptions/prorations">Stripe: prorations</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/seat-billing.json">api/seat-billing.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../free-trials/index.html">&larr; Free trial (with or without a card)</a><a href="../plan-limits/index.html">Plan limits and entitlements &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

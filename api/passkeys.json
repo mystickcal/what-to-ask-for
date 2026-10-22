@@ -1,0 +1,86 @@
+{
+  "id": "passkeys",
+  "name": "Passkeys (WebAuthn)",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "WebAuthn",
+    "FIDO2",
+    "passwordless login",
+    "Face ID login",
+    "security keys"
+  ],
+  "needs": [
+    "let users sign in with Face ID or a fingerprint",
+    "add passwordless login",
+    "stop phishing of user passwords",
+    "support YubiKeys"
+  ],
+  "keywords": [
+    "passkey",
+    "passkeys",
+    "webauthn",
+    "fido",
+    "fido2",
+    "passwordless",
+    "face",
+    "touch",
+    "fingerprint",
+    "biometric",
+    "yubikey",
+    "phishing"
+  ],
+  "summary": "Sign-in with a key pair stored on the user's phone, laptop or password manager, unlocked with Face ID, a fingerprint or a PIN. Your server keeps only the public key, so there's no password to phish or leak.",
+  "need_when": [
+    "You want the strongest login without making users manage codes.",
+    "Phishing or password reuse is a real risk for your users."
+  ],
+  "skip_when": [
+    "It would be your only login method on day one. Keep email or password as a fallback while users adopt it."
+  ],
+  "ways": [
+    {
+      "title": "A WebAuthn library",
+      "cost": "$0",
+      "how": "SimpleWebAuthn (TypeScript), py_webauthn (Python) or webauthn-ruby handle the challenge and verification on both sides.",
+      "tradeoff": "Full control and no vendor. You build the account and recovery flows."
+    },
+    {
+      "title": "Your auth library or provider",
+      "cost": "$0 to plan-based",
+      "how": "django-allauth, Better Auth, Clerk, Auth0, Supabase and others support passkeys as a login or second factor.",
+      "tradeoff": "Least code. Setup and recovery look the way they decide."
+    }
+  ],
+  "prompt": "Add passkey sign-in to my app with [library].\n\nRequirements:\n- Signed-in users can add a passkey (named by device), list them with last-used date, and remove them.\n- Login page offers \"Sign in with a passkey\" and uses autofill (conditional mediation) where the browser supports it.\n- Generate a fresh random challenge per attempt on the server, with a short expiry, and verify origin and RP ID.\n- Store credential id, public key, sign count, transports, created and last used. Never store anything that could act as a password.\n- Keep email login as a fallback. Removing the last sign-in method is blocked.\n- Email the user when a passkey is added or removed.\n- Test on iPhone Safari, Android Chrome, and desktop with a password manager.\n\nAcceptance checks (run each and show me the result):\n1. Adding a passkey on a phone and signing in with Face ID or a fingerprint works.\n2. A passkey registered for your production domain fails on a lookalike domain.\n3. A replayed login response with an old challenge is rejected.\n4. Users can't remove their last way to sign in.\n5. The passkeys list shows each device and its last use.",
+  "acceptance_checks": [
+    "Adding a passkey on a phone and signing in with Face ID or a fingerprint works.",
+    "A passkey registered for your production domain fails on a lookalike domain.",
+    "A replayed login response with an old challenge is rejected.",
+    "Users can't remove their last way to sign in.",
+    "The passkeys list shows each device and its last use."
+  ],
+  "if_you_skip_it": "Users get locked out when they change phones, or the flow works on one browser and silently fails on others.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "passkeys.dev (developer guide)",
+      "url": "https://passkeys.dev/"
+    },
+    {
+      "title": "SimpleWebAuthn",
+      "url": "https://simplewebauthn.dev/"
+    },
+    {
+      "title": "py_webauthn",
+      "url": "https://github.com/duo-labs/py_webauthn"
+    },
+    {
+      "title": "MDN: Web Authentication API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API"
+    }
+  ],
+  "page": "e/passkeys/index.html",
+  "json": "api/passkeys.json",
+  "updated": "2026-10-21"
+}

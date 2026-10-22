@@ -1,0 +1,84 @@
+{
+  "id": "team-invites",
+  "name": "Team invite flow",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "invite teammates",
+    "invitation links",
+    "workspace invites",
+    "join a team",
+    "invite by email"
+  ],
+  "needs": [
+    "let users invite their coworkers",
+    "send an invite link that adds someone to a workspace",
+    "invited person doesn't have an account yet",
+    "revoke an invite that went to the wrong person"
+  ],
+  "keywords": [
+    "invite",
+    "invites",
+    "invitation",
+    "team",
+    "teammate",
+    "workspace",
+    "join",
+    "member",
+    "accept",
+    "revoke",
+    "expire",
+    "collaborator",
+    "share"
+  ],
+  "summary": "A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.",
+  "need_when": [
+    "Accounts are shared by more than one person: teams, families, clients and advisors."
+  ],
+  "skip_when": [
+    "Every account is single-user."
+  ],
+  "ways": [
+    {
+      "title": "An invites table",
+      "cost": "$0",
+      "how": "Rows with inviter, email, workspace, role, token hash, status (pending, accepted, declined, revoked), expires_at.",
+      "tradeoff": "Full control over roles and edge cases. You write the emails and screens."
+    },
+    {
+      "title": "Hosted organizations",
+      "cost": "free tiers, then plan-based",
+      "how": "Clerk Organizations, WorkOS, Auth0 Organizations and Supabase-based kits ship invites and roles.",
+      "tradeoff": "Fast. Your team model has to fit theirs."
+    },
+    {
+      "title": "Shareable join links",
+      "cost": "$0",
+      "how": "A link anyone with it can use to join, optionally limited to an email domain.",
+      "tradeoff": "Easy for big teams. A forwarded link lets the wrong people in."
+    }
+  ],
+  "prompt": "Add an invite flow so members can add people to a workspace.\n\nRequirements:\n- Invite form: email and role. Only roles at or below the inviter's are allowed.\n- Store invite: inviter, workspace, normalized email, role, random token (stored as a hash), status (pending, accepted, declined, revoked) and expiry of [14 days].\n- Email a link. If the person has no account, the link leads to signup and returns to the invite after.\n- On accept, require the signed-in account's verified email to match the invited email (case-insensitive). Otherwise show who it was for.\n- Accepting twice, after expiry, or after revoke shows a clear message and changes nothing.\n- Admins see pending invites and can resend (new token) or revoke.\n- Don't reveal whether an email already has an account. Rate limit invites per workspace.\n- Log invite sent, accepted and revoked in the audit log.\n\nAcceptance checks (run each and show me the result):\n1. A user signed in as a different email can't accept someone else's invite.\n2. An expired or revoked link does nothing.\n3. A member can't invite someone as admin.\n4. A brand-new user can sign up from the link and land in the workspace.\n5. Resending invalidates the old link.",
+  "acceptance_checks": [
+    "A user signed in as a different email can't accept someone else's invite.",
+    "An expired or revoked link does nothing.",
+    "A member can't invite someone as admin.",
+    "A brand-new user can sign up from the link and land in the workspace.",
+    "Resending invalidates the old link."
+  ],
+  "if_you_skip_it": "A forwarded invite email gives a stranger access to a private workspace, or old links work forever.",
+  "how_derek_runs_it": "Custody Journal's co-parent invites use a random token with a 14-day expiry and pending, accepted, declined and revoked states, and set calendar and exchange-log permissions per invite. Accepting requires the signed-in account's email to match the invited email.",
+  "links": [
+    {
+      "title": "Clerk: organization invitations",
+      "url": "https://clerk.com/docs/guides/development/custom-flows/organizations/manage-organization-invitations"
+    },
+    {
+      "title": "OWASP Authorization Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+    }
+  ],
+  "page": "e/team-invites/index.html",
+  "json": "api/team-invites.json",
+  "updated": "2026-10-21"
+}

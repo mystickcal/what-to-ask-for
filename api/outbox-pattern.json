@@ -1,0 +1,92 @@
+{
+  "id": "outbox-pattern",
+  "name": "Transactional outbox",
+  "category": "background",
+  "category_name": "Background work and scheduling",
+  "aliases": [
+    "outbox pattern",
+    "reliable events",
+    "dual write problem",
+    "event publishing",
+    "transactional messaging"
+  ],
+  "needs": [
+    "the order saved but the email never went out",
+    "the email went out but the save failed",
+    "publish an event every time a record changes",
+    "keep my database and queue in sync"
+  ],
+  "keywords": [
+    "outbox",
+    "event",
+    "publish",
+    "dual",
+    "write",
+    "transaction",
+    "commit",
+    "queue",
+    "consistency",
+    "lost",
+    "message",
+    "sync"
+  ],
+  "summary": "Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.",
+  "need_when": [
+    "A database change must reliably trigger an email, webhook, queue message or call to another service.",
+    "You have seen \"saved but never notified\" bugs after crashes or deploys."
+  ],
+  "skip_when": [
+    "The side effect is fine to lose now and then, like a non-critical analytics ping."
+  ],
+  "ways": [
+    {
+      "title": "Outbox table plus a polling worker",
+      "cost": "$0",
+      "how": "An outbox table (id, type, payload, created, sent_at, attempts). The worker selects unsent rows with FOR UPDATE SKIP LOCKED, sends, marks sent.",
+      "tradeoff": "Works with any SQL database and is easy to inspect. A few seconds of delay from polling."
+    },
+    {
+      "title": "A Postgres-backed job queue",
+      "cost": "$0",
+      "how": "Enqueue the job inside the same transaction with pg-boss (Node), Oban (Elixir), Procrastinate (Python) or River (Go), since the queue lives in your database.",
+      "tradeoff": "The queue is the outbox, so no extra table. Your database carries the job load."
+    },
+    {
+      "title": "Change data capture",
+      "cost": "$0 software, more ops",
+      "how": "Debezium reads the database log and publishes outbox rows to Kafka or another broker.",
+      "tradeoff": "Near real time at large scale. Heavy to run for a small app."
+    }
+  ],
+  "prompt": "Add a transactional outbox so database changes reliably trigger [emails / webhooks / queue messages].\n\nRequirements:\n- Create an outbox table: id, event type, payload JSON, created_at, available_at, attempts, sent_at, last_error.\n- Wherever the code saves a change and then sends something, write the outbox row in the same transaction instead of sending inline.\n- A worker claims due rows with SELECT ... FOR UPDATE SKIP LOCKED, sends them, and marks them sent.\n- Retry failures with backoff and stop after [N] attempts, leaving the row for review.\n- Give each event a unique id and send it along, so receivers can ignore duplicates.\n- Delete sent rows older than [7 days].\n- List every place in the code that still sends directly after a save.\n\nAcceptance checks (run each and show me the result):\n1. Killing the app right after the save still sends the message once it restarts.\n2. If the transaction rolls back, nothing is sent.\n3. Two workers running at once never send the same row twice in normal operation.\n4. A broken receiver leaves rows with growing attempt counts, not lost messages.\n5. Every send-after-save in the codebase goes through the outbox.",
+  "acceptance_checks": [
+    "Killing the app right after the save still sends the message once it restarts.",
+    "If the transaction rolls back, nothing is sent.",
+    "Two workers running at once never send the same row twice in normal operation.",
+    "A broken receiver leaves rows with growing attempt counts, not lost messages.",
+    "Every send-after-save in the codebase goes through the outbox."
+  ],
+  "if_you_skip_it": "Orders exist with no confirmation email, or customers get emails for orders that never saved.",
+  "how_derek_runs_it": "Custody Journal saves each outgoing webhook as a delivery row, unique on endpoint, event and a dedupe key, and a separate webhook worker leases due rows and sends them.",
+  "links": [
+    {
+      "title": "microservices.io: Transactional outbox",
+      "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+    },
+    {
+      "title": "pg-boss",
+      "url": "https://github.com/timgit/pg-boss"
+    },
+    {
+      "title": "River (Go, Postgres)",
+      "url": "https://riverqueue.com/"
+    },
+    {
+      "title": "Debezium: outbox event router",
+      "url": "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html"
+    }
+  ],
+  "page": "e/outbox-pattern/index.html",
+  "json": "api/outbox-pattern.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transactional outbox: What To Ask For</title>
+<meta name="description" content="Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Transactional outbox: What To Ask For">
+<meta property="og:description" content="Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/outbox-pattern/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Transactional outbox: What To Ask For">
+<meta name="twitter:description" content="Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=background">Background work and scheduling</a></p>
+  <h1>Transactional outbox</h1>
+  <p class="aka">Also called: outbox pattern, reliable events, dual write problem, event publishing, transactional messaging</p>
+  <p class="lead">Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>A database change must reliably trigger an email, webhook, queue message or call to another service.</li><li>You have seen &quot;saved but never notified&quot; bugs after crashes or deploys.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The side effect is fine to lose now and then, like a non-critical analytics ping.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Outbox table plus a polling worker <span class="cost">$0</span></h3>
+<p>An outbox table (id, type, payload, created, sent_at, attempts). The worker selects unsent rows with FOR UPDATE SKIP LOCKED, sends, marks sent.</p><p class="trade"><strong>Tradeoff:</strong> Works with any SQL database and is easy to inspect. A few seconds of delay from polling.</p></li>
+<li><h3>A Postgres-backed job queue <span class="cost">$0</span></h3>
+<p>Enqueue the job inside the same transaction with pg-boss (Node), Oban (Elixir), Procrastinate (Python) or River (Go), since the queue lives in your database.</p><p class="trade"><strong>Tradeoff:</strong> The queue is the outbox, so no extra table. Your database carries the job load.</p></li>
+<li><h3>Change data capture <span class="cost">$0 software, more ops</span></h3>
+<p>Debezium reads the database log and publishes outbox rows to Kafka or another broker.</p><p class="trade"><strong>Tradeoff:</strong> Near real time at large scale. Heavy to run for a small app.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a transactional outbox so database changes reliably trigger [emails / webhooks / queue messages].
+
+Requirements:
+- Create an outbox table: id, event type, payload JSON, created_at, available_at, attempts, sent_at, last_error.
+- Wherever the code saves a change and then sends something, write the outbox row in the same transaction instead of sending inline.
+- A worker claims due rows with SELECT ... FOR UPDATE SKIP LOCKED, sends them, and marks them sent.
+- Retry failures with backoff and stop after [N] attempts, leaving the row for review.
+- Give each event a unique id and send it along, so receivers can ignore duplicates.
+- Delete sent rows older than [7 days].
+- List every place in the code that still sends directly after a save.
+
+Acceptance checks (run each and show me the result):
+1. Killing the app right after the save still sends the message once it restarts.
+2. If the transaction rolls back, nothing is sent.
+3. Two workers running at once never send the same row twice in normal operation.
+4. A broken receiver leaves rows with growing attempt counts, not lost messages.
+5. Every send-after-save in the codebase goes through the outbox.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Orders exist with no confirmation email, or customers get emails for orders that never saved.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal saves each outgoing webhook as a delivery row, unique on endpoint, event and a dedupe key, and a separate webhook worker leases due rows and sends them.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the order saved but the email never went out&rdquo;</li><li>&ldquo;the email went out but the save failed&rdquo;</li><li>&ldquo;publish an event every time a record changes&rdquo;</li><li>&ldquo;keep my database and queue in sync&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://microservices.io/patterns/data/transactional-outbox.html">microservices.io: Transactional outbox</a></li><li><a href="https://github.com/timgit/pg-boss">pg-boss</a></li><li><a href="https://riverqueue.com/">River (Go, Postgres)</a></li><li><a href="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html">Debezium: outbox event router</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/outbox-pattern.json">api/outbox-pattern.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../time-zones/index.html">&larr; Time zone handling</a><a href="../job-progress-ui/index.html">Job status and progress UI &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

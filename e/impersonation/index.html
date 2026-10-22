@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support impersonation: What To Ask For</title>
+<meta name="description" content="A controlled way for staff to see the app as a specific user, with a banner that shows it&#x27;s happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Support impersonation: What To Ask For">
+<meta property="og:description" content="A controlled way for staff to see the app as a specific user, with a banner that shows it&#x27;s happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/impersonation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Support impersonation: What To Ask For">
+<meta name="twitter:description" content="A controlled way for staff to see the app as a specific user, with a banner that shows it&#x27;s happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Support impersonation</h1>
+  <p class="aka">Also called: log in as a customer, act as a customer, admin impersonation, account switching, support view, masquerade</p>
+  <p class="lead">A controlled way for staff to see the app as a specific user, with a banner that shows it&#x27;s happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Support tickets often say &quot;it looks wrong on my screen&quot; and screenshots aren&#x27;t enough.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Your app holds very sensitive data and policy says staff should never see it. Use a read-only debug view or ask for consent instead.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A library for your framework <span class="cost">$0</span></h3>
+<p>django-hijack, the pretender gem (Rails), Laravel Impersonate, or your auth provider&#x27;s impersonation feature (Clerk, Auth0, Supabase admin).</p><p class="trade"><strong>Tradeoff:</strong> Quick. Add the audit, banner and blocks if the library doesn&#x27;t.</p></li>
+<li><h3>Your own impersonation session <span class="cost">$0</span></h3>
+<p>A separate session that records the real staff id and the target user id, with an expiry.</p><p class="trade"><strong>Tradeoff:</strong> Exact control. Every permission check must know about it.</p></li>
+<li><h3>Read-only support view <span class="cost">$0</span></h3>
+<p>An admin page that renders the user&#x27;s data without logging in as them.</p><p class="trade"><strong>Tradeoff:</strong> Safest. Doesn&#x27;t reproduce every bug.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add support impersonation so staff can see the app as a specific user.
+
+Requirements:
+- Only users with a [support] role can start it, from the admin, with a required reason.
+- Optional: require the user to grant access first, valid for [72 hours].
+- The session keeps both the staff id and the user id. All audit entries record both.
+- Show a fixed banner on every page with the user&#x27;s email and a &quot;Stop&quot; button.
+- End after [30 minutes] automatically.
+- Block while impersonating: password, email, 2FA and payment changes, deleting the account, exporting data, and sending messages as the user.
+- Staff can&#x27;t impersonate other staff or admins.
+- Email or notify the user that support viewed their account, if policy says so.
+
+Acceptance checks (run each and show me the result):
+1. A non-support account can&#x27;t start impersonation, even by calling the endpoint.
+2. The banner shows on every page and Stop returns to the staff account.
+3. Changing the password while impersonating is refused.
+4. Every action taken is logged with both ids and the reason.
+5. The session ends on its own after the time limit.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Support changes things in a customer&#x27;s account with no record, or an attacker with a support login becomes any user.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;see what a customer sees to debug their problem&rdquo;</li><li>&ldquo;log in as a customer from the admin&rdquo;</li><li>&ldquo;support needs to reproduce a bug in someone&#x27;s account&rdquo;</li><li>&ldquo;track what support did inside a customer account&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/django-hijack/django-hijack">django-hijack</a></li><li><a href="https://github.com/ankane/pretender">pretender (Rails)</a></li><li><a href="https://github.com/404labfr/laravel-impersonate">Laravel Impersonate</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/impersonation.json">api/impersonation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../team-invites/index.html">&larr; Team invite flow</a><a href="../email-authentication/index.html">Email authentication (SPF, DKIM, DMARC) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

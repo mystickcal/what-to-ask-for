@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idempotency keys for your API: What To Ask For</title>
+<meta name="description" content="The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Idempotency keys for your API: What To Ask For">
+<meta property="og:description" content="The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/idempotency-keys/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Idempotency keys for your API: What To Ask For">
+<meta name="twitter:description" content="The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>Idempotency keys for your API</h1>
+  <p class="aka">Also called: Idempotency-Key header, safe retries, exactly once requests, duplicate request protection, request deduplication</p>
+  <p class="lead">The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>POST endpoints that charge money, send messages or create orders.</li><li>Clients on flaky networks, like mobile apps, that retry automatically.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>GET, PUT and DELETE that already give the same result when repeated.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An idempotency table <span class="cost">$0</span></h3>
+<p>Store (user, key, request hash, status, response) with a unique constraint. Insert first, do the work, save the response.</p><p class="trade"><strong>Tradeoff:</strong> Reliable and simple. Needs cleanup of old keys after about a day.</p></li>
+<li><h3>Middleware or a library <span class="cost">$0</span></h3>
+<p>Libraries for Express, NestJS, Django and Rails wrap endpoints and store keys in Redis or the database.</p><p class="trade"><strong>Tradeoff:</strong> Quick. Check how each one handles two identical requests arriving at the same moment.</p></li>
+<li><h3>Natural unique keys <span class="cost">$0</span></h3>
+<p>Use a unique constraint on a business value, like one invoice per (customer, month).</p><p class="trade"><strong>Tradeoff:</strong> No header needed. Only works when such a value exists.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Make my create endpoints safe to retry with an Idempotency-Key header.
+
+Requirements:
+- Endpoints: [POST /orders, POST /payments]. Accept an Idempotency-Key header (UUID from the client).
+- Store user id, key, a hash of the request body, status (in_progress, done), response code and body. Unique on (user id, key).
+- If the key is new: insert as in_progress, do the work, save the response.
+- If the key exists and is done: return the saved response with the same status code.
+- If it exists and is in_progress: return 409 so the client retries later.
+- If the body hash differs from the first request: return 422.
+- Pass the same key to Stripe or any payment API you call.
+- Delete keys older than [24 hours] in a scheduled job.
+- Make the frontend and mobile app generate one key per user action and reuse it on retries.
+
+Acceptance checks (run each and show me the result):
+1. Sending the same request twice with one key creates one order and returns the same body both times.
+2. Two identical requests sent at the same moment still create one order.
+3. Reusing a key with a different body returns 422.
+4. Killing the connection mid-request and retrying gives one order.
+5. Keys older than the window are cleaned up.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Customers get charged twice or get duplicate orders every time the network hiccups.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;a retry created two payments&rdquo;</li><li>&ldquo;the client timed out but the order went through&rdquo;</li><li>&ldquo;make POST requests safe to retry&rdquo;</li><li>&ldquo;my mobile app sends the same request twice on bad wifi&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/api/idempotent_requests">Stripe: idempotent requests</a></li><li><a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/">IETF draft: the Idempotency-Key HTTP header</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/idempotency-keys.json">api/idempotency-keys.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../api-versioning/index.html">&larr; API versioning plan</a><a href="../api-docs-openapi/index.html">API docs from an OpenAPI spec &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,37 +1,42 @@
 {
   "name": "What To Ask For",
   "updated": "2026-10-21",
-  "count": 61,
+  "count": 81,
   "categories": [
     {
       "id": "background",
       "name": "Background work and scheduling",
-      "count": 4
+      "count": 6
     },
     {
       "id": "payments",
       "name": "Payments and billing",
-      "count": 6
+      "count": 9
     },
     {
       "id": "auth",
       "name": "Auth and accounts",
-      "count": 6
+      "count": 11
     },
     {
       "id": "email",
       "name": "Email and notifications",
-      "count": 4
+      "count": 7
     },
     {
       "id": "files",
       "name": "Files and uploads",
-      "count": 4
+      "count": 6
     },
     {
       "id": "data",
       "name": "Data and databases",
       "count": 7
+    },
+    {
+      "id": "api",
+      "name": "APIs and integrations",
+      "count": 5
     },
     {
       "id": "security",
@@ -450,6 +455,185 @@
       ],
       "page": "e/time-zones/index.html",
       "json": "api/time-zones.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "outbox-pattern",
+      "name": "Transactional outbox",
+      "category": "background",
+      "category_name": "Background work and scheduling",
+      "aliases": [
+        "outbox pattern",
+        "reliable events",
+        "dual write problem",
+        "event publishing",
+        "transactional messaging"
+      ],
+      "needs": [
+        "the order saved but the email never went out",
+        "the email went out but the save failed",
+        "publish an event every time a record changes",
+        "keep my database and queue in sync"
+      ],
+      "keywords": [
+        "outbox",
+        "event",
+        "publish",
+        "dual",
+        "write",
+        "transaction",
+        "commit",
+        "queue",
+        "consistency",
+        "lost",
+        "message",
+        "sync"
+      ],
+      "summary": "Instead of saving a record and then sending a message (two steps that can half fail), you save the record and an outbox row in one database transaction. A separate worker reads the outbox and sends the messages, retrying until each one is done.",
+      "need_when": [
+        "A database change must reliably trigger an email, webhook, queue message or call to another service.",
+        "You have seen \"saved but never notified\" bugs after crashes or deploys."
+      ],
+      "skip_when": [
+        "The side effect is fine to lose now and then, like a non-critical analytics ping."
+      ],
+      "ways": [
+        {
+          "title": "Outbox table plus a polling worker",
+          "cost": "$0",
+          "how": "An outbox table (id, type, payload, created, sent_at, attempts). The worker selects unsent rows with FOR UPDATE SKIP LOCKED, sends, marks sent.",
+          "tradeoff": "Works with any SQL database and is easy to inspect. A few seconds of delay from polling."
+        },
+        {
+          "title": "A Postgres-backed job queue",
+          "cost": "$0",
+          "how": "Enqueue the job inside the same transaction with pg-boss (Node), Oban (Elixir), Procrastinate (Python) or River (Go), since the queue lives in your database.",
+          "tradeoff": "The queue is the outbox, so no extra table. Your database carries the job load."
+        },
+        {
+          "title": "Change data capture",
+          "cost": "$0 software, more ops",
+          "how": "Debezium reads the database log and publishes outbox rows to Kafka or another broker.",
+          "tradeoff": "Near real time at large scale. Heavy to run for a small app."
+        }
+      ],
+      "prompt": "Add a transactional outbox so database changes reliably trigger [emails / webhooks / queue messages].\n\nRequirements:\n- Create an outbox table: id, event type, payload JSON, created_at, available_at, attempts, sent_at, last_error.\n- Wherever the code saves a change and then sends something, write the outbox row in the same transaction instead of sending inline.\n- A worker claims due rows with SELECT ... FOR UPDATE SKIP LOCKED, sends them, and marks them sent.\n- Retry failures with backoff and stop after [N] attempts, leaving the row for review.\n- Give each event a unique id and send it along, so receivers can ignore duplicates.\n- Delete sent rows older than [7 days].\n- List every place in the code that still sends directly after a save.\n\nAcceptance checks (run each and show me the result):\n1. Killing the app right after the save still sends the message once it restarts.\n2. If the transaction rolls back, nothing is sent.\n3. Two workers running at once never send the same row twice in normal operation.\n4. A broken receiver leaves rows with growing attempt counts, not lost messages.\n5. Every send-after-save in the codebase goes through the outbox.",
+      "acceptance_checks": [
+        "Killing the app right after the save still sends the message once it restarts.",
+        "If the transaction rolls back, nothing is sent.",
+        "Two workers running at once never send the same row twice in normal operation.",
+        "A broken receiver leaves rows with growing attempt counts, not lost messages.",
+        "Every send-after-save in the codebase goes through the outbox."
+      ],
+      "if_you_skip_it": "Orders exist with no confirmation email, or customers get emails for orders that never saved.",
+      "how_derek_runs_it": "Custody Journal saves each outgoing webhook as a delivery row, unique on endpoint, event and a dedupe key, and a separate webhook worker leases due rows and sends them.",
+      "links": [
+        {
+          "title": "microservices.io: Transactional outbox",
+          "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+        },
+        {
+          "title": "pg-boss",
+          "url": "https://github.com/timgit/pg-boss"
+        },
+        {
+          "title": "River (Go, Postgres)",
+          "url": "https://riverqueue.com/"
+        },
+        {
+          "title": "Debezium: outbox event router",
+          "url": "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html"
+        }
+      ],
+      "page": "e/outbox-pattern/index.html",
+      "json": "api/outbox-pattern.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "job-progress-ui",
+      "name": "Job status and progress UI",
+      "category": "background",
+      "category_name": "Background work and scheduling",
+      "aliases": [
+        "progress bar",
+        "job status page",
+        "task status polling",
+        "long running task UI",
+        "processing status"
+      ],
+      "needs": [
+        "show a progress bar while the export runs",
+        "users refresh the page and lose track of their job",
+        "tell the user when the video is done processing",
+        "the spinner never stops after an error"
+      ],
+      "keywords": [
+        "progress",
+        "status",
+        "bar",
+        "percent",
+        "spinner",
+        "polling",
+        "processing",
+        "done",
+        "pending",
+        "export",
+        "render",
+        "eta"
+      ],
+      "summary": "A record for each long job (queued, running, percent, done or failed, result link) plus a screen that reads it. The page asks for updates every few seconds or listens for them, survives a refresh, and shows a real error when the job fails.",
+      "need_when": [
+        "Any background job a user waits for: exports, imports, AI generation, video or file processing."
+      ],
+      "skip_when": [
+        "The work finishes in under a couple of seconds. A plain loading state is enough."
+      ],
+      "ways": [
+        {
+          "title": "Status row plus polling",
+          "cost": "$0",
+          "how": "A jobs table the worker updates, and a GET /jobs/:id endpoint the page polls every 2 to 5 seconds, slowing down over time.",
+          "tradeoff": "Simple and robust behind any proxy. Updates arrive a few seconds late."
+        },
+        {
+          "title": "Server-sent events or websockets",
+          "cost": "$0 to low",
+          "how": "Push status changes to the page as they happen over SSE or a websocket (or a hosted service like Pusher or Ably).",
+          "tradeoff": "Instant updates. More moving parts, and you still need the status row for refreshes."
+        },
+        {
+          "title": "Your queue's built-in job state",
+          "cost": "$0",
+          "how": "BullMQ job progress, Celery task state or Inngest run status, exposed through your own endpoint.",
+          "tradeoff": "Less code. Queue state usually expires, so keep your own record for anything users come back to."
+        }
+      ],
+      "prompt": "Add a job status and progress screen for [long task].\n\nRequirements:\n- A jobs table: id, owner, type, status (queued, running, succeeded, failed, canceled), progress 0 to 100, message, result URL, error code, created, started, finished.\n- The worker updates progress at real milestones (rows processed, pages rendered), not a fake timer.\n- GET /jobs/:id returns the row to its owner only. Poll every 2 seconds, backing off to 10, and stop when finished.\n- The page survives refresh and works from a link in a notification email.\n- On failure, show a plain error and a retry button. Never leave a spinner running.\n- Mark jobs stuck in running past [timeout] as failed.\n- Let users cancel a queued or running job where the work allows it.\n\nAcceptance checks (run each and show me the result):\n1. Refreshing mid-job shows the same job and progress.\n2. Another user gets 404 for the job URL.\n3. A job that throws shows the failed state and retry button within one poll.\n4. A worker crash leaves the job marked failed after the timeout, not running forever.\n5. Polling stops once the job finishes.",
+      "acceptance_checks": [
+        "Refreshing mid-job shows the same job and progress.",
+        "Another user gets 404 for the job URL.",
+        "A job that throws shows the failed state and retry button within one poll.",
+        "A worker crash leaves the job marked failed after the timeout, not running forever.",
+        "Polling stops once the job finishes."
+      ],
+      "if_you_skip_it": "Users start the same export five times, or wait on a spinner for a job that died an hour ago.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "MDN: Server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+        },
+        {
+          "title": "BullMQ: job progress",
+          "url": "https://docs.bullmq.io/guide/jobs/job-data"
+        },
+        {
+          "title": "Celery: custom task states",
+          "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html#custom-states"
+        }
+      ],
+      "page": "e/job-progress-ui/index.html",
+      "json": "api/job-progress-ui.json",
       "updated": "2026-10-21"
     },
     {
@@ -981,6 +1165,262 @@
       ],
       "page": "e/free-trials/index.html",
       "json": "api/free-trials.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "seat-billing",
+      "name": "Per-seat team billing",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "seat-based pricing",
+        "per user pricing",
+        "team plans",
+        "seat count billing",
+        "license seats"
+      ],
+      "needs": [
+        "charge teams per member",
+        "update the bill when someone joins the team",
+        "how many seats does this workspace pay for",
+        "prorate when a team adds a user mid month"
+      ],
+      "keywords": [
+        "seat",
+        "seats",
+        "per",
+        "user",
+        "member",
+        "team",
+        "workspace",
+        "organization",
+        "quantity",
+        "prorate",
+        "proration",
+        "license"
+      ],
+      "summary": "A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits.",
+      "need_when": [
+        "You sell to teams and price grows with the number of people using it."
+      ],
+      "skip_when": [
+        "Plans are flat per workspace, or most customers are solo users."
+      ],
+      "ways": [
+        {
+          "title": "Subscription quantity at your payment provider",
+          "cost": "payment fees only",
+          "how": "Stripe, Paddle and Lemon Squeezy subscriptions have a quantity. Update it when membership changes and let the provider prorate.",
+          "tradeoff": "Standard and well documented. You decide when to sync, and whether removals take effect now or at renewal."
+        },
+        {
+          "title": "Buy seats up front",
+          "cost": "payment fees only",
+          "how": "Admins pick a seat count. Invites beyond it ask them to buy more first.",
+          "tradeoff": "Predictable bills, no surprise charges. One more step before inviting."
+        },
+        {
+          "title": "True-up later",
+          "cost": "payment fees only",
+          "how": "Let teams add people freely and bill the extra seats on the next invoice.",
+          "tradeoff": "No friction. Some customers dislike surprise increases."
+        }
+      ],
+      "prompt": "Add per-seat billing for team workspaces using [Stripe] subscriptions.\n\nRequirements:\n- Each workspace has one subscription. Quantity = active paid members (pending invites [do / don't] count).\n- When a member is added or removed, update the subscription quantity with proration [now / at renewal]. Do it in a background job with retries.\n- Store seats_paid on the workspace from webhook events, not from the API response alone.\n- Only workspace owners and billing admins can change seats or see invoices.\n- Show the current seat count, price per seat and next invoice estimate on the billing page.\n- If seats_paid < members (failed sync or payment), block new invites and show a fix-it message. Never lock out existing members.\n- Write tests for add, remove, downgrade at renewal and failed payment.\n\nAcceptance checks (run each and show me the result):\n1. Adding a member raises the subscription quantity by one within a minute.\n2. Removing a member lowers it as configured, with the proration line on the next invoice.\n3. A non-admin can't open the billing page.\n4. A failed quantity update retries and alerts, and the app shows the mismatch.\n5. Seat count in your database matches the provider after replaying webhooks.",
+      "acceptance_checks": [
+        "Adding a member raises the subscription quantity by one within a minute.",
+        "Removing a member lowers it as configured, with the proration line on the next invoice.",
+        "A non-admin can't open the billing page.",
+        "A failed quantity update retries and alerts, and the app shows the mismatch.",
+        "Seat count in your database matches the provider after replaying webhooks."
+      ],
+      "if_you_skip_it": "Teams use 40 seats while paying for 5, or get charged for people they removed months ago.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: per-seat pricing",
+          "url": "https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing"
+        },
+        {
+          "title": "Stripe: prorations",
+          "url": "https://docs.stripe.com/billing/subscriptions/prorations"
+        }
+      ],
+      "page": "e/seat-billing/index.html",
+      "json": "api/seat-billing.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "plan-limits",
+      "name": "Plan limits and entitlements",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "feature gating",
+        "entitlements",
+        "paywall",
+        "quota enforcement",
+        "free tier limits",
+        "usage limits per plan"
+      ],
+      "needs": [
+        "free users get 10 projects and paid users get unlimited",
+        "lock a feature behind the Pro plan",
+        "users get around the free tier limit",
+        "check what plan a user is on before running something"
+      ],
+      "keywords": [
+        "plan",
+        "limit",
+        "limits",
+        "entitlement",
+        "gate",
+        "gating",
+        "paywall",
+        "pro",
+        "free",
+        "tier",
+        "quota",
+        "upgrade",
+        "feature",
+        "cap"
+      ],
+      "summary": "One place in your code that answers \"is this account allowed to do this, and how much is left?\" based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard.",
+      "need_when": [
+        "You have a free tier, or more than one paid plan with different limits."
+      ],
+      "skip_when": [
+        "One plan, everything included."
+      ],
+      "ways": [
+        {
+          "title": "An entitlements module in your code",
+          "cost": "$0",
+          "how": "A map from plan to features and limits, plus functions like can(account, feature) and remaining(account, limit). Plan comes from your subscription records.",
+          "tradeoff": "Simple and fast. Changing a plan means a deploy."
+        },
+        {
+          "title": "Your payment provider's entitlements",
+          "cost": "included or paid add-on",
+          "how": "Stripe Entitlements attach features to products and tell you which ones a customer has.",
+          "tradeoff": "Plans live next to prices. You still enforce counts in your own code."
+        },
+        {
+          "title": "A pricing and entitlements service",
+          "cost": "free tiers, then paid",
+          "how": "Tools like Schematic, Stigg or Autumn manage plans, limits and metering and expose a check API.",
+          "tradeoff": "Change plans without deploys. Another dependency in your request path."
+        }
+      ],
+      "prompt": "Add plan limits and feature entitlements to my app.\n\nRequirements:\n- One module defines each plan's features and limits: [free: 10 projects, no export; pro: unlimited, export].\n- Functions: can(account, feature) and remaining(account, limit). No other code checks plan names.\n- Read the plan from my subscription records (kept current by webhooks), with a safe default of free.\n- Enforce on the server. Hide or disable locked buttons in the UI too, with an upgrade link.\n- Check and create in one transaction with a row lock on the account, so two requests at once can't both pass the last slot.\n- Count what users can't easily dodge, for example items created this month even if later deleted or archived.\n- On downgrade, keep existing data readable and block only new creation past the limit.\n- Tests for each plan and limit, including two requests at the same moment.\n\nAcceptance checks (run each and show me the result):\n1. A free user creating the 11th project gets a clear upgrade message from the API, not only the UI.\n2. Firing 5 create requests at once at 9 used gives 10, not 14.\n3. Deleting items doesn't reset a monthly cap if the rule says it shouldn't.\n4. Downgrading keeps old data readable.\n5. Searching the code for plan names finds them only in the entitlements module.",
+      "acceptance_checks": [
+        "A free user creating the 11th project gets a clear upgrade message from the API, not only the UI.",
+        "Firing 5 create requests at once at 9 used gives 10, not 14.",
+        "Deleting items doesn't reset a monthly cap if the rule says it shouldn't.",
+        "Downgrading keeps old data readable.",
+        "Searching the code for plan names finds them only in the entitlements module."
+      ],
+      "if_you_skip_it": "Free users get paid features through the API or a race, or paying users hit walls meant for the free tier.",
+      "how_derek_runs_it": "Custody Journal keeps its free-tier entry cap in one quota module used by the journal, calendar and bulk import. It counts entries created this month whether or not they were later archived, skips auto-saved drafts, and runs the check and the creation inside one lock so two requests can't both take the last slot.",
+      "links": [
+        {
+          "title": "Stripe Entitlements",
+          "url": "https://docs.stripe.com/billing/entitlements"
+        },
+        {
+          "title": "Autumn (open source)",
+          "url": "https://github.com/useautumn/autumn"
+        }
+      ],
+      "page": "e/plan-limits/index.html",
+      "json": "api/plan-limits.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "refunds-disputes",
+      "name": "Refunds and chargebacks",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "disputes",
+        "chargeback handling",
+        "refund flow",
+        "credit notes",
+        "payment reversals"
+      ],
+      "needs": [
+        "a customer wants their money back",
+        "I got a chargeback from the bank",
+        "remove access after a refund",
+        "issue a partial refund"
+      ],
+      "keywords": [
+        "refund",
+        "refunds",
+        "chargeback",
+        "dispute",
+        "money",
+        "back",
+        "reverse",
+        "partial",
+        "credit",
+        "evidence",
+        "fraud",
+        "bank"
+      ],
+      "summary": "The flow for giving money back, and for answering when a customer's bank pulls it back for you. Your app listens for refund and dispute events, updates access, and keeps the records you need to respond to a dispute before the deadline.",
+      "need_when": [
+        "You take payments. Refund requests and some disputes come with any volume."
+      ],
+      "skip_when": [
+        "You use a merchant of record that handles refunds and disputes for you. Still listen for their events."
+      ],
+      "ways": [
+        {
+          "title": "Refund from your payment dashboard",
+          "cost": "$0, original fees usually not returned",
+          "how": "Issue refunds by hand in the Stripe, Paddle or Lemon Squeezy dashboard and let webhooks update your app.",
+          "tradeoff": "Fine at low volume. Make sure your app reacts to the webhook, not to your memory."
+        },
+        {
+          "title": "A refund action in your admin",
+          "cost": "$0",
+          "how": "An admin button that calls the refund API with a reason and amount, logs who did it, and adjusts access.",
+          "tradeoff": "Consistent and auditable. Needs role checks."
+        },
+        {
+          "title": "Self-serve refunds within a window",
+          "cost": "$0",
+          "how": "Users can cancel and get a refund within [14] days from the billing page.",
+          "tradeoff": "Fewer support emails and fewer disputes. Some abuse risk."
+        }
+      ],
+      "prompt": "Handle refunds and chargebacks properly in my app with [Stripe].\n\nRequirements:\n- Handle these webhooks idempotently: charge.refunded, charge.dispute.created, charge.dispute.closed (or the equivalents for my provider).\n- On full refund: end paid access [now / at period end] and record it. On partial refund: record only.\n- On dispute created: flag the account, email me with the deadline, and pause any automatic renewals for it.\n- Admin refund action: amount, reason, logged with who did it. Only billing admins can use it.\n- Keep what a dispute response needs: receipt, terms accepted at signup with timestamp, login and usage history, and support emails.\n- Show refunds on the customer's billing history.\n\nAcceptance checks (run each and show me the result):\n1. Replaying a refund webhook twice changes access once.\n2. A test dispute sends the alert with the response deadline.\n3. The admin refund button is blocked for non-admins.\n4. The evidence export for one customer can be produced in a minute.\n5. Refunded charges appear in the customer's billing history.",
+      "acceptance_checks": [
+        "Replaying a refund webhook twice changes access once.",
+        "A test dispute sends the alert with the response deadline.",
+        "The admin refund button is blocked for non-admins.",
+        "The evidence export for one customer can be produced in a minute.",
+        "Refunded charges appear in the customer's billing history."
+      ],
+      "if_you_skip_it": "Refunded users keep paid access, or disputes are lost by default because nobody saw them before the deadline.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: refunds",
+          "url": "https://docs.stripe.com/refunds"
+        },
+        {
+          "title": "Stripe: disputes",
+          "url": "https://docs.stripe.com/disputes"
+        },
+        {
+          "title": "Paddle: refunds",
+          "url": "https://developer.paddle.com/build/transactions/create-transaction-adjustments"
+        }
+      ],
+      "page": "e/refunds-disputes/index.html",
+      "json": "api/refunds-disputes.json",
       "updated": "2026-10-21"
     },
     {
@@ -1528,6 +1968,441 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "two-factor-auth",
+      "name": "Two-factor authentication (TOTP)",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "2FA",
+        "MFA",
+        "multi-factor authentication",
+        "authenticator app",
+        "one-time codes",
+        "recovery codes"
+      ],
+      "needs": [
+        "add 2FA with Google Authenticator",
+        "require a code from an app after the password",
+        "lost my authenticator device and can't log in",
+        "make admins use two-factor"
+      ],
+      "keywords": [
+        "2fa",
+        "mfa",
+        "totp",
+        "authenticator",
+        "code",
+        "otp",
+        "two",
+        "factor",
+        "recovery",
+        "backup",
+        "qr",
+        "admin"
+      ],
+      "summary": "After the password, the user types a 6-digit code from an authenticator app. You store a secret per user, check codes with a small time window, and give recovery codes for when the phone is gone.",
+      "need_when": [
+        "Accounts hold money, private data, or admin power.",
+        "Business customers ask for it in security reviews."
+      ],
+      "skip_when": [
+        "You only use social login or passkeys, where the provider or device already covers this."
+      ],
+      "ways": [
+        {
+          "title": "Your auth library's MFA module",
+          "cost": "$0",
+          "how": "django-allauth MFA, Devise two-factor, Better Auth's two-factor plugin, Laravel Fortify.",
+          "tradeoff": "Tested flows for setup, login and recovery. You follow its screens and storage."
+        },
+        {
+          "title": "A hosted auth provider",
+          "cost": "free tiers, MFA sometimes paid",
+          "how": "Clerk, Auth0, Supabase Auth, Firebase Auth and WorkOS offer TOTP and often SMS or passkeys.",
+          "tradeoff": "Minutes to turn on. Check which plan includes it."
+        },
+        {
+          "title": "Build it with a TOTP library",
+          "cost": "$0",
+          "how": "pyotp or otplib for codes, a QR code library for setup, your own tables for secrets and recovery codes.",
+          "tradeoff": "Full control. Easy to miss replay checks, rate limits and recovery."
+        }
+      ],
+      "prompt": "Add optional TOTP two-factor authentication, required for [admins].\n\nRequirements:\n- Setup: show a QR code and the secret as text, ask for one valid code before turning it on.\n- Store the TOTP secret encrypted. Accept the current code and one step either side (30 seconds) and reject a code that was already used.\n- Generate 10 single-use recovery codes, show them once, store only hashes.\n- Login: after a correct password, ask for a code or a recovery code. Don't create the full session until it passes.\n- Rate limit code attempts per account and per IP.\n- Turning 2FA off or making new recovery codes needs the password plus a current code.\n- Email the user whenever 2FA is turned on, off, or a recovery code is used.\n- Password reset must not turn off 2FA.\n\nAcceptance checks (run each and show me the result):\n1. A code from Google Authenticator or 1Password logs in; the same code a second time fails.\n2. Each recovery code works once.\n3. Ten wrong codes in a row get throttled.\n4. Resetting the password still asks for the second factor at login.\n5. The database holds no plain recovery codes.",
+      "acceptance_checks": [
+        "A code from Google Authenticator or 1Password logs in; the same code a second time fails.",
+        "Each recovery code works once.",
+        "Ten wrong codes in a row get throttled.",
+        "Resetting the password still asks for the second factor at login.",
+        "The database holds no plain recovery codes."
+      ],
+      "if_you_skip_it": "One leaked password is enough to take over an account, or users lock themselves out with no way back.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OWASP Multifactor Authentication Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html"
+        },
+        {
+          "title": "RFC 6238: TOTP",
+          "url": "https://datatracker.ietf.org/doc/html/rfc6238"
+        },
+        {
+          "title": "django-allauth MFA",
+          "url": "https://docs.allauth.org/en/latest/mfa/index.html"
+        },
+        {
+          "title": "pyotp",
+          "url": "https://github.com/pyauth/pyotp"
+        }
+      ],
+      "page": "e/two-factor-auth/index.html",
+      "json": "api/two-factor-auth.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "passkeys",
+      "name": "Passkeys (WebAuthn)",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "WebAuthn",
+        "FIDO2",
+        "passwordless login",
+        "Face ID login",
+        "security keys"
+      ],
+      "needs": [
+        "let users sign in with Face ID or a fingerprint",
+        "add passwordless login",
+        "stop phishing of user passwords",
+        "support YubiKeys"
+      ],
+      "keywords": [
+        "passkey",
+        "passkeys",
+        "webauthn",
+        "fido",
+        "fido2",
+        "passwordless",
+        "face",
+        "touch",
+        "fingerprint",
+        "biometric",
+        "yubikey",
+        "phishing"
+      ],
+      "summary": "Sign-in with a key pair stored on the user's phone, laptop or password manager, unlocked with Face ID, a fingerprint or a PIN. Your server keeps only the public key, so there's no password to phish or leak.",
+      "need_when": [
+        "You want the strongest login without making users manage codes.",
+        "Phishing or password reuse is a real risk for your users."
+      ],
+      "skip_when": [
+        "It would be your only login method on day one. Keep email or password as a fallback while users adopt it."
+      ],
+      "ways": [
+        {
+          "title": "A WebAuthn library",
+          "cost": "$0",
+          "how": "SimpleWebAuthn (TypeScript), py_webauthn (Python) or webauthn-ruby handle the challenge and verification on both sides.",
+          "tradeoff": "Full control and no vendor. You build the account and recovery flows."
+        },
+        {
+          "title": "Your auth library or provider",
+          "cost": "$0 to plan-based",
+          "how": "django-allauth, Better Auth, Clerk, Auth0, Supabase and others support passkeys as a login or second factor.",
+          "tradeoff": "Least code. Setup and recovery look the way they decide."
+        }
+      ],
+      "prompt": "Add passkey sign-in to my app with [library].\n\nRequirements:\n- Signed-in users can add a passkey (named by device), list them with last-used date, and remove them.\n- Login page offers \"Sign in with a passkey\" and uses autofill (conditional mediation) where the browser supports it.\n- Generate a fresh random challenge per attempt on the server, with a short expiry, and verify origin and RP ID.\n- Store credential id, public key, sign count, transports, created and last used. Never store anything that could act as a password.\n- Keep email login as a fallback. Removing the last sign-in method is blocked.\n- Email the user when a passkey is added or removed.\n- Test on iPhone Safari, Android Chrome, and desktop with a password manager.\n\nAcceptance checks (run each and show me the result):\n1. Adding a passkey on a phone and signing in with Face ID or a fingerprint works.\n2. A passkey registered for your production domain fails on a lookalike domain.\n3. A replayed login response with an old challenge is rejected.\n4. Users can't remove their last way to sign in.\n5. The passkeys list shows each device and its last use.",
+      "acceptance_checks": [
+        "Adding a passkey on a phone and signing in with Face ID or a fingerprint works.",
+        "A passkey registered for your production domain fails on a lookalike domain.",
+        "A replayed login response with an old challenge is rejected.",
+        "Users can't remove their last way to sign in.",
+        "The passkeys list shows each device and its last use."
+      ],
+      "if_you_skip_it": "Users get locked out when they change phones, or the flow works on one browser and silently fails on others.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "passkeys.dev (developer guide)",
+          "url": "https://passkeys.dev/"
+        },
+        {
+          "title": "SimpleWebAuthn",
+          "url": "https://simplewebauthn.dev/"
+        },
+        {
+          "title": "py_webauthn",
+          "url": "https://github.com/duo-labs/py_webauthn"
+        },
+        {
+          "title": "MDN: Web Authentication API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API"
+        }
+      ],
+      "page": "e/passkeys/index.html",
+      "json": "api/passkeys.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "email-verification",
+      "name": "Email verification",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "confirm email address",
+        "verify email",
+        "email confirmation link",
+        "verified email",
+        "change email flow"
+      ],
+      "needs": [
+        "make sure users own the email they signed up with",
+        "people sign up with fake emails",
+        "someone signed up with my email address",
+        "let users change their email safely"
+      ],
+      "keywords": [
+        "verify",
+        "verification",
+        "confirm",
+        "confirmation",
+        "email",
+        "fake",
+        "typo",
+        "change",
+        "owner",
+        "link",
+        "code",
+        "signup"
+      ],
+      "summary": "Sending a one-time link or code to the address a user gives and marking it verified only when they use it. It proves they own the inbox before you send them anything important or let that address reset a password.",
+      "need_when": [
+        "Email is used for password reset, billing, invites or anything private.",
+        "Users can change their email address."
+      ],
+      "skip_when": [
+        "Sign-in is only by magic link or a provider that already verified the email."
+      ],
+      "ways": [
+        {
+          "title": "Your auth library's verification",
+          "cost": "$0",
+          "how": "django-allauth, Devise confirmable, Laravel MustVerifyEmail, Better Auth and Auth.js email flows.",
+          "tradeoff": "Handled for you. Decide whether unverified users can use the app at all."
+        },
+        {
+          "title": "Hosted auth",
+          "cost": "free tiers",
+          "how": "Clerk, Supabase Auth, Firebase Auth and Auth0 send verification emails and expose a verified flag.",
+          "tradeoff": "No code. Their email templates and sending domain unless you configure yours."
+        },
+        {
+          "title": "Your own signed tokens",
+          "cost": "$0",
+          "how": "A random token stored as a hash with user id, email and expiry, or a signed token with your framework's signer.",
+          "tradeoff": "Simple. Remember to bind it to the exact email being verified."
+        }
+      ],
+      "prompt": "Add email verification at signup and on email change.\n\nRequirements:\n- After signup, send a link with a random single-use token (stored as a hash) that expires in [24 hours]. The token is tied to the user id and the exact email.\n- Until verified, allow [limited use] and block [billing, invites, exports].\n- Resend button with a rate limit. Old links stop working when a new one is sent.\n- Email change: keep the old address active, send the link to the new one, switch only after it's clicked, and notify the old address.\n- Password reset never goes to an unverified address.\n- The same \"check your inbox\" message whether or not the address exists, so the form can't be used to find accounts.\n- Clicking the link while logged out still verifies, then asks the user to log in.\n\nAcceptance checks (run each and show me the result):\n1. A link works once and fails after expiry.\n2. Changing email doesn't switch until the new address confirms, and the old address gets a notice.\n3. A token made for one email can't verify a different email on the same account.\n4. Resend is throttled.\n5. Unverified accounts can't reach the blocked features through the API.",
+      "acceptance_checks": [
+        "A link works once and fails after expiry.",
+        "Changing email doesn't switch until the new address confirms, and the old address gets a notice.",
+        "A token made for one email can't verify a different email on the same account.",
+        "Resend is throttled.",
+        "Unverified accounts can't reach the blocked features through the API."
+      ],
+      "if_you_skip_it": "Someone signs up with another person's email and later takes over their account, or your sending reputation sinks from typo addresses.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OWASP Authentication Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        },
+        {
+          "title": "django-allauth: email verification settings",
+          "url": "https://docs.allauth.org/en/latest/account/configuration.html"
+        }
+      ],
+      "page": "e/email-verification/index.html",
+      "json": "api/email-verification.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "team-invites",
+      "name": "Team invite flow",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "invite teammates",
+        "invitation links",
+        "workspace invites",
+        "join a team",
+        "invite by email"
+      ],
+      "needs": [
+        "let users invite their coworkers",
+        "send an invite link that adds someone to a workspace",
+        "invited person doesn't have an account yet",
+        "revoke an invite that went to the wrong person"
+      ],
+      "keywords": [
+        "invite",
+        "invites",
+        "invitation",
+        "team",
+        "teammate",
+        "workspace",
+        "join",
+        "member",
+        "accept",
+        "revoke",
+        "expire",
+        "collaborator",
+        "share"
+      ],
+      "summary": "A way for a member to add someone by email. You create an invite with a random token, role and expiry, email a link, and on accept you check the signed-in person matches the invited address before adding them.",
+      "need_when": [
+        "Accounts are shared by more than one person: teams, families, clients and advisors."
+      ],
+      "skip_when": [
+        "Every account is single-user."
+      ],
+      "ways": [
+        {
+          "title": "An invites table",
+          "cost": "$0",
+          "how": "Rows with inviter, email, workspace, role, token hash, status (pending, accepted, declined, revoked), expires_at.",
+          "tradeoff": "Full control over roles and edge cases. You write the emails and screens."
+        },
+        {
+          "title": "Hosted organizations",
+          "cost": "free tiers, then plan-based",
+          "how": "Clerk Organizations, WorkOS, Auth0 Organizations and Supabase-based kits ship invites and roles.",
+          "tradeoff": "Fast. Your team model has to fit theirs."
+        },
+        {
+          "title": "Shareable join links",
+          "cost": "$0",
+          "how": "A link anyone with it can use to join, optionally limited to an email domain.",
+          "tradeoff": "Easy for big teams. A forwarded link lets the wrong people in."
+        }
+      ],
+      "prompt": "Add an invite flow so members can add people to a workspace.\n\nRequirements:\n- Invite form: email and role. Only roles at or below the inviter's are allowed.\n- Store invite: inviter, workspace, normalized email, role, random token (stored as a hash), status (pending, accepted, declined, revoked) and expiry of [14 days].\n- Email a link. If the person has no account, the link leads to signup and returns to the invite after.\n- On accept, require the signed-in account's verified email to match the invited email (case-insensitive). Otherwise show who it was for.\n- Accepting twice, after expiry, or after revoke shows a clear message and changes nothing.\n- Admins see pending invites and can resend (new token) or revoke.\n- Don't reveal whether an email already has an account. Rate limit invites per workspace.\n- Log invite sent, accepted and revoked in the audit log.\n\nAcceptance checks (run each and show me the result):\n1. A user signed in as a different email can't accept someone else's invite.\n2. An expired or revoked link does nothing.\n3. A member can't invite someone as admin.\n4. A brand-new user can sign up from the link and land in the workspace.\n5. Resending invalidates the old link.",
+      "acceptance_checks": [
+        "A user signed in as a different email can't accept someone else's invite.",
+        "An expired or revoked link does nothing.",
+        "A member can't invite someone as admin.",
+        "A brand-new user can sign up from the link and land in the workspace.",
+        "Resending invalidates the old link."
+      ],
+      "if_you_skip_it": "A forwarded invite email gives a stranger access to a private workspace, or old links work forever.",
+      "how_derek_runs_it": "Custody Journal's co-parent invites use a random token with a 14-day expiry and pending, accepted, declined and revoked states, and set calendar and exchange-log permissions per invite. Accepting requires the signed-in account's email to match the invited email.",
+      "links": [
+        {
+          "title": "Clerk: organization invitations",
+          "url": "https://clerk.com/docs/guides/development/custom-flows/organizations/manage-organization-invitations"
+        },
+        {
+          "title": "OWASP Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        }
+      ],
+      "page": "e/team-invites/index.html",
+      "json": "api/team-invites.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "impersonation",
+      "name": "Support impersonation",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "log in as a customer",
+        "act as a customer",
+        "admin impersonation",
+        "account switching",
+        "support view",
+        "masquerade"
+      ],
+      "needs": [
+        "see what a customer sees to debug their problem",
+        "log in as a customer from the admin",
+        "support needs to reproduce a bug in someone's account",
+        "track what support did inside a customer account"
+      ],
+      "keywords": [
+        "impersonate",
+        "impersonation",
+        "login",
+        "as",
+        "support",
+        "admin",
+        "debug",
+        "customer",
+        "switch",
+        "act",
+        "view",
+        "masquerade"
+      ],
+      "summary": "A controlled way for staff to see the app as a specific user, with a banner that shows it's happening, a time limit, an audit trail and blocks on dangerous actions like changing passwords or payments.",
+      "need_when": [
+        "Support tickets often say \"it looks wrong on my screen\" and screenshots aren't enough."
+      ],
+      "skip_when": [
+        "Your app holds very sensitive data and policy says staff should never see it. Use a read-only debug view or ask for consent instead."
+      ],
+      "ways": [
+        {
+          "title": "A library for your framework",
+          "cost": "$0",
+          "how": "django-hijack, the pretender gem (Rails), Laravel Impersonate, or your auth provider's impersonation feature (Clerk, Auth0, Supabase admin).",
+          "tradeoff": "Quick. Add the audit, banner and blocks if the library doesn't."
+        },
+        {
+          "title": "Your own impersonation session",
+          "cost": "$0",
+          "how": "A separate session that records the real staff id and the target user id, with an expiry.",
+          "tradeoff": "Exact control. Every permission check must know about it."
+        },
+        {
+          "title": "Read-only support view",
+          "cost": "$0",
+          "how": "An admin page that renders the user's data without logging in as them.",
+          "tradeoff": "Safest. Doesn't reproduce every bug."
+        }
+      ],
+      "prompt": "Add support impersonation so staff can see the app as a specific user.\n\nRequirements:\n- Only users with a [support] role can start it, from the admin, with a required reason.\n- Optional: require the user to grant access first, valid for [72 hours].\n- The session keeps both the staff id and the user id. All audit entries record both.\n- Show a fixed banner on every page with the user's email and a \"Stop\" button.\n- End after [30 minutes] automatically.\n- Block while impersonating: password, email, 2FA and payment changes, deleting the account, exporting data, and sending messages as the user.\n- Staff can't impersonate other staff or admins.\n- Email or notify the user that support viewed their account, if policy says so.\n\nAcceptance checks (run each and show me the result):\n1. A non-support account can't start impersonation, even by calling the endpoint.\n2. The banner shows on every page and Stop returns to the staff account.\n3. Changing the password while impersonating is refused.\n4. Every action taken is logged with both ids and the reason.\n5. The session ends on its own after the time limit.",
+      "acceptance_checks": [
+        "A non-support account can't start impersonation, even by calling the endpoint.",
+        "The banner shows on every page and Stop returns to the staff account.",
+        "Changing the password while impersonating is refused.",
+        "Every action taken is logged with both ids and the reason.",
+        "The session ends on its own after the time limit."
+      ],
+      "if_you_skip_it": "Support changes things in a customer's account with no record, or an attacker with a support login becomes any user.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "django-hijack",
+          "url": "https://github.com/django-hijack/django-hijack"
+        },
+        {
+          "title": "pretender (Rails)",
+          "url": "https://github.com/ankane/pretender"
+        },
+        {
+          "title": "Laravel Impersonate",
+          "url": "https://github.com/404labfr/laravel-impersonate"
+        }
+      ],
+      "page": "e/impersonation/index.html",
+      "json": "api/impersonation.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "email-authentication",
       "name": "Email authentication (SPF, DKIM, DMARC)",
       "category": "email",
@@ -1908,6 +2783,268 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "inbound-email",
+      "name": "Inbound email parsing",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "receive email",
+        "email to app",
+        "reply by email",
+        "email webhooks",
+        "parse incoming email"
+      ],
+      "needs": [
+        "let users reply to a notification email and have it show up in the app",
+        "forward receipts to a special address",
+        "create a ticket when someone emails support",
+        "each user gets their own email address in my app"
+      ],
+      "keywords": [
+        "inbound",
+        "incoming",
+        "receive",
+        "reply",
+        "forward",
+        "parse",
+        "mx",
+        "email",
+        "address",
+        "mailbox",
+        "ticket",
+        "receipt",
+        "attachments"
+      ],
+      "summary": "Letting your app receive email. A provider accepts mail for an address or domain you own, turns each message into JSON (sender, subject, text, attachments) and posts it to a webhook in your app.",
+      "need_when": [
+        "Users should reply to notifications by email, forward things in, or email a unique address to add data."
+      ],
+      "skip_when": [
+        "You only need to read one mailbox occasionally. A shared inbox tool may be enough."
+      ],
+      "ways": [
+        {
+          "title": "Your email provider's inbound webhook",
+          "cost": "free tiers, then paid",
+          "how": "Postmark, SendGrid Inbound Parse, Mailgun Routes, Resend and Amazon SES receiving post parsed messages to your URL.",
+          "tradeoff": "Reliable and simple. You point a subdomain's MX record at them."
+        },
+        {
+          "title": "Cloudflare Email Routing with a Worker",
+          "cost": "free",
+          "how": "Email Workers receive messages for your domain and can forward or post them to your app.",
+          "tradeoff": "Free and flexible. You parse MIME yourself (postal-mime helps)."
+        },
+        {
+          "title": "Poll a mailbox over IMAP",
+          "cost": "$0",
+          "how": "A scheduled job reads a dedicated mailbox and processes new messages.",
+          "tradeoff": "Works with any mailbox. Slower, and fragile with folder states and logins."
+        }
+      ],
+      "prompt": "Let my app receive email at [reply.mydomain.com] using [provider]'s inbound webhook.\n\nRequirements:\n- Use a subdomain for MX so normal company mail is unaffected.\n- Verify each webhook is from the provider (signature, basic auth or secret path) and store the raw message id so retries aren't processed twice.\n- Route by address: reply+<token>@ maps to a thread with a random token, not a guessable id.\n- Check the sender matches the user the token belongs to. Look at SPF and DKIM results from the provider and drop failures.\n- Strip quoted replies and signatures so only the new text is saved.\n- Accept attachments up to [10 MB], check type and size, and store them like other uploads.\n- Process in a background job. Return 200 quickly.\n- Ignore auto-replies and bounce messages (Auto-Submitted header, empty return path) to avoid mail loops.\n\nAcceptance checks (run each and show me the result):\n1. Replying to a notification adds the reply text, without the quoted history, to the right thread.\n2. An email from a different sender to the same reply address is rejected.\n3. An out-of-office reply doesn't create anything or trigger another email.\n4. The same webhook delivered twice creates one record.\n5. A 50 MB attachment is refused cleanly.",
+      "acceptance_checks": [
+        "Replying to a notification adds the reply text, without the quoted history, to the right thread.",
+        "An email from a different sender to the same reply address is rejected.",
+        "An out-of-office reply doesn't create anything or trigger another email.",
+        "The same webhook delivered twice creates one record.",
+        "A 50 MB attachment is refused cleanly."
+      ],
+      "if_you_skip_it": "Anyone who learns an address can post into a user's account, or two auto-responders email each other forever.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Postmark: inbound email",
+          "url": "https://postmarkapp.com/developer/user-guide/inbound"
+        },
+        {
+          "title": "SendGrid Inbound Parse",
+          "url": "https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/setting-up-the-inbound-parse-webhook"
+        },
+        {
+          "title": "Cloudflare: Email Workers API",
+          "url": "https://developers.cloudflare.com/email-service/api/route-emails/email-handler/"
+        },
+        {
+          "title": "RFC 3834: auto-reply rules",
+          "url": "https://datatracker.ietf.org/doc/html/rfc3834"
+        }
+      ],
+      "page": "e/inbound-email/index.html",
+      "json": "api/inbound-email.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "sms-messages",
+      "name": "SMS text messages",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "text messages",
+        "SMS alerts",
+        "send texts",
+        "10DLC",
+        "SMS verification codes"
+      ],
+      "needs": [
+        "text a reminder before an appointment",
+        "send a verification code by SMS",
+        "my texts aren't being delivered in the US",
+        "let users reply STOP"
+      ],
+      "keywords": [
+        "sms",
+        "text",
+        "texts",
+        "message",
+        "mobile",
+        "twilio",
+        "10dlc",
+        "stop",
+        "opt",
+        "reminder",
+        "otp",
+        "verification",
+        "carrier"
+      ],
+      "summary": "Sending text messages through a provider's API. The code is easy. The work is registration (in the US, 10DLC brand and campaign approval for business texting), consent, STOP handling, cost per message, and fraud on verification codes.",
+      "need_when": [
+        "Time-sensitive reminders where email is too slow, like appointments and deliveries.",
+        "Users ask for texts and agree to get them."
+      ],
+      "skip_when": [
+        "Push notifications or email would do. SMS costs money per message and needs consent paperwork.",
+        "Login codes only. Authenticator apps or passkeys are cheaper and safer."
+      ],
+      "ways": [
+        {
+          "title": "A messaging API",
+          "cost": "per message plus registration fees",
+          "how": "Twilio, Vonage, Plivo, Telnyx and Amazon SNS or End User Messaging send and receive texts over HTTP.",
+          "tradeoff": "Standard. US texting needs registration before delivery is reliable."
+        },
+        {
+          "title": "A verification API",
+          "cost": "per verification",
+          "how": "Twilio Verify, Vonage Verify and similar services handle codes, retries and some fraud blocking.",
+          "tradeoff": "Less to build. Still pay per attempt, and fraud can run up the bill."
+        },
+        {
+          "title": "A notification platform",
+          "cost": "free tiers, then paid",
+          "how": "Novu, Knock or Courier route one notification to email, SMS or push based on user preferences.",
+          "tradeoff": "One API for all channels. You still bring an SMS provider."
+        }
+      ],
+      "prompt": "Add SMS reminders with [provider].\n\nRequirements:\n- Collect phone numbers in E.164 format with an explicit, unchecked-by-default consent box that says what we'll text and how often. Store consent time and wording.\n- Confirm the number with a one-time code before sending anything else.\n- Every first message says who it's from and \"Reply STOP to opt out\". Handle STOP, START and HELP from the inbound webhook and stop all texts on STOP.\n- Send from a background job, respect quiet hours in the user's timezone, and cap messages per user per day.\n- Save delivery status callbacks and show failures in the admin.\n- Rate limit verification codes per number and per IP, and block number ranges I don't serve, to prevent SMS pumping fraud.\n- Keep the provider credentials in secrets, and log message ids, not message bodies with personal data.\n- Note what registration I need (US 10DLC brand and campaign) before going live.\n\nAcceptance checks (run each and show me the result):\n1. Replying STOP stops all further texts and the app shows the user as opted out.\n2. No text goes out between 9 PM and 8 AM in the user's timezone.\n3. Hammering the send-code endpoint gets throttled.\n4. Delivery failures show up in the admin.\n5. Consent time and wording are stored for every number.",
+      "acceptance_checks": [
+        "Replying STOP stops all further texts and the app shows the user as opted out.",
+        "No text goes out between 9 PM and 8 AM in the user's timezone.",
+        "Hammering the send-code endpoint gets throttled.",
+        "Delivery failures show up in the admin.",
+        "Consent time and wording are stored for every number."
+      ],
+      "if_you_skip_it": "Carriers filter your texts, you text people who opted out, or bots run up a large bill through your verification form.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Twilio: what is A2P 10DLC",
+          "url": "https://www.twilio.com/docs/messaging/compliance/a2p-10dlc"
+        },
+        {
+          "title": "Twilio: SMS pumping fraud",
+          "url": "https://www.twilio.com/docs/glossary/what-is-sms-pumping-fraud"
+        },
+        {
+          "title": "Novu (open source notifications)",
+          "url": "https://github.com/novuhq/novu"
+        }
+      ],
+      "page": "e/sms-messages/index.html",
+      "json": "api/sms-messages.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "notification-preferences",
+      "name": "Notification preferences and inbox",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "notification settings",
+        "in-app notifications",
+        "notification center",
+        "bell icon",
+        "quiet hours",
+        "digest emails"
+      ],
+      "needs": [
+        "let users choose which emails they get",
+        "add a bell icon with unread notifications",
+        "users complain about too many notifications",
+        "send a daily digest instead of every event"
+      ],
+      "keywords": [
+        "notification",
+        "notifications",
+        "preferences",
+        "settings",
+        "bell",
+        "inbox",
+        "unread",
+        "digest",
+        "quiet",
+        "hours",
+        "channel",
+        "mute",
+        "frequency"
+      ],
+      "summary": "A per-user record of which notification types they want on which channel (email, push, in-app), and an in-app list of recent notifications with read state. Every send checks the preferences first.",
+      "need_when": [
+        "You send more than two or three kinds of notifications.",
+        "Users ask how to get fewer emails."
+      ],
+      "skip_when": [
+        "You only send receipts and password resets. Those are transactional and always go out."
+      ],
+      "ways": [
+        {
+          "title": "Preferences table and notifications table",
+          "cost": "$0",
+          "how": "One row per user with a toggle per type and channel, plus a notifications table for the in-app list. A single notify() function checks preferences.",
+          "tradeoff": "Simple and private. You build the bell UI and digests."
+        },
+        {
+          "title": "A notification platform",
+          "cost": "free tiers, then paid",
+          "how": "Knock, Novu, Courier or MagicBell store preferences, render an in-app inbox component and route to email, SMS and push.",
+          "tradeoff": "Fast and full-featured. User activity data goes to a vendor."
+        }
+      ],
+      "prompt": "Add notification preferences and an in-app notification list.\n\nRequirements:\n- List every notification type the app sends: [types]. Mark which are transactional (always sent) and which are optional.\n- Preferences per user: a toggle per optional type and channel (email, in-app, push), sensible defaults, and quiet hours in the user's timezone with an override for urgent ones.\n- One notify(user, type, data) function. It checks preferences and quiet hours, writes the in-app row, and queues the email or push. Nothing else sends notifications directly.\n- In-app: bell icon with unread count, list with mark read and mark all read, newest first, paginated.\n- Optional digest: group low-priority types into one [daily / weekly] email.\n- Every optional email links straight to the preferences page.\n\nAcceptance checks (run each and show me the result):\n1. Turning off one type stops that email but leaves the others.\n2. Nothing optional is sent during quiet hours; urgent items still go out if allowed.\n3. Searching the code shows no sends that bypass notify().\n4. Unread count updates after marking items read.\n5. Password reset and receipts still send with everything turned off.",
+      "acceptance_checks": [
+        "Turning off one type stops that email but leaves the others.",
+        "Nothing optional is sent during quiet hours; urgent items still go out if allowed.",
+        "Searching the code shows no sends that bypass notify().",
+        "Unread count updates after marking items read.",
+        "Password reset and receipts still send with everything turned off."
+      ],
+      "if_you_skip_it": "Users mute you completely, or mark you as spam, because the only choice is all or nothing.",
+      "how_derek_runs_it": "Custody Journal keeps a preferences row per user with a separate toggle for each email type (exchange reminders, missed exchanges, weekly digest, deadline reminders and more) and quiet hours with an emergency override.",
+      "links": [
+        {
+          "title": "Novu (open source)",
+          "url": "https://github.com/novuhq/novu"
+        },
+        {
+          "title": "Knock: preferences",
+          "url": "https://docs.knock.app/preferences/overview"
+        }
+      ],
+      "page": "e/notification-preferences/index.html",
+      "json": "api/notification-preferences.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "signed-download-links",
       "name": "Signed download link",
       "category": "files",
@@ -2269,6 +3406,192 @@
       ],
       "page": "e/upload-validation-scanning/index.html",
       "json": "api/upload-validation-scanning.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "csv-import",
+      "name": "CSV import",
+      "category": "files",
+      "category_name": "Files and uploads",
+      "aliases": [
+        "spreadsheet import",
+        "bulk upload",
+        "Excel import",
+        "data import",
+        "import contacts"
+      ],
+      "needs": [
+        "let users upload a spreadsheet of their contacts",
+        "import data from their old tool",
+        "bulk add 500 products from a CSV",
+        "the import half worked and left a mess"
+      ],
+      "keywords": [
+        "csv",
+        "import",
+        "spreadsheet",
+        "excel",
+        "xlsx",
+        "bulk",
+        "upload",
+        "rows",
+        "columns",
+        "mapping",
+        "migrate",
+        "preview"
+      ],
+      "summary": "Taking a user's spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms.",
+      "need_when": [
+        "Users are switching from a spreadsheet or another tool.",
+        "Adding records one at a time would take them hours."
+      ],
+      "skip_when": [
+        "Users only ever have a handful of records."
+      ],
+      "ways": [
+        {
+          "title": "Your own upload, preview, commit flow",
+          "cost": "$0",
+          "how": "Parse with Python's csv module, Papa Parse (JavaScript) or openpyxl for Excel. Keep the parsed rows between steps, then save in one transaction.",
+          "tradeoff": "Full control and private. Column mapping UI is the hard part."
+        },
+        {
+          "title": "An embeddable importer",
+          "cost": "free tiers or open source, then paid",
+          "how": "Flatfile, OneSchema, CSVBox or the open source react-spreadsheet-import give users a mapping and cleanup screen.",
+          "tradeoff": "Great UX quickly. Data may pass through a vendor."
+        },
+        {
+          "title": "Background import for big files",
+          "cost": "$0",
+          "how": "Upload to storage, process in a job, email a report of what failed.",
+          "tradeoff": "Handles large files. Users wait and come back."
+        }
+      ],
+      "prompt": "Add CSV import for [record type].\n\nRequirements:\n- Steps: upload, map columns (auto-match by header name), preview, commit.\n- Limits: [500] rows and [5 MB] per file. Accept UTF-8 and UTF-8 with BOM. Detect comma or semicolon.\n- Validate each row with the same rules as the normal create form. The preview shows each row's errors with row number and column.\n- Commit valid rows in one transaction, or nothing on failure. Show \"imported X, skipped Y\" and offer a CSV of the skipped rows with reasons.\n- Respect plan limits: check before commit that the import won't exceed them.\n- Detect duplicates by [key] and let the user choose skip or update.\n- Escape cells starting with =, +, -, @ when exporting the error file back, to block formula injection.\n- Provide a downloadable template CSV.\n\nAcceptance checks (run each and show me the result):\n1. A file with 3 bad rows shows exactly those rows and reasons in the preview.\n2. Killing the process during commit leaves no half import.\n3. A file over the row limit gets a clear message.\n4. Importing the same file twice doesn't create duplicates when skip is chosen.\n5. A cell with =HYPERLINK(...) is neutralized in the error CSV.",
+      "acceptance_checks": [
+        "A file with 3 bad rows shows exactly those rows and reasons in the preview.",
+        "Killing the process during commit leaves no half import.",
+        "A file over the row limit gets a clear message.",
+        "Importing the same file twice doesn't create duplicates when skip is chosen.",
+        "A cell with =HYPERLINK(...) is neutralized in the error CSV."
+      ],
+      "if_you_skip_it": "Users import 10,000 broken rows they then have to delete by hand, or blow past plan limits in one upload.",
+      "how_derek_runs_it": "Custody Journal's CSV import covers journal entries, expenses and calendar events. It goes upload, preview, commit, caps files at 500 data rows, and checks the free-tier monthly limit before committing.",
+      "links": [
+        {
+          "title": "Papa Parse",
+          "url": "https://www.papaparse.com/"
+        },
+        {
+          "title": "OWASP: CSV injection",
+          "url": "https://community.owasp.org/attacks/CSV_Injection"
+        },
+        {
+          "title": "react-spreadsheet-import (open source)",
+          "url": "https://github.com/UgnisSoftware/react-spreadsheet-import"
+        }
+      ],
+      "page": "e/csv-import/index.html",
+      "json": "api/csv-import.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "pdf-generation",
+      "name": "PDF generation",
+      "category": "files",
+      "category_name": "Files and uploads",
+      "aliases": [
+        "generate PDF",
+        "HTML to PDF",
+        "invoice PDF",
+        "PDF reports",
+        "export to PDF"
+      ],
+      "needs": [
+        "generate invoices as PDF",
+        "let users download a report as a PDF",
+        "my PDF looks different from the web page",
+        "PDF generation is slow and times out"
+      ],
+      "keywords": [
+        "pdf",
+        "invoice",
+        "report",
+        "print",
+        "export",
+        "download",
+        "html",
+        "chromium",
+        "puppeteer",
+        "playwright",
+        "weasyprint",
+        "reportlab",
+        "receipt"
+      ],
+      "summary": "Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job.",
+      "need_when": [
+        "Invoices, receipts, reports, certificates or anything users print or hand to someone else."
+      ],
+      "skip_when": [
+        "A print stylesheet on the web page is enough and users can \"Save as PDF\" themselves."
+      ],
+      "ways": [
+        {
+          "title": "Headless Chromium",
+          "cost": "$0, needs memory",
+          "how": "Playwright or Puppeteer load an HTML page and call page.pdf().",
+          "tradeoff": "Matches your web styling. Heavy to run, and pages must not load untrusted URLs."
+        },
+        {
+          "title": "A print-CSS engine",
+          "cost": "$0",
+          "how": "WeasyPrint (Python) renders HTML and CSS to PDF without a browser, with good page headers and footers.",
+          "tradeoff": "Lighter than Chromium. No JavaScript, and some modern CSS is missing."
+        },
+        {
+          "title": "Draw it with a PDF library",
+          "cost": "$0",
+          "how": "ReportLab (Python), PDFKit or pdf-lib (JavaScript), or React-PDF lay out text and tables in code.",
+          "tradeoff": "Fast and exact. Layout changes take code."
+        },
+        {
+          "title": "A PDF API",
+          "cost": "free tiers, then per document",
+          "how": "Services such as DocRaptor or PDFShift convert HTML for you.",
+          "tradeoff": "Nothing to host. Your documents leave your servers."
+        }
+      ],
+      "prompt": "Add PDF generation for [document type] using [tool].\n\nRequirements:\n- Build the PDF from a template plus data, in a background job if it takes over [3 seconds].\n- Page size [Letter / A4], margins, page numbers in the footer, and a header with the date generated.\n- Embed fonts so it looks the same everywhere. Tables split across pages with the header row repeated.\n- Escape all user text. If rendering HTML in a browser, block network requests except my own static files.\n- Store the file privately and serve it through a signed or owner-checked link.\n- Set a filename like [invoice-2026-001.pdf] and Content-Disposition attachment.\n- Add a test that generates a sample and checks the page count and some text.\n\nAcceptance checks (run each and show me the result):\n1. A 30-page report generates without timing out the web request.\n2. User text with HTML tags appears as text, not markup.\n3. Another user can't download the file by changing the id.\n4. The PDF opens correctly in Acrobat, Preview and Chrome.\n5. Long tables repeat their header on each page.",
+      "acceptance_checks": [
+        "A 30-page report generates without timing out the web request.",
+        "User text with HTML tags appears as text, not markup.",
+        "Another user can't download the file by changing the id.",
+        "The PDF opens correctly in Acrobat, Preview and Chrome.",
+        "Long tables repeat their header on each page."
+      ],
+      "if_you_skip_it": "Requests time out on big documents, a user's text injects markup into an invoice, or private PDFs are readable by anyone with the link.",
+      "how_derek_runs_it": "Custody Journal builds its PDFs, including court summaries, parenting plans and calendar event lists, in Python with ReportLab.",
+      "links": [
+        {
+          "title": "Playwright: page.pdf()",
+          "url": "https://playwright.dev/docs/api/class-page#page-pdf"
+        },
+        {
+          "title": "WeasyPrint",
+          "url": "https://weasyprint.org/"
+        },
+        {
+          "title": "ReportLab docs",
+          "url": "https://docs.reportlab.com/"
+        },
+        {
+          "title": "pdf-lib",
+          "url": "https://pdf-lib.js.org/"
+        }
+      ],
+      "page": "e/pdf-generation/index.html",
+      "json": "api/pdf-generation.json",
       "updated": "2026-10-21"
     },
     {
@@ -2883,6 +4206,448 @@
       ],
       "page": "e/pagination/index.html",
       "json": "api/pagination.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "outbound-webhooks",
+      "name": "Outgoing webhooks",
+      "category": "api",
+      "category_name": "APIs and integrations",
+      "aliases": [
+        "webhooks you send",
+        "sending webhooks",
+        "webhook delivery",
+        "event notifications to customers",
+        "HTTP callbacks"
+      ],
+      "needs": [
+        "let my users get notified in Zapier when something happens",
+        "send an event to a customer's URL",
+        "customers want a callback when a job finishes",
+        "my webhook calls fail and nobody retries them"
+      ],
+      "keywords": [
+        "webhook",
+        "outgoing",
+        "send",
+        "callback",
+        "zapier",
+        "make",
+        "n8n",
+        "notify",
+        "endpoint",
+        "subscribe",
+        "deliver",
+        "integration"
+      ],
+      "summary": "Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer's slow server can't slow you down.",
+      "need_when": [
+        "Users want other tools (Zapier, Make, n8n, their own code) to react to events in your app.",
+        "Customers keep polling your API to ask if something changed."
+      ],
+      "skip_when": [
+        "No user has asked for integrations yet. A CSV export or email may be enough for now."
+      ],
+      "ways": [
+        {
+          "title": "A deliveries table and your own worker",
+          "cost": "$0",
+          "how": "Save one row per (endpoint, event) when the event happens. A background worker sends it, records the response code and schedules a retry on failure.",
+          "tradeoff": "Full control and no vendor. You build the retry schedule, signing, logs and the customer-facing settings page yourself."
+        },
+        {
+          "title": "A webhook delivery service",
+          "cost": "free tier, then paid",
+          "how": "Svix or Hookdeck take your events and handle signing, retries, logs and an endpoint portal you can embed.",
+          "tradeoff": "Saves weeks. Another vendor sees your event payloads and bills per message at volume."
+        },
+        {
+          "title": "Queue plus a serverless sender",
+          "cost": "free tiers",
+          "how": "Push events to a queue (SQS, Cloudflare Queues) and let a function deliver them with the queue's retry and dead-letter settings.",
+          "tradeoff": "Scales well. Per-endpoint logs and a replay button are still yours to build."
+        }
+      ],
+      "prompt": "Add outgoing webhooks so users can subscribe a URL to events in my app.\n\nRequirements:\n- Users can add an endpoint (HTTPS only), pick which events it gets, and see its signing secret once.\n- When an event happens, save a delivery row per endpoint in the same database transaction as the change. A background worker sends it.\n- Body is JSON with id, type, created timestamp and data. Sign the timestamp plus body with HMAC-SHA256 and send the signature, timestamp and event id as headers.\n- 10 second timeout. Don't follow redirects. Treat any 2xx as success.\n- Retry failures with exponential backoff and jitter for about [8] attempts over a day, then mark the delivery dead.\n- Block destinations that resolve to private, loopback or link-local addresses.\n- Give users a delivery log (time, event, status code, attempt count) and a \"resend\" button.\n- Disable an endpoint after [N] days of only failures and email its owner.\n\nAcceptance checks (run each and show me the result):\n1. A receiver can verify the signature with the secret and a 10-line script.\n2. Pointing an endpoint at a server that returns 500 shows retries spreading out in the log.\n3. An endpoint at http://127.0.0.1 or a private IP is rejected.\n4. A receiver that sleeps 60 seconds does not hold up other deliveries.\n5. Resending a delivery uses the same event id, so receivers can drop the duplicate.",
+      "acceptance_checks": [
+        "A receiver can verify the signature with the secret and a 10-line script.",
+        "Pointing an endpoint at a server that returns 500 shows retries spreading out in the log.",
+        "An endpoint at http://127.0.0.1 or a private IP is rejected.",
+        "A receiver that sleeps 60 seconds does not hold up other deliveries.",
+        "Resending a delivery uses the same event id, so receivers can drop the duplicate."
+      ],
+      "if_you_skip_it": "Customers miss events whenever their server blips, nobody can tell what was sent, or your server gets used to probe internal addresses.",
+      "how_derek_runs_it": "Custody Journal can send webhooks to URLs its users register. Each delivery is a saved row that a webhook worker sends with HMAC-SHA256 signatures, an event id that doubles as an Idempotency-Key header and a 10 second timeout. Failures retry with jittered backoff starting at 30 seconds and capped at 6 hours, for up to 8 attempts, then the delivery is marked dead. Destinations must be HTTPS, redirects aren't followed and private addresses are blocked.",
+      "links": [
+        {
+          "title": "Standard Webhooks spec",
+          "url": "https://www.standardwebhooks.com/"
+        },
+        {
+          "title": "Svix",
+          "url": "https://www.svix.com/"
+        },
+        {
+          "title": "Hookdeck",
+          "url": "https://hookdeck.com/"
+        },
+        {
+          "title": "Stripe: how its webhooks retry (a good model to copy)",
+          "url": "https://docs.stripe.com/webhooks"
+        }
+      ],
+      "page": "e/outbound-webhooks/index.html",
+      "json": "api/outbound-webhooks.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "api-keys",
+      "name": "API keys for your own API",
+      "category": "api",
+      "category_name": "APIs and integrations",
+      "aliases": [
+        "personal access tokens",
+        "developer API keys",
+        "API tokens",
+        "secret keys",
+        "service tokens"
+      ],
+      "needs": [
+        "let customers call my API from their own code",
+        "generate API keys for users",
+        "how do I store API keys safely",
+        "a customer leaked their key and needs a new one"
+      ],
+      "keywords": [
+        "api",
+        "key",
+        "token",
+        "developer",
+        "personal",
+        "access",
+        "revoke",
+        "rotate",
+        "hash",
+        "prefix",
+        "scope",
+        "bearer",
+        "header"
+      ],
+      "summary": "Long random secrets your users create so their scripts can call your API without a password. You show the key once, store only a hash of it, and let users name, scope and revoke each one.",
+      "need_when": [
+        "Customers or their tools need to call your API from servers, scripts or no-code tools."
+      ],
+      "skip_when": [
+        "Only your own frontend calls the API. Use normal login sessions.",
+        "Third-party apps act on behalf of users. That calls for OAuth, not pasted keys."
+      ],
+      "ways": [
+        {
+          "title": "Hashed keys in your own table",
+          "cost": "$0",
+          "how": "Generate 32 random bytes with a readable prefix like myapp_live_. Store a SHA-256 hash, the last 4 characters, scopes, created and last-used times.",
+          "tradeoff": "Simple and safe. You build the settings page, scopes and usage tracking."
+        },
+        {
+          "title": "An API key service",
+          "cost": "free tier, then paid",
+          "how": "Unkey or Zuplo issue, verify and rate limit keys for you, with per-key analytics.",
+          "tradeoff": "Fast to ship. Every API call now depends on their verify step."
+        },
+        {
+          "title": "Your auth provider's machine tokens",
+          "cost": "depends on plan",
+          "how": "Some auth providers (Clerk, WorkOS, Auth0) offer API keys or machine-to-machine tokens tied to your users or orgs.",
+          "tradeoff": "One less system. Features and limits vary a lot by plan."
+        }
+      ],
+      "prompt": "Add API keys so users can call my API from their own code.\n\nRequirements:\n- Settings page: create a key with a name and scopes ([read], [write]), list keys (name, prefix, last 4, scopes, created, last used) and revoke.\n- Key format: a fixed prefix like [myapp_live_] plus at least 32 random bytes, base62 or base64url.\n- Show the full key exactly once. Store only a SHA-256 hash and look keys up by that hash.\n- Accept keys in the Authorization: Bearer header only, never in the URL.\n- Check scopes on every endpoint. Revoked keys fail right away.\n- Rate limit per key, and update last_used_at at most once a minute.\n- Log key creation and revocation in the audit log.\n- Never log full keys. Add the prefix pattern to secret scanning if the host supports it.\n\nAcceptance checks (run each and show me the result):\n1. The database has no column that holds a usable key.\n2. A revoked key gets 401 on the next request.\n3. A read-only key gets 403 on a write endpoint.\n4. A key passed in the query string is refused.\n5. Request logs show the key prefix, never the full key.",
+      "acceptance_checks": [
+        "The database has no column that holds a usable key.",
+        "A revoked key gets 401 on the next request.",
+        "A read-only key gets 403 on a write endpoint.",
+        "A key passed in the query string is refused.",
+        "Request logs show the key prefix, never the full key."
+      ],
+      "if_you_skip_it": "A database leak hands out working keys for every customer, or a leaked key can't be shut off without breaking everyone.",
+      "how_derek_runs_it": "Custody Journal's mobile app tokens follow the same storage rule: the database keeps only a SHA-256 hash of each token, plus an expiry time.",
+      "links": [
+        {
+          "title": "OWASP REST Security Cheat Sheet: API keys",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html"
+        },
+        {
+          "title": "GitHub: secret scanning partner program (key prefixes)",
+          "url": "https://docs.github.com/en/code-security/tutorials/secret-scanning-partner-program"
+        },
+        {
+          "title": "Unkey (open source)",
+          "url": "https://github.com/unkeyed/unkey"
+        }
+      ],
+      "page": "e/api-keys/index.html",
+      "json": "api/api-keys.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "api-versioning",
+      "name": "API versioning plan",
+      "category": "api",
+      "category_name": "APIs and integrations",
+      "aliases": [
+        "API versions",
+        "breaking changes",
+        "API deprecation",
+        "backward compatibility",
+        "v1 v2"
+      ],
+      "needs": [
+        "change my API without breaking customers' code",
+        "should I put v1 in the URL",
+        "rename a field in a public API",
+        "old mobile app versions still call the API"
+      ],
+      "keywords": [
+        "version",
+        "versioning",
+        "v1",
+        "v2",
+        "breaking",
+        "deprecate",
+        "deprecation",
+        "sunset",
+        "compatible",
+        "rename",
+        "field",
+        "mobile"
+      ],
+      "summary": "A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.",
+      "need_when": [
+        "Anyone outside your own frontend calls your API, including your own mobile app that users don't update."
+      ],
+      "skip_when": [
+        "The API is only used by a web frontend you deploy at the same time."
+      ],
+      "ways": [
+        {
+          "title": "Version in the URL",
+          "cost": "$0",
+          "how": "/v1/orders and later /v2/orders. Old routes keep working until a published sunset date.",
+          "tradeoff": "Obvious and easy to cache. Big jumps tend to bundle many changes at once."
+        },
+        {
+          "title": "Dated versions per account",
+          "cost": "$0",
+          "how": "Each account is pinned to the version it started on and can send a version header to upgrade. Small transform layers translate old shapes.",
+          "tradeoff": "Smooth for customers, and it is the model Stripe documents. More code to keep each old shape alive."
+        },
+        {
+          "title": "Additive changes only",
+          "cost": "$0",
+          "how": "Never remove or rename. Add new fields and endpoints, mark old ones deprecated in docs and responses.",
+          "tradeoff": "No version math. The API slowly collects leftovers."
+        }
+      ],
+      "prompt": "Write and apply an API versioning plan for my API.\n\nRequirements:\n- List what counts as a breaking change (removing or renaming a field or endpoint, changing a type, new required input, changed error codes) and what doesn't (new optional fields, new endpoints).\n- Use [URL versions like /v1/] and route all current endpoints under v1.\n- Add Deprecation and Sunset headers to anything scheduled for removal, plus a changelog page.\n- Keep contract tests that pin the v1 response shapes so an accidental break fails CI.\n- Log which version each API key or app build uses, so I know who still calls old versions.\n- Document the policy: how much notice before removal ([6 months]) and how customers are told.\n\nAcceptance checks (run each and show me the result):\n1. Renaming a field in a v1 response makes a contract test fail.\n2. Deprecated endpoints return Deprecation and Sunset headers.\n3. A dashboard or query shows request counts per version.\n4. The changelog lists every breaking change with a date.\n5. An old mobile build can still log in and load data.",
+      "acceptance_checks": [
+        "Renaming a field in a v1 response makes a contract test fail.",
+        "Deprecated endpoints return Deprecation and Sunset headers.",
+        "A dashboard or query shows request counts per version.",
+        "The changelog lists every breaking change with a date.",
+        "An old mobile build can still log in and load data."
+      ],
+      "if_you_skip_it": "One deploy breaks every customer integration and older app installs at once, with no warning.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: API upgrades and versioning",
+          "url": "https://docs.stripe.com/upgrades"
+        },
+        {
+          "title": "RFC 8594: the Sunset header",
+          "url": "https://datatracker.ietf.org/doc/html/rfc8594"
+        },
+        {
+          "title": "Microsoft REST API guidelines (versioning section)",
+          "url": "https://github.com/microsoft/api-guidelines"
+        }
+      ],
+      "page": "e/api-versioning/index.html",
+      "json": "api/api-versioning.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "idempotency-keys",
+      "name": "Idempotency keys for your API",
+      "category": "api",
+      "category_name": "APIs and integrations",
+      "aliases": [
+        "Idempotency-Key header",
+        "safe retries",
+        "exactly once requests",
+        "duplicate request protection",
+        "request deduplication"
+      ],
+      "needs": [
+        "a retry created two payments",
+        "the client timed out but the order went through",
+        "make POST requests safe to retry",
+        "my mobile app sends the same request twice on bad wifi"
+      ],
+      "keywords": [
+        "idempotency",
+        "idempotent",
+        "key",
+        "header",
+        "retry",
+        "duplicate",
+        "twice",
+        "post",
+        "timeout",
+        "exactly",
+        "once",
+        "network"
+      ],
+      "summary": "The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.",
+      "need_when": [
+        "POST endpoints that charge money, send messages or create orders.",
+        "Clients on flaky networks, like mobile apps, that retry automatically."
+      ],
+      "skip_when": [
+        "GET, PUT and DELETE that already give the same result when repeated."
+      ],
+      "ways": [
+        {
+          "title": "An idempotency table",
+          "cost": "$0",
+          "how": "Store (user, key, request hash, status, response) with a unique constraint. Insert first, do the work, save the response.",
+          "tradeoff": "Reliable and simple. Needs cleanup of old keys after about a day."
+        },
+        {
+          "title": "Middleware or a library",
+          "cost": "$0",
+          "how": "Libraries for Express, NestJS, Django and Rails wrap endpoints and store keys in Redis or the database.",
+          "tradeoff": "Quick. Check how each one handles two identical requests arriving at the same moment."
+        },
+        {
+          "title": "Natural unique keys",
+          "cost": "$0",
+          "how": "Use a unique constraint on a business value, like one invoice per (customer, month).",
+          "tradeoff": "No header needed. Only works when such a value exists."
+        }
+      ],
+      "prompt": "Make my create endpoints safe to retry with an Idempotency-Key header.\n\nRequirements:\n- Endpoints: [POST /orders, POST /payments]. Accept an Idempotency-Key header (UUID from the client).\n- Store user id, key, a hash of the request body, status (in_progress, done), response code and body. Unique on (user id, key).\n- If the key is new: insert as in_progress, do the work, save the response.\n- If the key exists and is done: return the saved response with the same status code.\n- If it exists and is in_progress: return 409 so the client retries later.\n- If the body hash differs from the first request: return 422.\n- Pass the same key to Stripe or any payment API you call.\n- Delete keys older than [24 hours] in a scheduled job.\n- Make the frontend and mobile app generate one key per user action and reuse it on retries.\n\nAcceptance checks (run each and show me the result):\n1. Sending the same request twice with one key creates one order and returns the same body both times.\n2. Two identical requests sent at the same moment still create one order.\n3. Reusing a key with a different body returns 422.\n4. Killing the connection mid-request and retrying gives one order.\n5. Keys older than the window are cleaned up.",
+      "acceptance_checks": [
+        "Sending the same request twice with one key creates one order and returns the same body both times.",
+        "Two identical requests sent at the same moment still create one order.",
+        "Reusing a key with a different body returns 422.",
+        "Killing the connection mid-request and retrying gives one order.",
+        "Keys older than the window are cleaned up."
+      ],
+      "if_you_skip_it": "Customers get charged twice or get duplicate orders every time the network hiccups.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: idempotent requests",
+          "url": "https://docs.stripe.com/api/idempotent_requests"
+        },
+        {
+          "title": "IETF draft: the Idempotency-Key HTTP header",
+          "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/"
+        }
+      ],
+      "page": "e/idempotency-keys/index.html",
+      "json": "api/idempotency-keys.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "api-docs-openapi",
+      "name": "API docs from an OpenAPI spec",
+      "category": "api",
+      "category_name": "APIs and integrations",
+      "aliases": [
+        "OpenAPI",
+        "Swagger",
+        "API reference",
+        "API documentation",
+        "SDK generation"
+      ],
+      "needs": [
+        "customers keep asking how to call my API",
+        "write docs for my API",
+        "generate a client library for my API",
+        "my API docs are out of date"
+      ],
+      "keywords": [
+        "openapi",
+        "swagger",
+        "docs",
+        "documentation",
+        "reference",
+        "sdk",
+        "client",
+        "schema",
+        "spec",
+        "redoc",
+        "scalar"
+      ],
+      "summary": "One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can't drift far from the code.",
+      "need_when": [
+        "Anyone besides you calls your API, including AI agents and no-code tools."
+      ],
+      "skip_when": [
+        "Private endpoints used only by your own frontend."
+      ],
+      "ways": [
+        {
+          "title": "Generate the spec from code",
+          "cost": "$0",
+          "how": "FastAPI does it built in. drf-spectacular (Django REST), NestJS Swagger and zod-openapi build the file from your routes and schemas.",
+          "tradeoff": "Stays in sync with the code. Descriptions and examples still need writing."
+        },
+        {
+          "title": "Write the spec first",
+          "cost": "$0",
+          "how": "Edit openapi.yaml by hand or in an editor, then generate server stubs and validate requests against it.",
+          "tradeoff": "Forces design up front. Easy to let code and file drift without a CI check."
+        },
+        {
+          "title": "A hosted docs platform",
+          "cost": "free tiers, then paid",
+          "how": "Scalar, Redocly, Mintlify or ReadMe render the spec into searchable docs with a try-it console.",
+          "tradeoff": "Polished fast. Monthly cost as you grow."
+        }
+      ],
+      "prompt": "Publish accurate API docs for my API from an OpenAPI 3.1 spec.\n\nRequirements:\n- Generate the spec from the code with [tool for my framework], or write openapi.yaml if no generator fits.\n- Every endpoint gets a summary, auth requirement, request schema, response schemas for success and each error, and one realistic example.\n- Serve the reference at /docs with [Scalar or Redoc] and the raw file at /openapi.json.\n- Add a CI step that fails when the spec is invalid or when the code and spec disagree (validate real responses in tests).\n- Add a short \"quick start\" page: get a key, make one call with curl, read the response.\n- Don't include internal or admin endpoints in the public spec.\n\nAcceptance checks (run each and show me the result):\n1. The spec passes a linter such as Redocly CLI or Spectral.\n2. Changing a response field without updating the spec fails CI.\n3. The curl example in the quick start works as pasted.\n4. Admin endpoints are absent from /openapi.json.\n5. An AI coding tool can call the API correctly from the spec alone.",
+      "acceptance_checks": [
+        "The spec passes a linter such as Redocly CLI or Spectral.",
+        "Changing a response field without updating the spec fails CI.",
+        "The curl example in the quick start works as pasted.",
+        "Admin endpoints are absent from /openapi.json.",
+        "An AI coding tool can call the API correctly from the spec alone."
+      ],
+      "if_you_skip_it": "Support time goes to explaining endpoints, and integrations break because the docs describe last month's API.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OpenAPI Specification",
+          "url": "https://spec.openapis.org/oas/latest.html"
+        },
+        {
+          "title": "Scalar API reference (open source)",
+          "url": "https://github.com/scalar/scalar"
+        },
+        {
+          "title": "Redocly CLI (lint and preview)",
+          "url": "https://redocly.com/docs/cli/"
+        },
+        {
+          "title": "FastAPI: automatic docs",
+          "url": "https://fastapi.tiangolo.com/features/"
+        }
+      ],
+      "page": "e/api-docs-openapi/index.html",
+      "json": "api/api-docs-openapi.json",
       "updated": "2026-10-21"
     },
     {

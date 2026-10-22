@@ -1,0 +1,90 @@
+{
+  "id": "api-docs-openapi",
+  "name": "API docs from an OpenAPI spec",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "OpenAPI",
+    "Swagger",
+    "API reference",
+    "API documentation",
+    "SDK generation"
+  ],
+  "needs": [
+    "customers keep asking how to call my API",
+    "write docs for my API",
+    "generate a client library for my API",
+    "my API docs are out of date"
+  ],
+  "keywords": [
+    "openapi",
+    "swagger",
+    "docs",
+    "documentation",
+    "reference",
+    "sdk",
+    "client",
+    "schema",
+    "spec",
+    "redoc",
+    "scalar"
+  ],
+  "summary": "One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can't drift far from the code.",
+  "need_when": [
+    "Anyone besides you calls your API, including AI agents and no-code tools."
+  ],
+  "skip_when": [
+    "Private endpoints used only by your own frontend."
+  ],
+  "ways": [
+    {
+      "title": "Generate the spec from code",
+      "cost": "$0",
+      "how": "FastAPI does it built in. drf-spectacular (Django REST), NestJS Swagger and zod-openapi build the file from your routes and schemas.",
+      "tradeoff": "Stays in sync with the code. Descriptions and examples still need writing."
+    },
+    {
+      "title": "Write the spec first",
+      "cost": "$0",
+      "how": "Edit openapi.yaml by hand or in an editor, then generate server stubs and validate requests against it.",
+      "tradeoff": "Forces design up front. Easy to let code and file drift without a CI check."
+    },
+    {
+      "title": "A hosted docs platform",
+      "cost": "free tiers, then paid",
+      "how": "Scalar, Redocly, Mintlify or ReadMe render the spec into searchable docs with a try-it console.",
+      "tradeoff": "Polished fast. Monthly cost as you grow."
+    }
+  ],
+  "prompt": "Publish accurate API docs for my API from an OpenAPI 3.1 spec.\n\nRequirements:\n- Generate the spec from the code with [tool for my framework], or write openapi.yaml if no generator fits.\n- Every endpoint gets a summary, auth requirement, request schema, response schemas for success and each error, and one realistic example.\n- Serve the reference at /docs with [Scalar or Redoc] and the raw file at /openapi.json.\n- Add a CI step that fails when the spec is invalid or when the code and spec disagree (validate real responses in tests).\n- Add a short \"quick start\" page: get a key, make one call with curl, read the response.\n- Don't include internal or admin endpoints in the public spec.\n\nAcceptance checks (run each and show me the result):\n1. The spec passes a linter such as Redocly CLI or Spectral.\n2. Changing a response field without updating the spec fails CI.\n3. The curl example in the quick start works as pasted.\n4. Admin endpoints are absent from /openapi.json.\n5. An AI coding tool can call the API correctly from the spec alone.",
+  "acceptance_checks": [
+    "The spec passes a linter such as Redocly CLI or Spectral.",
+    "Changing a response field without updating the spec fails CI.",
+    "The curl example in the quick start works as pasted.",
+    "Admin endpoints are absent from /openapi.json.",
+    "An AI coding tool can call the API correctly from the spec alone."
+  ],
+  "if_you_skip_it": "Support time goes to explaining endpoints, and integrations break because the docs describe last month's API.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAPI Specification",
+      "url": "https://spec.openapis.org/oas/latest.html"
+    },
+    {
+      "title": "Scalar API reference (open source)",
+      "url": "https://github.com/scalar/scalar"
+    },
+    {
+      "title": "Redocly CLI (lint and preview)",
+      "url": "https://redocly.com/docs/cli/"
+    },
+    {
+      "title": "FastAPI: automatic docs",
+      "url": "https://fastapi.tiangolo.com/features/"
+    }
+  ],
+  "page": "e/api-docs-openapi/index.html",
+  "json": "api/api-docs-openapi.json",
+  "updated": "2026-10-21"
+}

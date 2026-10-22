@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API versioning plan: What To Ask For</title>
+<meta name="description" content="A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="API versioning plan: What To Ask For">
+<meta property="og:description" content="A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/api-versioning/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API versioning plan: What To Ask For">
+<meta name="twitter:description" content="A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>API versioning plan</h1>
+  <p class="aka">Also called: API versions, breaking changes, API deprecation, backward compatibility, v1 v2</p>
+  <p class="lead">A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Anyone outside your own frontend calls your API, including your own mobile app that users don&#x27;t update.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The API is only used by a web frontend you deploy at the same time.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Version in the URL <span class="cost">$0</span></h3>
+<p>/v1/orders and later /v2/orders. Old routes keep working until a published sunset date.</p><p class="trade"><strong>Tradeoff:</strong> Obvious and easy to cache. Big jumps tend to bundle many changes at once.</p></li>
+<li><h3>Dated versions per account <span class="cost">$0</span></h3>
+<p>Each account is pinned to the version it started on and can send a version header to upgrade. Small transform layers translate old shapes.</p><p class="trade"><strong>Tradeoff:</strong> Smooth for customers, and it is the model Stripe documents. More code to keep each old shape alive.</p></li>
+<li><h3>Additive changes only <span class="cost">$0</span></h3>
+<p>Never remove or rename. Add new fields and endpoints, mark old ones deprecated in docs and responses.</p><p class="trade"><strong>Tradeoff:</strong> No version math. The API slowly collects leftovers.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Write and apply an API versioning plan for my API.
+
+Requirements:
+- List what counts as a breaking change (removing or renaming a field or endpoint, changing a type, new required input, changed error codes) and what doesn&#x27;t (new optional fields, new endpoints).
+- Use [URL versions like /v1/] and route all current endpoints under v1.
+- Add Deprecation and Sunset headers to anything scheduled for removal, plus a changelog page.
+- Keep contract tests that pin the v1 response shapes so an accidental break fails CI.
+- Log which version each API key or app build uses, so I know who still calls old versions.
+- Document the policy: how much notice before removal ([6 months]) and how customers are told.
+
+Acceptance checks (run each and show me the result):
+1. Renaming a field in a v1 response makes a contract test fail.
+2. Deprecated endpoints return Deprecation and Sunset headers.
+3. A dashboard or query shows request counts per version.
+4. The changelog lists every breaking change with a date.
+5. An old mobile build can still log in and load data.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>One deploy breaks every customer integration and older app installs at once, with no warning.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;change my API without breaking customers&#x27; code&rdquo;</li><li>&ldquo;should I put v1 in the URL&rdquo;</li><li>&ldquo;rename a field in a public API&rdquo;</li><li>&ldquo;old mobile app versions still call the API&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/upgrades">Stripe: API upgrades and versioning</a></li><li><a href="https://datatracker.ietf.org/doc/html/rfc8594">RFC 8594: the Sunset header</a></li><li><a href="https://github.com/microsoft/api-guidelines">Microsoft REST API guidelines (versioning section)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/api-versioning.json">api/api-versioning.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../api-keys/index.html">&larr; API keys for your own API</a><a href="../idempotency-keys/index.html">Idempotency keys for your API &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{
+  "id": "two-factor-auth",
+  "name": "Two-factor authentication (TOTP)",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "2FA",
+    "MFA",
+    "multi-factor authentication",
+    "authenticator app",
+    "one-time codes",
+    "recovery codes"
+  ],
+  "needs": [
+    "add 2FA with Google Authenticator",
+    "require a code from an app after the password",
+    "lost my authenticator device and can't log in",
+    "make admins use two-factor"
+  ],
+  "keywords": [
+    "2fa",
+    "mfa",
+    "totp",
+    "authenticator",
+    "code",
+    "otp",
+    "two",
+    "factor",
+    "recovery",
+    "backup",
+    "qr",
+    "admin"
+  ],
+  "summary": "After the password, the user types a 6-digit code from an authenticator app. You store a secret per user, check codes with a small time window, and give recovery codes for when the phone is gone.",
+  "need_when": [
+    "Accounts hold money, private data, or admin power.",
+    "Business customers ask for it in security reviews."
+  ],
+  "skip_when": [
+    "You only use social login or passkeys, where the provider or device already covers this."
+  ],
+  "ways": [
+    {
+      "title": "Your auth library's MFA module",
+      "cost": "$0",
+      "how": "django-allauth MFA, Devise two-factor, Better Auth's two-factor plugin, Laravel Fortify.",
+      "tradeoff": "Tested flows for setup, login and recovery. You follow its screens and storage."
+    },
+    {
+      "title": "A hosted auth provider",
+      "cost": "free tiers, MFA sometimes paid",
+      "how": "Clerk, Auth0, Supabase Auth, Firebase Auth and WorkOS offer TOTP and often SMS or passkeys.",
+      "tradeoff": "Minutes to turn on. Check which plan includes it."
+    },
+    {
+      "title": "Build it with a TOTP library",
+      "cost": "$0",
+      "how": "pyotp or otplib for codes, a QR code library for setup, your own tables for secrets and recovery codes.",
+      "tradeoff": "Full control. Easy to miss replay checks, rate limits and recovery."
+    }
+  ],
+  "prompt": "Add optional TOTP two-factor authentication, required for [admins].\n\nRequirements:\n- Setup: show a QR code and the secret as text, ask for one valid code before turning it on.\n- Store the TOTP secret encrypted. Accept the current code and one step either side (30 seconds) and reject a code that was already used.\n- Generate 10 single-use recovery codes, show them once, store only hashes.\n- Login: after a correct password, ask for a code or a recovery code. Don't create the full session until it passes.\n- Rate limit code attempts per account and per IP.\n- Turning 2FA off or making new recovery codes needs the password plus a current code.\n- Email the user whenever 2FA is turned on, off, or a recovery code is used.\n- Password reset must not turn off 2FA.\n\nAcceptance checks (run each and show me the result):\n1. A code from Google Authenticator or 1Password logs in; the same code a second time fails.\n2. Each recovery code works once.\n3. Ten wrong codes in a row get throttled.\n4. Resetting the password still asks for the second factor at login.\n5. The database holds no plain recovery codes.",
+  "acceptance_checks": [
+    "A code from Google Authenticator or 1Password logs in; the same code a second time fails.",
+    "Each recovery code works once.",
+    "Ten wrong codes in a row get throttled.",
+    "Resetting the password still asks for the second factor at login.",
+    "The database holds no plain recovery codes."
+  ],
+  "if_you_skip_it": "One leaked password is enough to take over an account, or users lock themselves out with no way back.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OWASP Multifactor Authentication Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html"
+    },
+    {
+      "title": "RFC 6238: TOTP",
+      "url": "https://datatracker.ietf.org/doc/html/rfc6238"
+    },
+    {
+      "title": "django-allauth MFA",
+      "url": "https://docs.allauth.org/en/latest/mfa/index.html"
+    },
+    {
+      "title": "pyotp",
+      "url": "https://github.com/pyauth/pyotp"
+    }
+  ],
+  "page": "e/two-factor-auth/index.html",
+  "json": "api/two-factor-auth.json",
+  "updated": "2026-10-21"
+}

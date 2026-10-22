@@ -1,0 +1,87 @@
+{
+  "id": "refunds-disputes",
+  "name": "Refunds and chargebacks",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "disputes",
+    "chargeback handling",
+    "refund flow",
+    "credit notes",
+    "payment reversals"
+  ],
+  "needs": [
+    "a customer wants their money back",
+    "I got a chargeback from the bank",
+    "remove access after a refund",
+    "issue a partial refund"
+  ],
+  "keywords": [
+    "refund",
+    "refunds",
+    "chargeback",
+    "dispute",
+    "money",
+    "back",
+    "reverse",
+    "partial",
+    "credit",
+    "evidence",
+    "fraud",
+    "bank"
+  ],
+  "summary": "The flow for giving money back, and for answering when a customer's bank pulls it back for you. Your app listens for refund and dispute events, updates access, and keeps the records you need to respond to a dispute before the deadline.",
+  "need_when": [
+    "You take payments. Refund requests and some disputes come with any volume."
+  ],
+  "skip_when": [
+    "You use a merchant of record that handles refunds and disputes for you. Still listen for their events."
+  ],
+  "ways": [
+    {
+      "title": "Refund from your payment dashboard",
+      "cost": "$0, original fees usually not returned",
+      "how": "Issue refunds by hand in the Stripe, Paddle or Lemon Squeezy dashboard and let webhooks update your app.",
+      "tradeoff": "Fine at low volume. Make sure your app reacts to the webhook, not to your memory."
+    },
+    {
+      "title": "A refund action in your admin",
+      "cost": "$0",
+      "how": "An admin button that calls the refund API with a reason and amount, logs who did it, and adjusts access.",
+      "tradeoff": "Consistent and auditable. Needs role checks."
+    },
+    {
+      "title": "Self-serve refunds within a window",
+      "cost": "$0",
+      "how": "Users can cancel and get a refund within [14] days from the billing page.",
+      "tradeoff": "Fewer support emails and fewer disputes. Some abuse risk."
+    }
+  ],
+  "prompt": "Handle refunds and chargebacks properly in my app with [Stripe].\n\nRequirements:\n- Handle these webhooks idempotently: charge.refunded, charge.dispute.created, charge.dispute.closed (or the equivalents for my provider).\n- On full refund: end paid access [now / at period end] and record it. On partial refund: record only.\n- On dispute created: flag the account, email me with the deadline, and pause any automatic renewals for it.\n- Admin refund action: amount, reason, logged with who did it. Only billing admins can use it.\n- Keep what a dispute response needs: receipt, terms accepted at signup with timestamp, login and usage history, and support emails.\n- Show refunds on the customer's billing history.\n\nAcceptance checks (run each and show me the result):\n1. Replaying a refund webhook twice changes access once.\n2. A test dispute sends the alert with the response deadline.\n3. The admin refund button is blocked for non-admins.\n4. The evidence export for one customer can be produced in a minute.\n5. Refunded charges appear in the customer's billing history.",
+  "acceptance_checks": [
+    "Replaying a refund webhook twice changes access once.",
+    "A test dispute sends the alert with the response deadline.",
+    "The admin refund button is blocked for non-admins.",
+    "The evidence export for one customer can be produced in a minute.",
+    "Refunded charges appear in the customer's billing history."
+  ],
+  "if_you_skip_it": "Refunded users keep paid access, or disputes are lost by default because nobody saw them before the deadline.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: refunds",
+      "url": "https://docs.stripe.com/refunds"
+    },
+    {
+      "title": "Stripe: disputes",
+      "url": "https://docs.stripe.com/disputes"
+    },
+    {
+      "title": "Paddle: refunds",
+      "url": "https://developer.paddle.com/build/transactions/create-transaction-adjustments"
+    }
+  ],
+  "page": "e/refunds-disputes/index.html",
+  "json": "api/refunds-disputes.json",
+  "updated": "2026-10-21"
+}

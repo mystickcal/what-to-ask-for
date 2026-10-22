@@ -1,0 +1,92 @@
+{
+  "id": "outbound-webhooks",
+  "name": "Outgoing webhooks",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "webhooks you send",
+    "sending webhooks",
+    "webhook delivery",
+    "event notifications to customers",
+    "HTTP callbacks"
+  ],
+  "needs": [
+    "let my users get notified in Zapier when something happens",
+    "send an event to a customer's URL",
+    "customers want a callback when a job finishes",
+    "my webhook calls fail and nobody retries them"
+  ],
+  "keywords": [
+    "webhook",
+    "outgoing",
+    "send",
+    "callback",
+    "zapier",
+    "make",
+    "n8n",
+    "notify",
+    "endpoint",
+    "subscribe",
+    "deliver",
+    "integration"
+  ],
+  "summary": "Your app calls a URL your user gave you each time an event happens, like order.paid or report.ready. Done right, every delivery is signed, saved, retried with backoff and visible in a log, so a customer's slow server can't slow you down.",
+  "need_when": [
+    "Users want other tools (Zapier, Make, n8n, their own code) to react to events in your app.",
+    "Customers keep polling your API to ask if something changed."
+  ],
+  "skip_when": [
+    "No user has asked for integrations yet. A CSV export or email may be enough for now."
+  ],
+  "ways": [
+    {
+      "title": "A deliveries table and your own worker",
+      "cost": "$0",
+      "how": "Save one row per (endpoint, event) when the event happens. A background worker sends it, records the response code and schedules a retry on failure.",
+      "tradeoff": "Full control and no vendor. You build the retry schedule, signing, logs and the customer-facing settings page yourself."
+    },
+    {
+      "title": "A webhook delivery service",
+      "cost": "free tier, then paid",
+      "how": "Svix or Hookdeck take your events and handle signing, retries, logs and an endpoint portal you can embed.",
+      "tradeoff": "Saves weeks. Another vendor sees your event payloads and bills per message at volume."
+    },
+    {
+      "title": "Queue plus a serverless sender",
+      "cost": "free tiers",
+      "how": "Push events to a queue (SQS, Cloudflare Queues) and let a function deliver them with the queue's retry and dead-letter settings.",
+      "tradeoff": "Scales well. Per-endpoint logs and a replay button are still yours to build."
+    }
+  ],
+  "prompt": "Add outgoing webhooks so users can subscribe a URL to events in my app.\n\nRequirements:\n- Users can add an endpoint (HTTPS only), pick which events it gets, and see its signing secret once.\n- When an event happens, save a delivery row per endpoint in the same database transaction as the change. A background worker sends it.\n- Body is JSON with id, type, created timestamp and data. Sign the timestamp plus body with HMAC-SHA256 and send the signature, timestamp and event id as headers.\n- 10 second timeout. Don't follow redirects. Treat any 2xx as success.\n- Retry failures with exponential backoff and jitter for about [8] attempts over a day, then mark the delivery dead.\n- Block destinations that resolve to private, loopback or link-local addresses.\n- Give users a delivery log (time, event, status code, attempt count) and a \"resend\" button.\n- Disable an endpoint after [N] days of only failures and email its owner.\n\nAcceptance checks (run each and show me the result):\n1. A receiver can verify the signature with the secret and a 10-line script.\n2. Pointing an endpoint at a server that returns 500 shows retries spreading out in the log.\n3. An endpoint at http://127.0.0.1 or a private IP is rejected.\n4. A receiver that sleeps 60 seconds does not hold up other deliveries.\n5. Resending a delivery uses the same event id, so receivers can drop the duplicate.",
+  "acceptance_checks": [
+    "A receiver can verify the signature with the secret and a 10-line script.",
+    "Pointing an endpoint at a server that returns 500 shows retries spreading out in the log.",
+    "An endpoint at http://127.0.0.1 or a private IP is rejected.",
+    "A receiver that sleeps 60 seconds does not hold up other deliveries.",
+    "Resending a delivery uses the same event id, so receivers can drop the duplicate."
+  ],
+  "if_you_skip_it": "Customers miss events whenever their server blips, nobody can tell what was sent, or your server gets used to probe internal addresses.",
+  "how_derek_runs_it": "Custody Journal can send webhooks to URLs its users register. Each delivery is a saved row that a webhook worker sends with HMAC-SHA256 signatures, an event id that doubles as an Idempotency-Key header and a 10 second timeout. Failures retry with jittered backoff starting at 30 seconds and capped at 6 hours, for up to 8 attempts, then the delivery is marked dead. Destinations must be HTTPS, redirects aren't followed and private addresses are blocked.",
+  "links": [
+    {
+      "title": "Standard Webhooks spec",
+      "url": "https://www.standardwebhooks.com/"
+    },
+    {
+      "title": "Svix",
+      "url": "https://www.svix.com/"
+    },
+    {
+      "title": "Hookdeck",
+      "url": "https://hookdeck.com/"
+    },
+    {
+      "title": "Stripe: how its webhooks retry (a good model to copy)",
+      "url": "https://docs.stripe.com/webhooks"
+    }
+  ],
+  "page": "e/outbound-webhooks/index.html",
+  "json": "api/outbound-webhooks.json",
+  "updated": "2026-10-21"
+}

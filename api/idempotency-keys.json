@@ -1,0 +1,84 @@
+{
+  "id": "idempotency-keys",
+  "name": "Idempotency keys for your API",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "Idempotency-Key header",
+    "safe retries",
+    "exactly once requests",
+    "duplicate request protection",
+    "request deduplication"
+  ],
+  "needs": [
+    "a retry created two payments",
+    "the client timed out but the order went through",
+    "make POST requests safe to retry",
+    "my mobile app sends the same request twice on bad wifi"
+  ],
+  "keywords": [
+    "idempotency",
+    "idempotent",
+    "key",
+    "header",
+    "retry",
+    "duplicate",
+    "twice",
+    "post",
+    "timeout",
+    "exactly",
+    "once",
+    "network"
+  ],
+  "summary": "The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe.",
+  "need_when": [
+    "POST endpoints that charge money, send messages or create orders.",
+    "Clients on flaky networks, like mobile apps, that retry automatically."
+  ],
+  "skip_when": [
+    "GET, PUT and DELETE that already give the same result when repeated."
+  ],
+  "ways": [
+    {
+      "title": "An idempotency table",
+      "cost": "$0",
+      "how": "Store (user, key, request hash, status, response) with a unique constraint. Insert first, do the work, save the response.",
+      "tradeoff": "Reliable and simple. Needs cleanup of old keys after about a day."
+    },
+    {
+      "title": "Middleware or a library",
+      "cost": "$0",
+      "how": "Libraries for Express, NestJS, Django and Rails wrap endpoints and store keys in Redis or the database.",
+      "tradeoff": "Quick. Check how each one handles two identical requests arriving at the same moment."
+    },
+    {
+      "title": "Natural unique keys",
+      "cost": "$0",
+      "how": "Use a unique constraint on a business value, like one invoice per (customer, month).",
+      "tradeoff": "No header needed. Only works when such a value exists."
+    }
+  ],
+  "prompt": "Make my create endpoints safe to retry with an Idempotency-Key header.\n\nRequirements:\n- Endpoints: [POST /orders, POST /payments]. Accept an Idempotency-Key header (UUID from the client).\n- Store user id, key, a hash of the request body, status (in_progress, done), response code and body. Unique on (user id, key).\n- If the key is new: insert as in_progress, do the work, save the response.\n- If the key exists and is done: return the saved response with the same status code.\n- If it exists and is in_progress: return 409 so the client retries later.\n- If the body hash differs from the first request: return 422.\n- Pass the same key to Stripe or any payment API you call.\n- Delete keys older than [24 hours] in a scheduled job.\n- Make the frontend and mobile app generate one key per user action and reuse it on retries.\n\nAcceptance checks (run each and show me the result):\n1. Sending the same request twice with one key creates one order and returns the same body both times.\n2. Two identical requests sent at the same moment still create one order.\n3. Reusing a key with a different body returns 422.\n4. Killing the connection mid-request and retrying gives one order.\n5. Keys older than the window are cleaned up.",
+  "acceptance_checks": [
+    "Sending the same request twice with one key creates one order and returns the same body both times.",
+    "Two identical requests sent at the same moment still create one order.",
+    "Reusing a key with a different body returns 422.",
+    "Killing the connection mid-request and retrying gives one order.",
+    "Keys older than the window are cleaned up."
+  ],
+  "if_you_skip_it": "Customers get charged twice or get duplicate orders every time the network hiccups.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: idempotent requests",
+      "url": "https://docs.stripe.com/api/idempotent_requests"
+    },
+    {
+      "title": "IETF draft: the Idempotency-Key HTTP header",
+      "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/"
+    }
+  ],
+  "page": "e/idempotency-keys/index.html",
+  "json": "api/idempotency-keys.json",
+  "updated": "2026-10-21"
+}
