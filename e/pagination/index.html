@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagination: What To Ask For</title>
+<meta name="description" content="Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn&#x27;t skip or repeat items when rows are added while someone scrolls.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Pagination: What To Ask For">
+<meta property="og:description" content="Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn&#x27;t skip or repeat items when rows are added while someone scrolls.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/pagination/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pagination: What To Ask For">
+<meta name="twitter:description" content="Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn&#x27;t skip or repeat items when rows are added while someone scrolls.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Pagination</h1>
+  <p class="aka">Also called: paging, cursor pagination, keyset pagination, infinite scroll, load more, offset limit</p>
+  <p class="lead">Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn&#x27;t skip or repeat items when rows are added while someone scrolls.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Any list or API that can grow past a few hundred rows.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Lists with a hard small cap, like a user&#x27;s 5 saved addresses.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Offset and limit <span class="cost">$0</span></h3>
+<p>LIMIT 25 OFFSET 50, or your framework&#x27;s paginator. Shows page numbers and a total.</p><p class="trade"><strong>Tradeoff:</strong> Easy. Deep pages get slow on big tables, and rows shift when new ones arrive.</p></li>
+<li><h3>Cursor (keyset) pagination <span class="cost">$0</span></h3>
+<p>Sort by a unique, indexed key like (created_at, id) and return a cursor for the last row. The next page asks for rows after it.</p><p class="trade"><strong>Tradeoff:</strong> Fast at any depth and stable while data changes. No jumping to page 37.</p></li>
+<li><h3>Search engine paging <span class="cost">varies</span></h3>
+<p>If the list comes from a search service, use its own paging and result limits.</p><p class="trade"><strong>Tradeoff:</strong> Fits search results. Totals are often estimates.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add pagination to [list page / API endpoint].
+
+Requirements:
+- Use cursor pagination ordered by (created_at, id) descending, with an index that matches that order. The response includes items and next_cursor (null on the last page).
+- Page size defaults to [25] and the client can&#x27;t ask for more than [100].
+- The cursor is opaque to the client (base64-encoded) and is validated on input.
+- Keep the user&#x27;s filters and ownership check on every page.
+- In the UI, add a &#x27;Load more&#x27; button (or infinite scroll that also has a button for keyboard users).
+- If page numbers are required, use offset paging only for this small list and say why.
+
+Acceptance checks (run each and show me the result):
+1. The first request returns 25 items and a next_cursor.
+2. Following cursors to the end returns every item exactly once, even if new items are added during the walk.
+3. Asking for 10,000 items returns at most 100.
+4. EXPLAIN shows the query uses the index on deep pages.
+5. A tampered cursor returns 400, not a server error.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>List pages that time out as data grows, APIs that return a million rows, and feeds that repeat or skip items.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal pages its long lists with Django&#x27;s Paginator, mostly 25 rows per page, which is offset paging.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my list page loads every row and got slow&rdquo;</li><li>&ldquo;add load more or infinite scroll&rdquo;</li><li>&ldquo;page 500 of the results is really slow&rdquo;</li><li>&ldquo;items show up twice when I scroll&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/topics/pagination/">Django: pagination</a></li><li><a href="https://use-the-index-luke.com/no-offset">Use The Index, Luke: paging through results</a></li><li><a href="https://www.postgresql.org/docs/current/queries-limit.html">PostgreSQL: LIMIT and OFFSET</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/pagination.json">api/pagination.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../transactions-race-conditions/index.html">&larr; Transactions and race conditions</a><a href="../rate-limiting/index.html">Rate limiting &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

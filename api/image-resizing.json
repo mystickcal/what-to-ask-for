@@ -1,0 +1,94 @@
+{
+  "id": "image-resizing",
+  "name": "Image resizing and thumbnails",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "thumbnails",
+    "image optimization",
+    "responsive images",
+    "image transforms",
+    "image CDN"
+  ],
+  "needs": [
+    "my page loads 8 MB photos as tiny avatars",
+    "make thumbnails of uploaded pictures",
+    "images make my site slow on phones",
+    "photos from phones show up sideways"
+  ],
+  "keywords": [
+    "image",
+    "images",
+    "thumbnail",
+    "resize",
+    "photo",
+    "avatar",
+    "webp",
+    "avif",
+    "sharp",
+    "pillow",
+    "exif",
+    "slow",
+    "optimize",
+    "sideways",
+    "rotate"
+  ],
+  "summary": "Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result.",
+  "need_when": [
+    "Users upload photos and you show them in lists, cards or avatars."
+  ],
+  "skip_when": [
+    "You only show a few images you made yourself. Export them at the right size once."
+  ],
+  "ways": [
+    {
+      "title": "Resize on upload",
+      "cost": "$0",
+      "how": "A background job uses sharp (Node) or Pillow (Python) to write a few fixed sizes, like 200, 800 and 1600 px wide, as WebP or AVIF next to the original.",
+      "tradeoff": "Cheap to serve. Adding a new size later means reprocessing old images."
+    },
+    {
+      "title": "Self-hosted image proxy",
+      "cost": "$0 + server",
+      "how": "imgproxy or thumbor resizes on request from a URL with the size in it. Put a CDN in front so each size is made once.",
+      "tradeoff": "Any size, any time. Sign the URLs so strangers can't make your server render huge images."
+    },
+    {
+      "title": "Managed image service",
+      "cost": "paid, free tiers",
+      "how": "Cloudflare Images, Cloudinary, imgix, or your host's built-in optimizer (for example next/image on Vercel).",
+      "tradeoff": "Least work. Priced per image or per transform, which grows with traffic."
+    }
+  ],
+  "prompt": "Add thumbnails and responsive images for user uploads in [feature].\n\nRequirements:\n- When an image is uploaded, a background job creates [200, 800, 1600] px wide versions in WebP, keeping the aspect ratio. Never upscale.\n- Apply the EXIF orientation before resizing so phone photos aren't sideways. Strip EXIF metadata (including GPS location) from the resized copies.\n- Refuse images over [40] megapixels before decoding them fully, to avoid decompression bombs.\n- Store the sizes with predictable keys next to the original and record them in the database.\n- In the HTML, use srcset and sizes so the browser picks the smallest file that fits, with width and height set to avoid layout shift, and loading=\"lazy\" below the fold.\n- Until the job finishes, show a placeholder, not the full original.\n\nAcceptance checks (run each and show me the result):\n1. A 12 MB phone photo shows in a list as a file under 100 KB.\n2. A photo taken in portrait shows the right way up.\n3. The resized files have no GPS data (check with exiftool).\n4. A 20,000 x 20,000 px image is refused without the worker running out of memory.\n5. Lighthouse shows no 'properly size images' warning on the page.",
+  "acceptance_checks": [
+    "A 12 MB phone photo shows in a list as a file under 100 KB.",
+    "A photo taken in portrait shows the right way up.",
+    "The resized files have no GPS data (check with exiftool).",
+    "A 20,000 x 20,000 px image is refused without the worker running out of memory.",
+    "Lighthouse shows no 'properly size images' warning on the page."
+  ],
+  "if_you_skip_it": "Slow pages and big bandwidth bills from full-size photos, sideways pictures, and leaked home locations in photo metadata.",
+  "how_derek_runs_it": "For each uploaded image, Custody Journal stores an encrypted 400 px JPEG thumbnail (quality 82) made with Pillow. It keeps the EXIF capture time and location on purpose, because those details can matter as evidence.",
+  "links": [
+    {
+      "title": "sharp",
+      "url": "https://sharp.pixelplumbing.com/"
+    },
+    {
+      "title": "Pillow",
+      "url": "https://pillow.readthedocs.io/en/stable/"
+    },
+    {
+      "title": "imgproxy",
+      "url": "https://imgproxy.net/"
+    },
+    {
+      "title": "MDN: responsive images",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images"
+    }
+  ],
+  "page": "e/image-resizing/index.html",
+  "json": "api/image-resizing.json",
+  "updated": "2026-10-21"
+}

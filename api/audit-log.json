@@ -1,0 +1,87 @@
+{
+  "id": "audit-log",
+  "name": "Audit log",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "activity log",
+    "change history",
+    "audit trail",
+    "who changed what"
+  ],
+  "needs": [
+    "see who changed a record and when",
+    "a customer says they didn't edit this, prove it",
+    "keep a history of admin actions",
+    "show an activity feed of changes"
+  ],
+  "keywords": [
+    "audit",
+    "log",
+    "history",
+    "trail",
+    "activity",
+    "who",
+    "changed",
+    "admin",
+    "track",
+    "changes",
+    "compliance",
+    "versions"
+  ],
+  "summary": "An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it.",
+  "need_when": [
+    "Several people can edit the same data, or admins can act on user accounts.",
+    "Customers ask for compliance features or you handle sensitive records."
+  ],
+  "skip_when": [
+    "A single-user app with no admin tools, where ordinary logs are enough."
+  ],
+  "ways": [
+    {
+      "title": "An audit table you write to",
+      "cost": "$0",
+      "how": "A table with actor, action, target type and id, before and after values, IP and time. Write to it in the same transaction as the change.",
+      "tradeoff": "Full control over what's recorded. You have to call it from every place that matters."
+    },
+    {
+      "title": "A history library",
+      "cost": "$0",
+      "how": "django-simple-history, PaperTrail (Rails), or Postgres triggers that copy old rows into a history table.",
+      "tradeoff": "Captures every model change automatically. Doesn't capture who unless you pass the user in, and stores a lot."
+    },
+    {
+      "title": "An audit log service",
+      "cost": "paid",
+      "how": "Hosted audit log products like WorkOS Audit Logs, often used when enterprise customers ask for exports.",
+      "tradeoff": "Exports and customer-facing views built in. Another vendor holding sensitive data."
+    }
+  ],
+  "prompt": "Add an audit log for [models/actions].\n\nRequirements:\n- Record actor (user id or 'system'), action (create, update, delete, plus named actions like role_changed), target type and id, changed fields with before and after values, IP, user agent and UTC time.\n- Write the audit row in the same transaction as the change, so neither can exist without the other.\n- Never store passwords, tokens, API keys or full card data. Mask or hash sensitive fields.\n- The audit table is append-only for the app: no update or delete code paths, and no edit form in admin.\n- Add a page where [admins / the account owner] can filter the log by user, record and date.\n- Keep entries for [1 year], then delete them with a scheduled job.\n\nAcceptance checks (run each and show me the result):\n1. Editing a record creates one audit row with the right before and after values.\n2. A failed edit that rolls back leaves no audit row.\n3. No secret or token appears anywhere in the audit table.\n4. The app has no route that edits or deletes audit rows.\n5. The filter page finds all changes to one record.",
+  "acceptance_checks": [
+    "Editing a record creates one audit row with the right before and after values.",
+    "A failed edit that rolls back leaves no audit row.",
+    "No secret or token appears anywhere in the audit table.",
+    "The app has no route that edits or deletes audit rows.",
+    "The filter page finds all changes to one record."
+  ],
+  "if_you_skip_it": "No way to answer 'who did this', disputes you can't settle, and failed security reviews. A log that stores secrets becomes a leak of its own.",
+  "how_derek_runs_it": "Custody Journal logs create, update and delete for six models (entries, communications, custody events, children, documents and reports) when the change comes from a signed-in request. Each row keeps the previous and current data, IP, user agent and session key. Encrypted fields are stored as an HMAC fingerprint, so the log shows that a field changed without holding the text.",
+  "links": [
+    {
+      "title": "OWASP Logging Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+    },
+    {
+      "title": "django-simple-history",
+      "url": "https://django-simple-history.readthedocs.io/en/stable/"
+    },
+    {
+      "title": "PaperTrail (Rails)",
+      "url": "https://github.com/paper-trail-gem/paper_trail"
+    }
+  ],
+  "page": "e/audit-log/index.html",
+  "json": "api/audit-log.json",
+  "updated": "2026-10-21"
+}

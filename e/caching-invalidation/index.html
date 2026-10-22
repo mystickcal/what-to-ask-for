@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caching and invalidation: What To Ask For</title>
+<meta name="description" content="Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Caching and invalidation: What To Ask For">
+<meta property="og:description" content="Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/caching-invalidation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Caching and invalidation: What To Ask For">
+<meta name="twitter:description" content="Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=performance">Performance and caching</a></p>
+  <h1>Caching and invalidation</h1>
+  <p class="aka">Also called: Redis cache, cache invalidation, memoization, stale data, TTL, cache stampede</p>
+  <p class="lead">Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>The same expensive query, API call or AI call runs again and again with the same inputs.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The page is already fast. Fix slow queries with indexes before adding a cache.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Content-addressed keys with a TTL <span class="cost">$0</span></h3>
+<p>Build the key from a hash of every input (model name, prompt, settings, user id where relevant) and set an expiry. New inputs make a new key, so nothing needs deleting.</p><p class="trade"><strong>Tradeoff:</strong> No invalidation bugs. Only works when the result depends only on the inputs in the key.</p></li>
+<li><h3>Redis or Valkey with delete on write <span class="cost">$0 self-hosted</span></h3>
+<p>Cache reads in Redis or Valkey and delete the key in the same code path that saves the data.</p><p class="trade"><strong>Tradeoff:</strong> Fresh data after saves. Every write path must remember to delete, and you need a plan for when the cache is down.</p></li>
+<li><h3>HTTP caching <span class="cost">$0</span></h3>
+<p>Cache-Control and ETag headers so browsers and CDNs reuse public responses.</p><p class="trade"><strong>Tradeoff:</strong> Cheapest of all. Only safe for responses that are the same for everyone, or marked private.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add caching for [slow operation] in this app.
+
+Requirements:
+- First measure: log how long the operation takes and how often it runs with the same inputs. Show me the numbers.
+- Cache in [Redis/Valkey, or the framework cache]. Build each key from a prefix, a version and a hash of every input the result depends on. Include the user or tenant id for anything user-specific.
+- Set a TTL of [X]. For data users edit, delete the key in the same code path that saves it.
+- If the cache is unreachable, fall back to doing the work (fail open) and log a warning without the key or values. Security features such as rate limits must not fall back this way.
+- Prevent a stampede: only one request rebuilds an expired key while others wait briefly or get the old value.
+- Never cache responses with private data in a shared or CDN cache.
+
+Acceptance checks (run each and show me the result):
+1. The second identical request is at least [5x] faster, shown with timings.
+2. After a user edits the data, the next read shows the new value.
+3. User A never receives a cached result that belongs to user B.
+4. Stopping Redis keeps the app working, just slower.
+5. 100 parallel requests for an expired key run the expensive work once.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Stale pages after saves, users seeing each other&#x27;s data, an app that dies when the cache does, and AI bills for repeat work.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses Redis as one cache shared by all workers when it&#x27;s configured, and falls back to per-process memory otherwise. AI tone results are cached for 7 days under a SHA-256 of the model, the input and a flag, so a new input or model simply makes a new key. Its optional cache helpers fail open and log a warning without the key, because keys can contain session ids.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the same slow query runs on every page load&rdquo;</li><li>&ldquo;users see old data after they save&rdquo;</li><li>&ldquo;cache the AI answer so I don&#x27;t pay for it twice&rdquo;</li><li>&ldquo;one user saw another user&#x27;s page&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/topics/cache/">Django: cache framework</a></li><li><a href="https://valkey.io/">Valkey</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching">MDN: HTTP caching</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/caching-invalidation.json">api/caching-invalidation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../health-checks/index.html">&larr; Health checks and safe deploys</a><a href="../cdn/index.html">CDN and static asset caching &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

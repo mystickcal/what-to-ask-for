@@ -1,0 +1,88 @@
+{
+  "id": "database-migrations",
+  "name": "Safe database migrations",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "schema migrations",
+    "expand and contract",
+    "zero-downtime migration",
+    "migration rollback"
+  ],
+  "needs": [
+    "change a column without breaking the live app",
+    "rename a field in production",
+    "my migration locked the table for minutes",
+    "my agent edited an old migration file"
+  ],
+  "keywords": [
+    "migration",
+    "migrations",
+    "schema",
+    "column",
+    "rename",
+    "alter",
+    "table",
+    "lock",
+    "expand",
+    "contract",
+    "alembic",
+    "prisma",
+    "drizzle",
+    "makemigrations"
+  ],
+  "summary": "Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape.",
+  "need_when": [
+    "Your app has real data and you change models after launch."
+  ],
+  "skip_when": [
+    "Before launch with throwaway data, where resetting the database is fine."
+  ],
+  "ways": [
+    {
+      "title": "Your framework's migrations, checked in CI",
+      "cost": "$0",
+      "how": "Django migrations, Rails migrations, Alembic, Prisma Migrate or Drizzle Kit. CI fails if models changed without a migration (for example makemigrations --check) and runs all migrations on a fresh database.",
+      "tradeoff": "Standard and enough for most apps. The tools don't stop slow or unsafe operations by themselves."
+    },
+    {
+      "title": "A linter for unsafe migrations",
+      "cost": "$0",
+      "how": "strong_migrations (Rails), django-migration-linter, or Squawk for raw Postgres SQL flag table locks, non-concurrent indexes and drops of columns still in use.",
+      "tradeoff": "Catches the ones that cause outages. Adds a few rules to learn."
+    },
+    {
+      "title": "Expand and contract by hand",
+      "cost": "$0",
+      "how": "Release 1 adds the new column and writes to both. A backfill copies old rows. Release 2 reads the new column. Release 3 drops the old one.",
+      "tradeoff": "No downtime for renames and type changes. Takes several releases."
+    }
+  ],
+  "prompt": "Set up safe migrations for this app and plan the change to [describe schema change].\n\nRequirements:\n- CI fails if a model changed without a migration, and runs every migration on an empty database.\n- Never edit a migration that has already run in production. Fix forward with a new one.\n- Split renames, type changes and drops into expand and contract steps that work with both the old and new code during a deploy.\n- Create indexes on large tables without locking writes (CREATE INDEX CONCURRENTLY on Postgres).\n- Backfill large tables in batches in a background job, not inside the migration.\n- Migrations run as one release step before the new code takes traffic, and a backup is taken first.\n- Write down for each migration whether it can be reversed.\n\nAcceptance checks (run each and show me the result):\n1. CI fails when I change a model and skip the migration.\n2. All migrations apply on a fresh database with no errors.\n3. During the deploy, the old code keeps working against the new schema.\n4. A test copy of production data migrates in a known time without long locks.\n5. The plan lists which steps are reversible.",
+  "acceptance_checks": [
+    "CI fails when I change a model and skip the migration.",
+    "All migrations apply on a fresh database with no errors.",
+    "During the deploy, the old code keeps working against the new schema.",
+    "A test copy of production data migrates in a known time without long locks.",
+    "The plan lists which steps are reversible."
+  ],
+  "if_you_skip_it": "Deploys that take the app down, locked tables, columns dropped while old code still reads them, and migration histories that differ between machines.",
+  "how_derek_runs_it": "Custody Journal has a migration check script that fails on conflicting or missing migrations, runs every migration forward on a throwaway SQLite database, runs a full rollback and forward cycle when every step is reversible, and proves that irreversible migrations stop a rollback. Its release runbook never reverses migrations: rolling back code is allowed only after a preflight check proves the previous version runs on the new schema.",
+  "links": [
+    {
+      "title": "Django: migrations",
+      "url": "https://docs.djangoproject.com/en/5.2/topics/migrations/"
+    },
+    {
+      "title": "strong_migrations: safe and unsafe operations",
+      "url": "https://github.com/ankane/strong_migrations"
+    },
+    {
+      "title": "PostgreSQL: CREATE INDEX (CONCURRENTLY)",
+      "url": "https://www.postgresql.org/docs/current/sql-createindex.html"
+    }
+  ],
+  "page": "e/database-migrations/index.html",
+  "json": "api/database-migrations.json",
+  "updated": "2026-10-21"
+}

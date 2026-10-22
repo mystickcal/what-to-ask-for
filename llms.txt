@@ -4,7 +4,7 @@
 
 Agents: fetch /entries.json for everything in one file (search the needs, aliases and keywords fields), or /api/<id>.json for one entry. Each entry page is plain HTML at /e/<id>/index.html.
 
-Each entry in entries.json has a category field. Categories: background (Background work and scheduling), payments (Payments and billing), auth (Auth and accounts), email (Email and notifications), files (Files and uploads), data (Data and databases), security (Security and abuse), deploys (Deploys, uptime and monitoring).
+Each entry in entries.json has a category field. Categories: background (Background work and scheduling), payments (Payments and billing), auth (Auth and accounts), email (Email and notifications), files (Files and uploads), data (Data and databases), security (Security and abuse), deploys (Deploys, uptime and monitoring), performance (Performance and caching).
 
 ## Entries
 
@@ -43,21 +43,41 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 ### Files and uploads
 
 - [Signed download link](e/signed-download-links/index.html): A URL with an expiry time and a signature built in. Anyone with the link can download until it expires, and changing any part of it breaks the signature. The files stay private by default. JSON: api/signed-download-links.json
+- [Direct-to-storage uploads](e/direct-uploads/index.html): Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don't tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be. JSON: api/direct-uploads.json
+- [Image resizing and thumbnails](e/image-resizing/index.html): Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result. JSON: api/image-resizing.json
+- [Upload validation and scanning](e/upload-validation-scanning/index.html): Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can't run it as a page. JSON: api/upload-validation-scanning.json
 
 ### Data and databases
 
 - [Backups with a tested restore](e/backups-tested-restore/index.html): A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work. JSON: api/backups-tested-restore.json
+- [Safe database migrations](e/database-migrations/index.html): Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape. JSON: api/database-migrations.json
+- [Database connection pooling](e/connection-pooling/index.html): Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections. JSON: api/connection-pooling.json
+- [Soft delete and restore](e/soft-delete/index.html): Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data. JSON: api/soft-delete.json
+- [Audit log](e/audit-log/index.html): An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it. JSON: api/audit-log.json
+- [Transactions and race conditions](e/transactions-race-conditions/index.html): Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can't both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes. JSON: api/transactions-race-conditions.json
+- [Pagination](e/pagination/index.html): Returning a list a page at a time instead of all at once. Offset paging (page 3 of 20) is simple and fine for small lists. Cursor paging (give me the 25 after this one) stays fast on big tables and doesn't skip or repeat items when rows are added while someone scrolls. JSON: api/pagination.json
 
 ### Security and abuse
 
 - [Rate limiting](e/rate-limiting/index.html): Count requests per key (IP address, user or API key) in a time window and refuse with 429 once the count passes the limit. JSON: api/rate-limiting.json
 - [Ownership checks (IDOR)](e/ownership-checks/index.html): Checking on every request that the logged-in user is allowed to touch the exact record they asked for. The usual bug: the code loads a record by id and never checks who owns it. Hard-to-guess ids help but don't replace the check. JSON: api/ownership-checks.json
 - [Input validation](e/input-validation/index.html): Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them. JSON: api/input-validation.json
+- [CORS settings](e/cors/index.html): Headers your API sends to tell browsers which other websites may read its responses. CORS only loosens the browser's same-origin rule. It doesn't stop scripts, servers or curl from calling your API, so it never replaces authentication. JSON: api/cors.json
+- [CSRF protection](e/csrf/index.html): Stopping other websites from making a logged-in user's browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren't exposed in the same way. JSON: api/csrf.json
+- [Secrets management](e/secrets-management/index.html): Keeping API keys, passwords and signing keys out of your code, your git history and the browser. They live in your host's secret settings or a secrets manager, the app reads them at startup, and you know how to replace each one quickly if it leaks. JSON: api/secrets-management.json
+- [SSRF protection](e/ssrf-protection/index.html): Guarding any feature where your server fetches a URL that a user supplied. Without it, someone can point your server at internal addresses, like a cloud metadata endpoint or an admin panel on localhost, and read the response through your app. JSON: api/ssrf-protection.json
+- [Bot and spam protection](e/bot-protection/index.html): Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both. JSON: api/bot-protection.json
 
 ### Deploys, uptime and monitoring
 
 - [Feature flag](e/feature-flags/index.html): A named on and off switch the code checks at runtime. You deploy with the feature off, turn it on for everyone, some users or just yourself, and turn it off fast if it breaks. JSON: api/feature-flags.json
 - [Health checks and safe deploys](e/health-checks/index.html): Small URLs your platform calls to ask two things: is the process alive (liveness), and can it serve traffic right now, with the database, cache and migrations in order (readiness). Deploy tools wait for readiness before sending traffic to a new version and keep the old one if it never gets there. JSON: api/health-checks.json
+
+### Performance and caching
+
+- [Caching and invalidation](e/caching-invalidation/index.html): Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date. JSON: api/caching-invalidation.json
+- [CDN and static asset caching](e/cdn/index.html): Serving files that are the same for everyone, like CSS, JavaScript, fonts and images, from servers close to the user, with file names that change when the content changes. Then browsers can cache them for a year, and a deploy still shows the new version at once. JSON: api/cdn.json
+- [Database indexes](e/database-indexes/index.html): Lookup structures that let the database find rows without reading the whole table. Most slow pages in young apps come from a missing index on the columns a query filters and sorts by, or from N+1 queries that run one query per row. JSON: api/database-indexes.json
 
 ## Data
 

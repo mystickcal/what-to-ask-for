@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safe database migrations: What To Ask For</title>
+<meta name="description" content="Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Safe database migrations: What To Ask For">
+<meta property="og:description" content="Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/database-migrations/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Safe database migrations: What To Ask For">
+<meta name="twitter:description" content="Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Safe database migrations</h1>
+  <p class="aka">Also called: schema migrations, expand and contract, zero-downtime migration, migration rollback</p>
+  <p class="lead">Changing the database schema in small steps that the old and new versions of your code can both live with, checked in CI and run as a release step. Renames and drops happen in two releases: add the new shape, move the code and data, then remove the old shape.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app has real data and you change models after launch.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Before launch with throwaway data, where resetting the database is fine.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s migrations, checked in CI <span class="cost">$0</span></h3>
+<p>Django migrations, Rails migrations, Alembic, Prisma Migrate or Drizzle Kit. CI fails if models changed without a migration (for example makemigrations --check) and runs all migrations on a fresh database.</p><p class="trade"><strong>Tradeoff:</strong> Standard and enough for most apps. The tools don&#x27;t stop slow or unsafe operations by themselves.</p></li>
+<li><h3>A linter for unsafe migrations <span class="cost">$0</span></h3>
+<p>strong_migrations (Rails), django-migration-linter, or Squawk for raw Postgres SQL flag table locks, non-concurrent indexes and drops of columns still in use.</p><p class="trade"><strong>Tradeoff:</strong> Catches the ones that cause outages. Adds a few rules to learn.</p></li>
+<li><h3>Expand and contract by hand <span class="cost">$0</span></h3>
+<p>Release 1 adds the new column and writes to both. A backfill copies old rows. Release 2 reads the new column. Release 3 drops the old one.</p><p class="trade"><strong>Tradeoff:</strong> No downtime for renames and type changes. Takes several releases.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up safe migrations for this app and plan the change to [describe schema change].
+
+Requirements:
+- CI fails if a model changed without a migration, and runs every migration on an empty database.
+- Never edit a migration that has already run in production. Fix forward with a new one.
+- Split renames, type changes and drops into expand and contract steps that work with both the old and new code during a deploy.
+- Create indexes on large tables without locking writes (CREATE INDEX CONCURRENTLY on Postgres).
+- Backfill large tables in batches in a background job, not inside the migration.
+- Migrations run as one release step before the new code takes traffic, and a backup is taken first.
+- Write down for each migration whether it can be reversed.
+
+Acceptance checks (run each and show me the result):
+1. CI fails when I change a model and skip the migration.
+2. All migrations apply on a fresh database with no errors.
+3. During the deploy, the old code keeps working against the new schema.
+4. A test copy of production data migrates in a known time without long locks.
+5. The plan lists which steps are reversible.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Deploys that take the app down, locked tables, columns dropped while old code still reads them, and migration histories that differ between machines.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal has a migration check script that fails on conflicting or missing migrations, runs every migration forward on a throwaway SQLite database, runs a full rollback and forward cycle when every step is reversible, and proves that irreversible migrations stop a rollback. Its release runbook never reverses migrations: rolling back code is allowed only after a preflight check proves the previous version runs on the new schema.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;change a column without breaking the live app&rdquo;</li><li>&ldquo;rename a field in production&rdquo;</li><li>&ldquo;my migration locked the table for minutes&rdquo;</li><li>&ldquo;my agent edited an old migration file&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/topics/migrations/">Django: migrations</a></li><li><a href="https://github.com/ankane/strong_migrations">strong_migrations: safe and unsafe operations</a></li><li><a href="https://www.postgresql.org/docs/current/sql-createindex.html">PostgreSQL: CREATE INDEX (CONCURRENTLY)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/database-migrations.json">api/database-migrations.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../backups-tested-restore/index.html">&larr; Backups with a tested restore</a><a href="../connection-pooling/index.html">Database connection pooling &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+{
+  "id": "cdn",
+  "name": "CDN and static asset caching",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "content delivery network",
+    "static files",
+    "Cache-Control immutable",
+    "hashed filenames",
+    "edge caching"
+  ],
+  "needs": [
+    "my site is slow for people in other countries",
+    "users still get the old JavaScript after I deploy",
+    "serve images and CSS faster",
+    "my server is busy sending static files"
+  ],
+  "keywords": [
+    "cdn",
+    "static",
+    "assets",
+    "css",
+    "javascript",
+    "js",
+    "edge",
+    "cloudflare",
+    "cache",
+    "control",
+    "immutable",
+    "hashed",
+    "fingerprint",
+    "whitenoise",
+    "slow",
+    "countries"
+  ],
+  "summary": "Serving files that are the same for everyone, like CSS, JavaScript, fonts and images, from servers close to the user, with file names that change when the content changes. Then browsers can cache them for a year, and a deploy still shows the new version at once.",
+  "need_when": [
+    "Users are spread out geographically, or your app server spends time sending static files.",
+    "People report seeing an old version after a deploy."
+  ],
+  "skip_when": [
+    "Your host already does this, as Vercel, Netlify and Cloudflare Pages do for built assets. Check the headers and move on."
+  ],
+  "ways": [
+    {
+      "title": "Hashed file names and long cache headers",
+      "cost": "$0",
+      "how": "Your bundler (Vite, Next.js, webpack) or Django's ManifestStaticFilesStorage adds a content hash to each file name. Serve them with Cache-Control: public, max-age=31536000, immutable, and keep HTML short-lived.",
+      "tradeoff": "The base of everything else. Free."
+    },
+    {
+      "title": "WhiteNoise or your host's static serving",
+      "cost": "$0",
+      "how": "For Python apps, WhiteNoise serves compressed, hashed static files with the right headers straight from the app.",
+      "tradeoff": "No extra service. Still served from one region unless a CDN sits in front."
+    },
+    {
+      "title": "A CDN in front",
+      "cost": "$0, free tiers",
+      "how": "Cloudflare (free plan), Bunny or CloudFront cache static files at the edge.",
+      "tradeoff": "Fast everywhere. Misconfigured rules can cache private pages, so cache by path or header, not everything."
+    }
+  ],
+  "prompt": "Set up static asset caching and a CDN for this app.\n\nRequirements:\n- Make every built CSS, JS, font and image file name include a content hash.\n- Serve hashed files with Cache-Control: public, max-age=31536000, immutable.\n- Serve HTML with a short cache or no-cache, so a deploy shows up at once.\n- Compress text assets with Brotli or gzip.\n- If a CDN is added, cache only static paths (like /static/ or /assets/) and public pages. Never cache responses that set cookies or depend on the logged-in user.\n- Document how to purge the CDN if a bad file ships.\n\nAcceptance checks (run each and show me the result):\n1. curl -I on a JS file shows the immutable cache header and a hashed name.\n2. curl -I on the home page shows a short or no-cache header.\n3. After a deploy, a normal reload shows the new version without a hard refresh.\n4. A logged-in page is never served from the CDN cache (check the CDN's cache status header).",
+  "acceptance_checks": [
+    "curl -I on a JS file shows the immutable cache header and a hashed name.",
+    "curl -I on the home page shows a short or no-cache header.",
+    "After a deploy, a normal reload shows the new version without a hard refresh.",
+    "A logged-in page is never served from the CDN cache (check the CDN's cache status header)."
+  ],
+  "if_you_skip_it": "Slow pages far from your server, users stuck on old JavaScript that calls APIs that no longer exist, or a CDN serving one user's page to everyone.",
+  "how_derek_runs_it": "Custody Journal serves static files with WhiteNoise using CompressedManifestStaticFilesStorage, which writes compressed copies with content-hashed file names.",
+  "links": [
+    {
+      "title": "WhiteNoise",
+      "url": "https://whitenoise.readthedocs.io/en/latest/"
+    },
+    {
+      "title": "MDN: Cache-Control",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control"
+    },
+    {
+      "title": "Cloudflare: cache docs",
+      "url": "https://developers.cloudflare.com/cache/"
+    }
+  ],
+  "page": "e/cdn/index.html",
+  "json": "api/cdn.json",
+  "updated": "2026-10-21"
+}

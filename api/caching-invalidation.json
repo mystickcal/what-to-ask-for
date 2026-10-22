@@ -1,0 +1,91 @@
+{
+  "id": "caching-invalidation",
+  "name": "Caching and invalidation",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "Redis cache",
+    "cache invalidation",
+    "memoization",
+    "stale data",
+    "TTL",
+    "cache stampede"
+  ],
+  "needs": [
+    "the same slow query runs on every page load",
+    "users see old data after they save",
+    "cache the AI answer so I don't pay for it twice",
+    "one user saw another user's page"
+  ],
+  "keywords": [
+    "cache",
+    "caching",
+    "redis",
+    "valkey",
+    "memcached",
+    "ttl",
+    "invalidate",
+    "invalidation",
+    "stale",
+    "slow",
+    "query",
+    "memoize",
+    "expensive",
+    "old",
+    "data"
+  ],
+  "summary": "Keeping the result of slow or costly work for a while so the next request can reuse it. The hard parts are the key (it must include everything the result depends on, including the user) and knowing when the saved copy is out of date.",
+  "need_when": [
+    "The same expensive query, API call or AI call runs again and again with the same inputs."
+  ],
+  "skip_when": [
+    "The page is already fast. Fix slow queries with indexes before adding a cache."
+  ],
+  "ways": [
+    {
+      "title": "Content-addressed keys with a TTL",
+      "cost": "$0",
+      "how": "Build the key from a hash of every input (model name, prompt, settings, user id where relevant) and set an expiry. New inputs make a new key, so nothing needs deleting.",
+      "tradeoff": "No invalidation bugs. Only works when the result depends only on the inputs in the key."
+    },
+    {
+      "title": "Redis or Valkey with delete on write",
+      "cost": "$0 self-hosted",
+      "how": "Cache reads in Redis or Valkey and delete the key in the same code path that saves the data.",
+      "tradeoff": "Fresh data after saves. Every write path must remember to delete, and you need a plan for when the cache is down."
+    },
+    {
+      "title": "HTTP caching",
+      "cost": "$0",
+      "how": "Cache-Control and ETag headers so browsers and CDNs reuse public responses.",
+      "tradeoff": "Cheapest of all. Only safe for responses that are the same for everyone, or marked private."
+    }
+  ],
+  "prompt": "Add caching for [slow operation] in this app.\n\nRequirements:\n- First measure: log how long the operation takes and how often it runs with the same inputs. Show me the numbers.\n- Cache in [Redis/Valkey, or the framework cache]. Build each key from a prefix, a version and a hash of every input the result depends on. Include the user or tenant id for anything user-specific.\n- Set a TTL of [X]. For data users edit, delete the key in the same code path that saves it.\n- If the cache is unreachable, fall back to doing the work (fail open) and log a warning without the key or values. Security features such as rate limits must not fall back this way.\n- Prevent a stampede: only one request rebuilds an expired key while others wait briefly or get the old value.\n- Never cache responses with private data in a shared or CDN cache.\n\nAcceptance checks (run each and show me the result):\n1. The second identical request is at least [5x] faster, shown with timings.\n2. After a user edits the data, the next read shows the new value.\n3. User A never receives a cached result that belongs to user B.\n4. Stopping Redis keeps the app working, just slower.\n5. 100 parallel requests for an expired key run the expensive work once.",
+  "acceptance_checks": [
+    "The second identical request is at least [5x] faster, shown with timings.",
+    "After a user edits the data, the next read shows the new value.",
+    "User A never receives a cached result that belongs to user B.",
+    "Stopping Redis keeps the app working, just slower.",
+    "100 parallel requests for an expired key run the expensive work once."
+  ],
+  "if_you_skip_it": "Stale pages after saves, users seeing each other's data, an app that dies when the cache does, and AI bills for repeat work.",
+  "how_derek_runs_it": "Custody Journal uses Redis as one cache shared by all workers when it's configured, and falls back to per-process memory otherwise. AI tone results are cached for 7 days under a SHA-256 of the model, the input and a flag, so a new input or model simply makes a new key. Its optional cache helpers fail open and log a warning without the key, because keys can contain session ids.",
+  "links": [
+    {
+      "title": "Django: cache framework",
+      "url": "https://docs.djangoproject.com/en/5.2/topics/cache/"
+    },
+    {
+      "title": "Valkey",
+      "url": "https://valkey.io/"
+    },
+    {
+      "title": "MDN: HTTP caching",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching"
+    }
+  ],
+  "page": "e/caching-invalidation/index.html",
+  "json": "api/caching-invalidation.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soft delete and restore: What To Ask For</title>
+<meta name="description" content="Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Soft delete and restore: What To Ask For">
+<meta property="og:description" content="Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/soft-delete/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Soft delete and restore: What To Ask For">
+<meta name="twitter:description" content="Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Soft delete and restore</h1>
+  <p class="aka">Also called: trash, undo delete, archive, deleted_at, recycle bin</p>
+  <p class="lead">Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users delete things they might want back.</li><li>Support keeps getting &#x27;I deleted it by accident&#x27; requests.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The data is cheap to recreate, or must be gone at once for privacy reasons.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A deleted_at column and a default filter <span class="cost">$0</span></h3>
+<p>Add deleted_at, make the default query hide rows where it&#x27;s set, and keep a separate way to reach all rows for admin and purge.</p><p class="trade"><strong>Tradeoff:</strong> Simple. Every raw query, join and unique constraint has to remember the filter.</p></li>
+<li><h3>A library <span class="cost">$0</span></h3>
+<p>django-safedelete, Rails&#x27; discard gem, or Prisma query extensions.</p><p class="trade"><strong>Tradeoff:</strong> Less code to write. Learn how it treats related records.</p></li>
+<li><h3>Move rows to an archive table <span class="cost">$0</span></h3>
+<p>On delete, copy the row to a trash table and delete the original. Restore copies it back.</p><p class="trade"><strong>Tradeoff:</strong> Main queries stay simple. Restoring rows with relations takes more work.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add soft delete with restore to [model].
+
+Requirements:
+- Add deleted_at (nullable, indexed). Deleting sets it instead of removing the row.
+- The default query everywhere hides deleted rows. Admin and the purge job use an explicit all-rows query.
+- Unique constraints only apply to rows that aren&#x27;t deleted (a partial unique index on Postgres).
+- Add a Trash view where the owner can restore items within [30] days.
+- A daily job permanently deletes rows that have been in the trash longer than [30] days, including their files.
+- An account deletion request skips the trash and removes the data for good.
+- Log who deleted and restored what.
+
+Acceptance checks (run each and show me the result):
+1. A deleted item disappears from lists, search and the API.
+2. Restoring brings it back with its related data.
+3. Creating a new item with the same unique name as a deleted one works.
+4. After the retention period the purge job removes it and its files.
+5. Grep shows no raw queries that skip the deleted filter.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Deleted items come back in search or counts, unique names stay taken forever, or &#x27;deleted&#x27; data is still there when someone asks you to erase it.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s journal entries, custody events and communications share a soft-delete base with is_deleted and an indexed deleted_at. The default manager hides deleted rows, and a separate all_objects manager is used for admin, migrations and purging. Admin actions restore selected items, and soft deletes are written to the audit log.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;a user removed something by mistake and wants it back&rdquo;</li><li>&ldquo;add a trash folder with restore&rdquo;</li><li>&ldquo;undo a delete&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/topics/db/managers/">Django: managers</a></li><li><a href="https://www.postgresql.org/docs/current/indexes-partial.html">PostgreSQL: partial indexes</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/soft-delete.json">api/soft-delete.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../connection-pooling/index.html">&larr; Database connection pooling</a><a href="../audit-log/index.html">Audit log &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

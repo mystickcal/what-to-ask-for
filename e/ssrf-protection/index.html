@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSRF protection: What To Ask For</title>
+<meta name="description" content="Guarding any feature where your server fetches a URL that a user supplied. Without it, someone can point your server at internal addresses, like a cloud metadata endpoint or an admin panel on localhost, and read the response through your app.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="SSRF protection: What To Ask For">
+<meta property="og:description" content="Guarding any feature where your server fetches a URL that a user supplied. Without it, someone can point your server at internal addresses, like a cloud metadata endpoint or an admin panel on localhost, and read the response through your app.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/ssrf-protection/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SSRF protection: What To Ask For">
+<meta name="twitter:description" content="Guarding any feature where your server fetches a URL that a user supplied. Without it, someone can point your server at internal addresses, like a cloud metadata endpoint or an admin panel on localhost, and read the response through your app.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>SSRF protection</h1>
+  <p class="aka">Also called: server-side request forgery, URL fetch allowlist, private IP blocking, outbound request guard</p>
+  <p class="lead">Guarding any feature where your server fetches a URL that a user supplied. Without it, someone can point your server at internal addresses, like a cloud metadata endpoint or an admin panel on localhost, and read the response through your app.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Link previews, &#x27;import from URL&#x27;, user-set webhook URLs, PDF or screenshot rendering of user URLs, or an AI tool that browses.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Your server only calls fixed URLs that you wrote in the code.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Resolve, check, then connect to that IP <span class="cost">$0</span></h3>
+<p>Allow only https, resolve the host, reject any private, loopback, link-local or reserved address, then connect to the checked IP so a second DNS answer can&#x27;t swap it. Don&#x27;t follow redirects, or check each hop the same way.</p><p class="trade"><strong>Tradeoff:</strong> Strong. Easy to get subtly wrong, so use a tested helper and test it.</p></li>
+<li><h3>An outbound proxy with rules <span class="cost">$0 self-hosted</span></h3>
+<p>Send user-URL fetches through a proxy like Smokescreen that blocks internal ranges, and give the app no other route out for those calls.</p><p class="trade"><strong>Tradeoff:</strong> One choke point for every feature. Another service to run.</p></li>
+<li><h3>An allowlist of domains <span class="cost">$0</span></h3>
+<p>Only fetch from a known list, like the image hosts or integrations you support.</p><p class="trade"><strong>Tradeoff:</strong> Safest. Too narrow for general link previews.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add SSRF protection to every place this app fetches a user-supplied URL ([features]).
+
+Requirements:
+- One shared fetch helper. All user-URL fetches go through it.
+- Allow only https (http only in local development). Reject URLs with a username or password in them.
+- Resolve the hostname with a time limit, and reject if any resolved address is private, loopback, link-local (including 169.254.169.254), multicast or reserved, for both IPv4 and IPv6.
+- Connect to the IP you checked, not the hostname again, to block DNS rebinding.
+- Don&#x27;t follow redirects, or re-run every check on each redirect target with a limit of [3].
+- Set a total timeout of [10] seconds and a response size cap of [1 MB].
+- Never return raw error details or the internal response to the user.
+
+Acceptance checks (run each and show me the result):
+1. http://127.0.0.1, http://localhost and http://169.254.169.254/latest/meta-data/ are all rejected.
+2. A hostname that resolves to 10.0.0.5 is rejected.
+3. A public URL that redirects to an internal address is rejected.
+4. IPv6 forms like http://[::1]/ are rejected.
+5. A slow server is cut off at the timeout, and a huge response at the size cap.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Attackers read cloud credentials from the metadata service, reach internal admin tools, or scan your private network through your app.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s outgoing webhooks go through an SSRF guard. It requires https (http only in debug), rejects URLs with embedded credentials, resolves the host with a 5 second limit, and refuses if any resolved address isn&#x27;t a public one. It then connects to the checked IP, never follows redirects, and caps each call at 10 seconds and a 64 KB response.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my app fetches a URL the user pastes in&rdquo;</li><li>&ldquo;build link previews safely&rdquo;</li><li>&ldquo;users can set their own webhook URL&rdquo;</li><li>&ldquo;import an image from a URL&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html">OWASP SSRF Prevention Cheat Sheet</a></li><li><a href="https://api-security.owasp.org/editions/2023/en/0xa7-server-side-request-forgery/">OWASP API7:2023 Server Side Request Forgery</a></li><li><a href="https://github.com/stripe/smokescreen">Smokescreen (egress proxy)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/ssrf-protection.json">api/ssrf-protection.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../secrets-management/index.html">&larr; Secrets management</a><a href="../bot-protection/index.html">Bot and spam protection &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Database connection pooling: What To Ask For</title>
+<meta name="description" content="Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Database connection pooling: What To Ask For">
+<meta property="og:description" content="Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/connection-pooling/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Database connection pooling: What To Ask For">
+<meta name="twitter:description" content="Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Database connection pooling</h1>
+  <p class="aka">Also called: connection pool, PgBouncer, too many connections, pooler, Supavisor</p>
+  <p class="lead">Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You run on serverless or many workers and see &#x27;too many connections&#x27;.</li><li>Each request spends noticeable time connecting to the database.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>One long-running server with a few workers that keep their connections open.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Persistent connections in your app <span class="cost">$0</span></h3>
+<p>Django CONN_MAX_AGE, or Django 5.1+&#x27;s built-in pool option with psycopg[pool], SQLAlchemy&#x27;s pool, or a single shared Prisma client per process.</p><p class="trade"><strong>Tradeoff:</strong> Enough for normal servers. Doesn&#x27;t help when every function invocation is a new process.</p></li>
+<li><h3>Your host&#x27;s pooler <span class="cost">$0, included</span></h3>
+<p>Supabase (Supavisor), Neon and most managed Postgres providers give a pooled connection string. Use it for app traffic and the direct one for migrations.</p><p class="trade"><strong>Tradeoff:</strong> One-line change. Transaction mode breaks session features like some prepared statements, LISTEN and advisory locks held across queries.</p></li>
+<li><h3>PgBouncer <span class="cost">$0 self-hosted</span></h3>
+<p>Run PgBouncer next to Postgres in transaction pooling mode and point the app at it.</p><p class="trade"><strong>Tradeoff:</strong> Fast and proven. One more service to run and monitor.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Fix database connection limits for this app on [host].
+
+Requirements:
+- Count the maximum connections we could open: processes or functions times pool size per process. Compare with the database&#x27;s max_connections and show the math.
+- Use [the host&#x27;s pooled connection string / PgBouncer in transaction mode] for app traffic, and a direct connection for migrations.
+- Check the code for features that break under transaction pooling (session settings, LISTEN/NOTIFY, prepared statements, advisory locks) and fix or document each.
+- In serverless code, create one database client per process, not per request.
+- Close or reset inherited connections after a worker forks.
+- Add a health check that fails if the database can&#x27;t be reached.
+
+Acceptance checks (run each and show me the result):
+1. A load test of [100] concurrent requests produces no &#x27;too many connections&#x27; errors.
+2. The connection count in pg_stat_activity stays under the planned limit during the test.
+3. Migrations still run over the direct connection.
+4. Nothing in the code depends on session state that the pooler would break.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>The app goes down under a traffic spike with &#x27;too many connections&#x27;, or every request pays the connection setup time.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal doesn&#x27;t run a separate pooler. Django keeps each connection open for up to 10 minutes (conn_max_age 600), and the Gunicorn fork hooks close database and cache connections inherited from the parent process so workers never share one.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;too many connections error from Postgres&rdquo;</li><li>&ldquo;my serverless functions run out of database connections&rdquo;</li><li>&ldquo;the database is slow to connect on every request&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.pgbouncer.org/">PgBouncer</a></li><li><a href="https://docs.djangoproject.com/en/5.2/ref/databases/">Django: databases (persistent connections and pooling)</a></li><li><a href="https://supabase.com/docs/guides/database/connecting-to-postgres">Supabase: connecting to Postgres</a></li><li><a href="https://neon.com/docs/connect/connection-pooling">Neon: connection pooling</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/connection-pooling.json">api/connection-pooling.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../database-migrations/index.html">&larr; Safe database migrations</a><a href="../soft-delete/index.html">Soft delete and restore &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

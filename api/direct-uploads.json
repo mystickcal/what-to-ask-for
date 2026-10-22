@@ -1,0 +1,90 @@
+{
+  "id": "direct-uploads",
+  "name": "Direct-to-storage uploads",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "presigned upload URL",
+    "signed upload URL",
+    "direct upload",
+    "browser to S3 upload",
+    "resumable upload"
+  ],
+  "needs": [
+    "large uploads time out on my server",
+    "let users upload videos without going through my backend",
+    "my server runs out of memory when people upload files",
+    "upload straight to S3 or R2 from the browser"
+  ],
+  "keywords": [
+    "upload",
+    "presigned",
+    "signed",
+    "s3",
+    "r2",
+    "bucket",
+    "video",
+    "large",
+    "browser",
+    "direct",
+    "multipart",
+    "resumable",
+    "tus",
+    "storage"
+  ],
+  "summary": "Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don't tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be.",
+  "need_when": [
+    "Users upload files bigger than a few MB, like photos, video or PDFs.",
+    "Your host caps request size or time, as most serverless platforms do."
+  ],
+  "skip_when": [
+    "Uploads are small and rare, and your server checks the contents anyway before storing them."
+  ],
+  "ways": [
+    {
+      "title": "Presigned PUT URL",
+      "cost": "storage only",
+      "how": "S3, Cloudflare R2, Google Cloud Storage and most S3-compatible stores can sign a PUT URL for one object key that expires in minutes. The browser PUTs the file, then tells your server it's done.",
+      "tradeoff": "Simplest. A plain PUT URL can't enforce a size range, so check the object size after upload and delete anything too big."
+    },
+    {
+      "title": "Presigned POST with a policy",
+      "cost": "storage only",
+      "how": "S3's POST policy can require a content-length-range and a key prefix, so the store itself rejects files that are too big.",
+      "tradeoff": "Enforces size up front. Not every S3-compatible store supports it. R2 presigned URLs don't support POST."
+    },
+    {
+      "title": "Resumable uploads",
+      "cost": "$0 self-hosted",
+      "how": "The tus protocol (tusd server, Uppy client) or S3 multipart uploads send the file in chunks and resume after a dropped connection.",
+      "tradeoff": "Best for very large files and phones on bad networks. More moving parts."
+    }
+  ],
+  "prompt": "Change [feature] so files upload straight from the browser to [S3/R2/GCS] instead of through the app server.\n\nRequirements:\n- New endpoint: the logged-in user asks for an upload. The server checks they're allowed, picks the object key itself (never from the client, e.g. uploads/<user_id>/<random>), and returns a signed URL that expires in [10] minutes.\n- Limit size: use a POST policy with content-length-range if the store supports it. Otherwise check the object size when the upload is confirmed and delete it if it's over [50 MB].\n- After upload, the browser calls a confirm endpoint. The server checks the object exists, records it in the database with its owner, and only then shows it in the app.\n- Uploaded objects stay private. Downloads go through signed download links.\n- A cleanup job deletes objects that were never confirmed after [24] hours.\n- Set the bucket's CORS rules to allow PUT (or POST) only from the app's own origin.\n\nAcceptance checks (run each and show me the result):\n1. A 200 MB file uploads without the app server's memory or request time growing.\n2. A file over the size limit is rejected or deleted, and never shows up in the app.\n3. The signed URL stops working after it expires.\n4. Changing the key in the request can't overwrite another user's file.\n5. An unconfirmed upload is removed by the cleanup job.",
+  "acceptance_checks": [
+    "A 200 MB file uploads without the app server's memory or request time growing.",
+    "A file over the size limit is rejected or deleted, and never shows up in the app.",
+    "The signed URL stops working after it expires.",
+    "Changing the key in the request can't overwrite another user's file.",
+    "An unconfirmed upload is removed by the cleanup job."
+  ],
+  "if_you_skip_it": "Uploads fail on big files, workers stall while bytes stream through them, or a bucket left open lets anyone write to it.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "AWS: uploading objects with presigned URLs",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html"
+    },
+    {
+      "title": "Cloudflare R2: presigned URLs",
+      "url": "https://developers.cloudflare.com/r2/api/s3/presigned-urls/"
+    },
+    {
+      "title": "tus resumable upload protocol",
+      "url": "https://tus.io/"
+    }
+  ],
+  "page": "e/direct-uploads/index.html",
+  "json": "api/direct-uploads.json",
+  "updated": "2026-10-21"
+}

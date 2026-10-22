@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transactions and race conditions: What To Ask For</title>
+<meta name="description" content="Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can&#x27;t both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Transactions and race conditions: What To Ask For">
+<meta property="og:description" content="Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can&#x27;t both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/transactions-race-conditions/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Transactions and race conditions: What To Ask For">
+<meta name="twitter:description" content="Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can&#x27;t both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Transactions and race conditions</h1>
+  <p class="aka">Also called: race condition, database transaction, row locking, select for update, double submit, atomic update</p>
+  <p class="lead">Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can&#x27;t both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You check a balance, quota, stock count or &#x27;already used&#x27; flag and then change it.</li><li>One action writes to more than one table.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Single writes with no check before them, like saving a draft.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Atomic conditional updates <span class="cost">$0</span></h3>
+<p>Do the check inside the write: UPDATE accounts SET credits = credits - 1 WHERE id = ? AND credits &gt;= 1, then see whether a row changed.</p><p class="trade"><strong>Tradeoff:</strong> Fast, no locks held. Only fits checks that one statement can express.</p></li>
+<li><h3>Transaction with a row lock <span class="cost">$0</span></h3>
+<p>Open a transaction, SELECT ... FOR UPDATE the row that guards the rule (the user, the account), check, write, commit.</p><p class="trade"><strong>Tradeoff:</strong> Handles complex rules. Keep it short, and lock rows in the same order everywhere to avoid deadlocks.</p></li>
+<li><h3>Unique constraints and idempotency keys <span class="cost">$0</span></h3>
+<p>A unique index on (user_id, request_key) or on the natural key makes the second insert fail. The client sends the same key on a retry.</p><p class="trade"><strong>Tradeoff:</strong> Stops duplicates even across servers. Needs a key the client keeps for the action.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Find and fix race conditions in [feature, e.g. credits, checkout, invites].
+
+Requirements:
+- List every place that reads a value, checks it, then writes based on it (balances, quotas, stock, &#x27;used&#x27; flags, unique names).
+- Fix each with a conditional update, a row lock inside a transaction, or a unique constraint. Say which and why.
+- Wrap multi-table writes in one transaction.
+- Give create actions an idempotency key so a double click or retry doesn&#x27;t create two records.
+- Disable the submit button while a request is in flight, but don&#x27;t rely on it.
+- Write a test that fires [20] parallel requests at each fixed action.
+
+Acceptance checks (run each and show me the result):
+1. 20 parallel &#x27;spend 1 credit&#x27; requests on a balance of 5 leave exactly 0 and succeed 5 times.
+2. Double clicking &#x27;Place order&#x27; creates one order.
+3. Killing the process halfway through a multi-table write leaves no partial data.
+4. Parallel requests can&#x27;t push a free account past its limit.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Negative balances, duplicate orders and charges, free limits that a script can beat, and half-saved records.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal checks the free plan&#x27;s monthly entry limit while holding a row lock on the user (select_for_update), so parallel requests can&#x27;t both use the last slot. A sign-in link is marked used with a conditional update that only succeeds while it&#x27;s still unused and unexpired, so it can&#x27;t be used twice.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;a double click created two orders&rdquo;</li><li>&ldquo;two requests at once let a user spend more credits than they have&rdquo;</li><li>&ldquo;the free plan limit can be beaten by sending requests in parallel&rdquo;</li><li>&ldquo;half my data saved and the rest didn&#x27;t&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.postgresql.org/docs/current/explicit-locking.html">PostgreSQL: explicit locking</a></li><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">PostgreSQL: transaction isolation</a></li><li><a href="https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-for-update">Django: select_for_update</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/transactions-race-conditions.json">api/transactions-race-conditions.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../audit-log/index.html">&larr; Audit log</a><a href="../pagination/index.html">Pagination &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

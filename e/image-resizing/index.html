@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image resizing and thumbnails: What To Ask For</title>
+<meta name="description" content="Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Image resizing and thumbnails: What To Ask For">
+<meta property="og:description" content="Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/image-resizing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image resizing and thumbnails: What To Ask For">
+<meta name="twitter:description" content="Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>Image resizing and thumbnails</h1>
+  <p class="aka">Also called: thumbnails, image optimization, responsive images, image transforms, image CDN</p>
+  <p class="lead">Making smaller copies of uploaded images at the sizes your pages show, in modern formats, so pages load fast. Do it once when the image arrives, or on request through an image service that caches the result.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users upload photos and you show them in lists, cards or avatars.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You only show a few images you made yourself. Export them at the right size once.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Resize on upload <span class="cost">$0</span></h3>
+<p>A background job uses sharp (Node) or Pillow (Python) to write a few fixed sizes, like 200, 800 and 1600 px wide, as WebP or AVIF next to the original.</p><p class="trade"><strong>Tradeoff:</strong> Cheap to serve. Adding a new size later means reprocessing old images.</p></li>
+<li><h3>Self-hosted image proxy <span class="cost">$0 + server</span></h3>
+<p>imgproxy or thumbor resizes on request from a URL with the size in it. Put a CDN in front so each size is made once.</p><p class="trade"><strong>Tradeoff:</strong> Any size, any time. Sign the URLs so strangers can&#x27;t make your server render huge images.</p></li>
+<li><h3>Managed image service <span class="cost">paid, free tiers</span></h3>
+<p>Cloudflare Images, Cloudinary, imgix, or your host&#x27;s built-in optimizer (for example next/image on Vercel).</p><p class="trade"><strong>Tradeoff:</strong> Least work. Priced per image or per transform, which grows with traffic.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add thumbnails and responsive images for user uploads in [feature].
+
+Requirements:
+- When an image is uploaded, a background job creates [200, 800, 1600] px wide versions in WebP, keeping the aspect ratio. Never upscale.
+- Apply the EXIF orientation before resizing so phone photos aren&#x27;t sideways. Strip EXIF metadata (including GPS location) from the resized copies.
+- Refuse images over [40] megapixels before decoding them fully, to avoid decompression bombs.
+- Store the sizes with predictable keys next to the original and record them in the database.
+- In the HTML, use srcset and sizes so the browser picks the smallest file that fits, with width and height set to avoid layout shift, and loading=&quot;lazy&quot; below the fold.
+- Until the job finishes, show a placeholder, not the full original.
+
+Acceptance checks (run each and show me the result):
+1. A 12 MB phone photo shows in a list as a file under 100 KB.
+2. A photo taken in portrait shows the right way up.
+3. The resized files have no GPS data (check with exiftool).
+4. A 20,000 x 20,000 px image is refused without the worker running out of memory.
+5. Lighthouse shows no &#x27;properly size images&#x27; warning on the page.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Slow pages and big bandwidth bills from full-size photos, sideways pictures, and leaked home locations in photo metadata.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>For each uploaded image, Custody Journal stores an encrypted 400 px JPEG thumbnail (quality 82) made with Pillow. It keeps the EXIF capture time and location on purpose, because those details can matter as evidence.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my page loads 8 MB photos as tiny avatars&rdquo;</li><li>&ldquo;make thumbnails of uploaded pictures&rdquo;</li><li>&ldquo;images make my site slow on phones&rdquo;</li><li>&ldquo;photos from phones show up sideways&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://sharp.pixelplumbing.com/">sharp</a></li><li><a href="https://pillow.readthedocs.io/en/stable/">Pillow</a></li><li><a href="https://imgproxy.net/">imgproxy</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images">MDN: responsive images</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/image-resizing.json">api/image-resizing.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../direct-uploads/index.html">&larr; Direct-to-storage uploads</a><a href="../upload-validation-scanning/index.html">Upload validation and scanning &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

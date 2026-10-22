@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direct-to-storage uploads: What To Ask For</title>
+<meta name="description" content="Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don&#x27;t tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Direct-to-storage uploads: What To Ask For">
+<meta property="og:description" content="Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don&#x27;t tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/direct-uploads/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Direct-to-storage uploads: What To Ask For">
+<meta name="twitter:description" content="Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don&#x27;t tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>Direct-to-storage uploads</h1>
+  <p class="aka">Also called: presigned upload URL, signed upload URL, direct upload, browser to S3 upload, resumable upload</p>
+  <p class="lead">Your server hands the browser a short-lived signed URL, and the browser sends the file straight to object storage. Your app never holds the bytes, so big files don&#x27;t tie up workers or hit request size limits. Your server still decides who can upload, what key the file gets and how big it can be.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users upload files bigger than a few MB, like photos, video or PDFs.</li><li>Your host caps request size or time, as most serverless platforms do.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Uploads are small and rare, and your server checks the contents anyway before storing them.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Presigned PUT URL <span class="cost">storage only</span></h3>
+<p>S3, Cloudflare R2, Google Cloud Storage and most S3-compatible stores can sign a PUT URL for one object key that expires in minutes. The browser PUTs the file, then tells your server it&#x27;s done.</p><p class="trade"><strong>Tradeoff:</strong> Simplest. A plain PUT URL can&#x27;t enforce a size range, so check the object size after upload and delete anything too big.</p></li>
+<li><h3>Presigned POST with a policy <span class="cost">storage only</span></h3>
+<p>S3&#x27;s POST policy can require a content-length-range and a key prefix, so the store itself rejects files that are too big.</p><p class="trade"><strong>Tradeoff:</strong> Enforces size up front. Not every S3-compatible store supports it. R2 presigned URLs don&#x27;t support POST.</p></li>
+<li><h3>Resumable uploads <span class="cost">$0 self-hosted</span></h3>
+<p>The tus protocol (tusd server, Uppy client) or S3 multipart uploads send the file in chunks and resume after a dropped connection.</p><p class="trade"><strong>Tradeoff:</strong> Best for very large files and phones on bad networks. More moving parts.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Change [feature] so files upload straight from the browser to [S3/R2/GCS] instead of through the app server.
+
+Requirements:
+- New endpoint: the logged-in user asks for an upload. The server checks they&#x27;re allowed, picks the object key itself (never from the client, e.g. uploads/&lt;user_id&gt;/&lt;random&gt;), and returns a signed URL that expires in [10] minutes.
+- Limit size: use a POST policy with content-length-range if the store supports it. Otherwise check the object size when the upload is confirmed and delete it if it&#x27;s over [50 MB].
+- After upload, the browser calls a confirm endpoint. The server checks the object exists, records it in the database with its owner, and only then shows it in the app.
+- Uploaded objects stay private. Downloads go through signed download links.
+- A cleanup job deletes objects that were never confirmed after [24] hours.
+- Set the bucket&#x27;s CORS rules to allow PUT (or POST) only from the app&#x27;s own origin.
+
+Acceptance checks (run each and show me the result):
+1. A 200 MB file uploads without the app server&#x27;s memory or request time growing.
+2. A file over the size limit is rejected or deleted, and never shows up in the app.
+3. The signed URL stops working after it expires.
+4. Changing the key in the request can&#x27;t overwrite another user&#x27;s file.
+5. An unconfirmed upload is removed by the cleanup job.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Uploads fail on big files, workers stall while bytes stream through them, or a bucket left open lets anyone write to it.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;large uploads time out on my server&rdquo;</li><li>&ldquo;let users upload videos without going through my backend&rdquo;</li><li>&ldquo;my server runs out of memory when people upload files&rdquo;</li><li>&ldquo;upload straight to S3 or R2 from the browser&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html">AWS: uploading objects with presigned URLs</a></li><li><a href="https://developers.cloudflare.com/r2/api/s3/presigned-urls/">Cloudflare R2: presigned URLs</a></li><li><a href="https://tus.io/">tus resumable upload protocol</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/direct-uploads.json">api/direct-uploads.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../signed-download-links/index.html">&larr; Signed download link</a><a href="../image-resizing/index.html">Image resizing and thumbnails &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

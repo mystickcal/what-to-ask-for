@@ -39,10 +39,10 @@
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
-<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>27</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>4</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>6</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>6</span></a><a class="cat" href="#c-email" data-c="email">Email <span>4</span></a><a class="cat" href="#c-files" data-c="files">Files <span>1</span></a><a class="cat" href="#c-data" data-c="data">Data <span>1</span></a><a class="cat" href="#c-security" data-c="security">Security <span>3</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>2</span></a></nav>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>44</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>4</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>6</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>6</span></a><a class="cat" href="#c-email" data-c="email">Email <span>4</span></a><a class="cat" href="#c-files" data-c="files">Files <span>4</span></a><a class="cat" href="#c-data" data-c="data">Data <span>7</span></a><a class="cat" href="#c-security" data-c="security">Security <span>8</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>2</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>3</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">27 entries in 8 categories</p>
+  <p class="count" id="count" aria-live="polite">44 entries in 9 categories</p>
   <ol class="results" id="results" hidden></ol>
   <div id="browse">
 <section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">4</span></h3>
@@ -77,24 +77,44 @@
 <li><a href="e/unsubscribe-handling/index.html"><span class="r-name">Unsubscribe and suppression list</span><span class="r-need">&ldquo;add an unsubscribe link to my emails&rdquo;</span></a></li>
 <li><a href="e/push-notifications/index.html"><span class="r-name">Push notifications</span><span class="r-need">&ldquo;notify users even when the site is closed&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-files" data-c="files" aria-labelledby="h-files"><h3 class="group-h" id="h-files">Files and uploads <span class="group-n">1</span></h3>
+<section class="group" id="c-files" data-c="files" aria-labelledby="h-files"><h3 class="group-h" id="h-files">Files and uploads <span class="group-n">4</span></h3>
 <ol class="results">
 <li><a href="e/signed-download-links/index.html"><span class="r-name">Signed download link</span><span class="r-need">&ldquo;let a user download their file without making it public&rdquo;</span></a></li>
+<li><a href="e/direct-uploads/index.html"><span class="r-name">Direct-to-storage uploads</span><span class="r-need">&ldquo;large uploads time out on my server&rdquo;</span></a></li>
+<li><a href="e/image-resizing/index.html"><span class="r-name">Image resizing and thumbnails</span><span class="r-need">&ldquo;my page loads 8 MB photos as tiny avatars&rdquo;</span></a></li>
+<li><a href="e/upload-validation-scanning/index.html"><span class="r-name">Upload validation and scanning</span><span class="r-need">&ldquo;someone could upload a virus or a script as a profile picture&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">1</span></h3>
+<section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">7</span></h3>
 <ol class="results">
 <li><a href="e/backups-tested-restore/index.html"><span class="r-name">Backups with a tested restore</span><span class="r-need">&ldquo;what happens if my database gets deleted&rdquo;</span></a></li>
+<li><a href="e/database-migrations/index.html"><span class="r-name">Safe database migrations</span><span class="r-need">&ldquo;change a column without breaking the live app&rdquo;</span></a></li>
+<li><a href="e/connection-pooling/index.html"><span class="r-name">Database connection pooling</span><span class="r-need">&ldquo;too many connections error from Postgres&rdquo;</span></a></li>
+<li><a href="e/soft-delete/index.html"><span class="r-name">Soft delete and restore</span><span class="r-need">&ldquo;a user removed something by mistake and wants it back&rdquo;</span></a></li>
+<li><a href="e/audit-log/index.html"><span class="r-name">Audit log</span><span class="r-need">&ldquo;see who changed a record and when&rdquo;</span></a></li>
+<li><a href="e/transactions-race-conditions/index.html"><span class="r-name">Transactions and race conditions</span><span class="r-need">&ldquo;a double click created two orders&rdquo;</span></a></li>
+<li><a href="e/pagination/index.html"><span class="r-name">Pagination</span><span class="r-need">&ldquo;my list page loads every row and got slow&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-security" data-c="security" aria-labelledby="h-security"><h3 class="group-h" id="h-security">Security and abuse <span class="group-n">3</span></h3>
+<section class="group" id="c-security" data-c="security" aria-labelledby="h-security"><h3 class="group-h" id="h-security">Security and abuse <span class="group-n">8</span></h3>
 <ol class="results">
 <li><a href="e/rate-limiting/index.html"><span class="r-name">Rate limiting</span><span class="r-need">&ldquo;someone keeps trying passwords on my login&rdquo;</span></a></li>
 <li><a href="e/ownership-checks/index.html"><span class="r-name">Ownership checks (IDOR)</span><span class="r-need">&ldquo;change the id in the URL and see someone else&#x27;s data&rdquo;</span></a></li>
 <li><a href="e/input-validation/index.html"><span class="r-name">Input validation</span><span class="r-need">&ldquo;users can send any data to my API&rdquo;</span></a></li>
+<li><a href="e/cors/index.html"><span class="r-name">CORS settings</span><span class="r-need">&ldquo;blocked by CORS policy error in the browser&rdquo;</span></a></li>
+<li><a href="e/csrf/index.html"><span class="r-name">CSRF protection</span><span class="r-need">&ldquo;another website could submit forms on my site as the logged-in user&rdquo;</span></a></li>
+<li><a href="e/secrets-management/index.html"><span class="r-name">Secrets management</span><span class="r-need">&ldquo;I committed my API key to GitHub&rdquo;</span></a></li>
+<li><a href="e/ssrf-protection/index.html"><span class="r-name">SSRF protection</span><span class="r-need">&ldquo;my app fetches a URL the user pastes in&rdquo;</span></a></li>
+<li><a href="e/bot-protection/index.html"><span class="r-name">Bot and spam protection</span><span class="r-need">&ldquo;bots are signing up thousands of fake accounts&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">2</span></h3>
 <ol class="results">
 <li><a href="e/feature-flags/index.html"><span class="r-name">Feature flag</span><span class="r-need">&ldquo;ship code but keep the feature off&rdquo;</span></a></li>
 <li><a href="e/health-checks/index.html"><span class="r-name">Health checks and safe deploys</span><span class="r-need">&ldquo;the site goes down every time I deploy&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">3</span></h3>
+<ol class="results">
+<li><a href="e/caching-invalidation/index.html"><span class="r-name">Caching and invalidation</span><span class="r-need">&ldquo;the same slow query runs on every page load&rdquo;</span></a></li>
+<li><a href="e/cdn/index.html"><span class="r-name">CDN and static asset caching</span><span class="r-need">&ldquo;my site is slow for people in other countries&rdquo;</span></a></li>
+<li><a href="e/database-indexes/index.html"><span class="r-name">Database indexes</span><span class="r-need">&ldquo;my app got slow as the data grew&rdquo;</span></a></li>
 </ol></section>
   </div>
   <p class="none" id="none" hidden>No match. Try plainer words, like &ldquo;slow&rdquo;, &ldquo;twice&rdquo; or &ldquo;spam&rdquo;.</p>

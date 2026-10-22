@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit log: What To Ask For</title>
+<meta name="description" content="An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Audit log: What To Ask For">
+<meta property="og:description" content="An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/audit-log/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Audit log: What To Ask For">
+<meta name="twitter:description" content="An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=data">Data and databases</a></p>
+  <h1>Audit log</h1>
+  <p class="aka">Also called: activity log, change history, audit trail, who changed what</p>
+  <p class="lead">An append-only record of important actions: who did what to which record, when, and from where, with the values before and after. It answers support questions and security reviews, and some customers require it.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Several people can edit the same data, or admins can act on user accounts.</li><li>Customers ask for compliance features or you handle sensitive records.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>A single-user app with no admin tools, where ordinary logs are enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An audit table you write to <span class="cost">$0</span></h3>
+<p>A table with actor, action, target type and id, before and after values, IP and time. Write to it in the same transaction as the change.</p><p class="trade"><strong>Tradeoff:</strong> Full control over what&#x27;s recorded. You have to call it from every place that matters.</p></li>
+<li><h3>A history library <span class="cost">$0</span></h3>
+<p>django-simple-history, PaperTrail (Rails), or Postgres triggers that copy old rows into a history table.</p><p class="trade"><strong>Tradeoff:</strong> Captures every model change automatically. Doesn&#x27;t capture who unless you pass the user in, and stores a lot.</p></li>
+<li><h3>An audit log service <span class="cost">paid</span></h3>
+<p>Hosted audit log products like WorkOS Audit Logs, often used when enterprise customers ask for exports.</p><p class="trade"><strong>Tradeoff:</strong> Exports and customer-facing views built in. Another vendor holding sensitive data.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add an audit log for [models/actions].
+
+Requirements:
+- Record actor (user id or &#x27;system&#x27;), action (create, update, delete, plus named actions like role_changed), target type and id, changed fields with before and after values, IP, user agent and UTC time.
+- Write the audit row in the same transaction as the change, so neither can exist without the other.
+- Never store passwords, tokens, API keys or full card data. Mask or hash sensitive fields.
+- The audit table is append-only for the app: no update or delete code paths, and no edit form in admin.
+- Add a page where [admins / the account owner] can filter the log by user, record and date.
+- Keep entries for [1 year], then delete them with a scheduled job.
+
+Acceptance checks (run each and show me the result):
+1. Editing a record creates one audit row with the right before and after values.
+2. A failed edit that rolls back leaves no audit row.
+3. No secret or token appears anywhere in the audit table.
+4. The app has no route that edits or deletes audit rows.
+5. The filter page finds all changes to one record.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>No way to answer &#x27;who did this&#x27;, disputes you can&#x27;t settle, and failed security reviews. A log that stores secrets becomes a leak of its own.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal logs create, update and delete for six models (entries, communications, custody events, children, documents and reports) when the change comes from a signed-in request. Each row keeps the previous and current data, IP, user agent and session key. Encrypted fields are stored as an HMAC fingerprint, so the log shows that a field changed without holding the text.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;see who changed a record and when&rdquo;</li><li>&ldquo;a customer says they didn&#x27;t edit this, prove it&rdquo;</li><li>&ldquo;keep a history of admin actions&rdquo;</li><li>&ldquo;show an activity feed of changes&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html">OWASP Logging Cheat Sheet</a></li><li><a href="https://django-simple-history.readthedocs.io/en/stable/">django-simple-history</a></li><li><a href="https://github.com/paper-trail-gem/paper_trail">PaperTrail (Rails)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/audit-log.json">api/audit-log.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../soft-delete/index.html">&larr; Soft delete and restore</a><a href="../transactions-race-conditions/index.html">Transactions and race conditions &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

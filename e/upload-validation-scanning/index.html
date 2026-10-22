@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upload validation and scanning: What To Ask For</title>
+<meta name="description" content="Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can&#x27;t run it as a page.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Upload validation and scanning: What To Ask For">
+<meta property="og:description" content="Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can&#x27;t run it as a page.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/upload-validation-scanning/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Upload validation and scanning: What To Ask For">
+<meta name="twitter:description" content="Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can&#x27;t run it as a page.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>Upload validation and scanning</h1>
+  <p class="aka">Also called: file upload security, file type check, magic bytes, virus scanning, malware scan, ClamAV</p>
+  <p class="lead">Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can&#x27;t run it as a page.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users can upload anything, and other people or your own code will open those files.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never fully. Even avatar uploads need a type and size check.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Check type, size and structure in code <span class="cost">$0</span></h3>
+<p>Read the first bytes (python-magic, file-type for Node) and compare with an allowlist. Cap size and image pixels. Re-encode images with Pillow or sharp, which drops anything hidden in them.</p><p class="trade"><strong>Tradeoff:</strong> Stops most problems cheaply. Doesn&#x27;t detect known malware inside a valid file.</p></li>
+<li><h3>Antivirus scan <span class="cost">$0 self-hosted</span></h3>
+<p>ClamAV (clamd) scans each file in a background job before it&#x27;s marked ready.</p><p class="trade"><strong>Tradeoff:</strong> Catches known malware. Needs memory and signature updates, and misses new threats.</p></li>
+<li><h3>Storage provider scanning <span class="cost">paid</span></h3>
+<p>Managed malware scanning on your bucket from your cloud provider or a scanning service.</p><p class="trade"><strong>Tradeoff:</strong> No servers to run. Costs per GB scanned.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Harden file uploads in [feature].
+
+Requirements:
+- Allow only [PDF, JPEG, PNG, WebP]. Detect the type from the file&#x27;s bytes, not the extension or the Content-Type header. Reject anything else with a clear message.
+- Cap size at [25 MB]. For images, refuse anything over [40] megapixels before fully decoding it.
+- For zip-based files (DOCX, XLSX), cap the number of entries and the total expanded size, and reject paths containing ../.
+- Store files under a random key you generate. Never use the uploaded file name as a path.
+- Serve downloads with Content-Disposition: attachment and X-Content-Type-Options: nosniff, from storage or a separate domain, never as HTML on the app domain.
+- Optional: scan with ClamAV in a background job and keep the file hidden until it passes.
+
+Acceptance checks (run each and show me the result):
+1. A .exe renamed to photo.jpg is rejected.
+2. An HTML file uploaded as an image never renders as a page on the app domain.
+3. A zip bomb is rejected quickly without filling the disk.
+4. A file named ../../etc/passwd is stored under a random key.
+5. If ClamAV is on, the EICAR test file is caught.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Stored cross-site scripting, malware passed on to other users, and servers knocked over by zip or image bombs.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal checks file types from the bytes, caps uploads at 50 MB and refuses images over 40 million pixels. It inspects Office files&#x27; zip contents (entry count, expanded size, compression ratio, path traversal, macros) and parses PDFs in a separate process with an 8 second timeout. It doesn&#x27;t run an antivirus scanner.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;someone could upload a virus or a script as a profile picture&rdquo;</li><li>&ldquo;check that an uploaded file is really a PDF&rdquo;</li><li>&ldquo;a huge zip file crashed my server&rdquo;</li><li>&ldquo;only allow images and PDFs&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html">OWASP File Upload Cheat Sheet</a></li><li><a href="https://docs.clamav.net/">ClamAV documentation</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/upload-validation-scanning.json">api/upload-validation-scanning.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../image-resizing/index.html">&larr; Image resizing and thumbnails</a><a href="../backups-tested-restore/index.html">Backups with a tested restore &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

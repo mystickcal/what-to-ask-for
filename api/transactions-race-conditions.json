@@ -1,0 +1,90 @@
+{
+  "id": "transactions-race-conditions",
+  "name": "Transactions and race conditions",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "race condition",
+    "database transaction",
+    "row locking",
+    "select for update",
+    "double submit",
+    "atomic update"
+  ],
+  "needs": [
+    "a double click created two orders",
+    "two requests at once let a user spend more credits than they have",
+    "the free plan limit can be beaten by sending requests in parallel",
+    "half my data saved and the rest didn't"
+  ],
+  "keywords": [
+    "race",
+    "condition",
+    "transaction",
+    "atomic",
+    "lock",
+    "concurrent",
+    "parallel",
+    "double",
+    "click",
+    "credits",
+    "balance",
+    "select_for_update",
+    "limit",
+    "consistency"
+  ],
+  "summary": "Making a group of database changes all happen or none happen, and making sure two requests running at the same moment can't both pass a check that only one should pass. Check-then-write code is the usual bug: both requests read the old value before either writes.",
+  "need_when": [
+    "You check a balance, quota, stock count or 'already used' flag and then change it.",
+    "One action writes to more than one table."
+  ],
+  "skip_when": [
+    "Single writes with no check before them, like saving a draft."
+  ],
+  "ways": [
+    {
+      "title": "Atomic conditional updates",
+      "cost": "$0",
+      "how": "Do the check inside the write: UPDATE accounts SET credits = credits - 1 WHERE id = ? AND credits >= 1, then see whether a row changed.",
+      "tradeoff": "Fast, no locks held. Only fits checks that one statement can express."
+    },
+    {
+      "title": "Transaction with a row lock",
+      "cost": "$0",
+      "how": "Open a transaction, SELECT ... FOR UPDATE the row that guards the rule (the user, the account), check, write, commit.",
+      "tradeoff": "Handles complex rules. Keep it short, and lock rows in the same order everywhere to avoid deadlocks."
+    },
+    {
+      "title": "Unique constraints and idempotency keys",
+      "cost": "$0",
+      "how": "A unique index on (user_id, request_key) or on the natural key makes the second insert fail. The client sends the same key on a retry.",
+      "tradeoff": "Stops duplicates even across servers. Needs a key the client keeps for the action."
+    }
+  ],
+  "prompt": "Find and fix race conditions in [feature, e.g. credits, checkout, invites].\n\nRequirements:\n- List every place that reads a value, checks it, then writes based on it (balances, quotas, stock, 'used' flags, unique names).\n- Fix each with a conditional update, a row lock inside a transaction, or a unique constraint. Say which and why.\n- Wrap multi-table writes in one transaction.\n- Give create actions an idempotency key so a double click or retry doesn't create two records.\n- Disable the submit button while a request is in flight, but don't rely on it.\n- Write a test that fires [20] parallel requests at each fixed action.\n\nAcceptance checks (run each and show me the result):\n1. 20 parallel 'spend 1 credit' requests on a balance of 5 leave exactly 0 and succeed 5 times.\n2. Double clicking 'Place order' creates one order.\n3. Killing the process halfway through a multi-table write leaves no partial data.\n4. Parallel requests can't push a free account past its limit.",
+  "acceptance_checks": [
+    "20 parallel 'spend 1 credit' requests on a balance of 5 leave exactly 0 and succeed 5 times.",
+    "Double clicking 'Place order' creates one order.",
+    "Killing the process halfway through a multi-table write leaves no partial data.",
+    "Parallel requests can't push a free account past its limit."
+  ],
+  "if_you_skip_it": "Negative balances, duplicate orders and charges, free limits that a script can beat, and half-saved records.",
+  "how_derek_runs_it": "Custody Journal checks the free plan's monthly entry limit while holding a row lock on the user (select_for_update), so parallel requests can't both use the last slot. A sign-in link is marked used with a conditional update that only succeeds while it's still unused and unexpired, so it can't be used twice.",
+  "links": [
+    {
+      "title": "PostgreSQL: explicit locking",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html"
+    },
+    {
+      "title": "PostgreSQL: transaction isolation",
+      "url": "https://www.postgresql.org/docs/current/transaction-iso.html"
+    },
+    {
+      "title": "Django: select_for_update",
+      "url": "https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-for-update"
+    }
+  ],
+  "page": "e/transactions-race-conditions/index.html",
+  "json": "api/transactions-race-conditions.json",
+  "updated": "2026-10-21"
+}

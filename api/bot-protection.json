@@ -1,0 +1,97 @@
+{
+  "id": "bot-protection",
+  "name": "Bot and spam protection",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "CAPTCHA",
+    "Turnstile",
+    "honeypot field",
+    "signup spam",
+    "fake accounts",
+    "credential stuffing"
+  ],
+  "needs": [
+    "bots are signing up thousands of fake accounts",
+    "my contact form gets spam",
+    "add a captcha to signup",
+    "someone is testing stolen card numbers on my checkout"
+  ],
+  "keywords": [
+    "bot",
+    "bots",
+    "spam",
+    "captcha",
+    "turnstile",
+    "hcaptcha",
+    "recaptcha",
+    "honeypot",
+    "fake",
+    "signup",
+    "accounts",
+    "form",
+    "abuse",
+    "card",
+    "testing",
+    "stuffing"
+  ],
+  "summary": "Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both.",
+  "need_when": [
+    "You see bursts of fake signups, spam messages, or failed card attempts.",
+    "A form triggers something that costs money, like an email, SMS or AI call."
+  ],
+  "skip_when": [
+    "Low-traffic internal tools behind a login."
+  ],
+  "ways": [
+    {
+      "title": "Honeypot field and timing",
+      "cost": "$0",
+      "how": "A field hidden from people that bots fill in, plus a check that the form wasn't submitted in under a second or two.",
+      "tradeoff": "Invisible to users. Only stops simple bots."
+    },
+    {
+      "title": "Turnstile, hCaptcha or reCAPTCHA",
+      "cost": "free tiers",
+      "how": "Add the widget, then verify the token on your server with the provider's siteverify API before doing anything. Cloudflare Turnstile tokens are single-use and expire after 300 seconds.",
+      "tradeoff": "Stops most automated abuse. A widget that isn't verified on the server does nothing."
+    },
+    {
+      "title": "Rate limits and verification",
+      "cost": "$0",
+      "how": "Limit by IP and by account, require email verification before the account can do costly things, and use your payment provider's fraud tools on checkout.",
+      "tradeoff": "Catches what gets past the challenge. Needs tuning so real users aren't blocked."
+    }
+  ],
+  "prompt": "Add bot protection to [signup / contact / checkout] forms.\n\nRequirements:\n- Add a honeypot field hidden with CSS (not type=hidden), with tabindex=-1 and autocomplete=off so people and password managers skip it. Reject submissions that fill it, with a generic message.\n- Add Cloudflare Turnstile (or hCaptcha). On the server, verify every token with the siteverify endpoint before any other work. Reject missing, failed, expired or reused tokens.\n- Keep the secret key on the server only.\n- Rate-limit each form by IP and by email or account.\n- New accounts must verify their email before they can [send invites / use AI / start a trial].\n- Log rejected attempts with the reason (no personal data) so I can see the volume.\n\nAcceptance checks (run each and show me the result):\n1. Submitting the form with curl and no token is rejected.\n2. Reusing a token that already passed is rejected.\n3. Filling the honeypot field is rejected.\n4. A real user in a normal browser signs up with no extra steps beyond the widget.\n5. The siteverify secret never appears in the page source.",
+  "acceptance_checks": [
+    "Submitting the form with curl and no token is rejected.",
+    "Reusing a token that already passed is rejected.",
+    "Filling the honeypot field is rejected.",
+    "A real user in a normal browser signs up with no extra steps beyond the widget.",
+    "The siteverify secret never appears in the page source."
+  ],
+  "if_you_skip_it": "Fake accounts, a spam-filled inbox, email sending suspended for bounces, card-testing fees and disputes, and AI bills run up by scripts.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Cloudflare Turnstile: server-side validation",
+      "url": "https://developers.cloudflare.com/turnstile/get-started/server-side-validation/"
+    },
+    {
+      "title": "hCaptcha docs",
+      "url": "https://docs.hcaptcha.com/"
+    },
+    {
+      "title": "Stripe: card testing",
+      "url": "https://docs.stripe.com/disputes/prevention/card-testing"
+    },
+    {
+      "title": "OWASP Automated Threats to Web Applications",
+      "url": "https://owasp.org/projects/automated-threats-to-web-applications"
+    }
+  ],
+  "page": "e/bot-protection/index.html",
+  "json": "api/bot-protection.json",
+  "updated": "2026-10-21"
+}

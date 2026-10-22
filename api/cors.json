@@ -1,0 +1,86 @@
+{
+  "id": "cors",
+  "name": "CORS settings",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "cross-origin resource sharing",
+    "Access-Control-Allow-Origin",
+    "preflight",
+    "CORS error"
+  ],
+  "needs": [
+    "blocked by CORS policy error in the browser",
+    "my frontend on one domain can't call my API on another",
+    "is Access-Control-Allow-Origin star safe"
+  ],
+  "keywords": [
+    "cors",
+    "origin",
+    "cross",
+    "preflight",
+    "options",
+    "access",
+    "control",
+    "allow",
+    "blocked",
+    "policy",
+    "frontend",
+    "api",
+    "domain",
+    "headers"
+  ],
+  "summary": "Headers your API sends to tell browsers which other websites may read its responses. CORS only loosens the browser's same-origin rule. It doesn't stop scripts, servers or curl from calling your API, so it never replaces authentication.",
+  "need_when": [
+    "Your frontend and API are on different origins (domain, subdomain or port) and the browser blocks the call."
+  ],
+  "skip_when": [
+    "Frontend and API share one origin, for example the API lives at /api on the same domain. Then you need no CORS headers at all."
+  ],
+  "ways": [
+    {
+      "title": "Serve both from one origin",
+      "cost": "$0",
+      "how": "Route /api to the backend through your host's rewrites or a reverse proxy, so the browser sees one site.",
+      "tradeoff": "No CORS to get wrong, and cookies just work. Needs a proxy or rewrite rule."
+    },
+    {
+      "title": "Framework CORS middleware with an allowlist",
+      "cost": "$0",
+      "how": "django-cors-headers, the cors package for Express, or FastAPI's CORSMiddleware, with an explicit list of allowed origins.",
+      "tradeoff": "Standard. Easy to loosen to * during debugging and forget."
+    },
+    {
+      "title": "CORS at the edge",
+      "cost": "$0",
+      "how": "Set the headers in Nginx, Caddy or a Cloudflare rule in front of the API.",
+      "tradeoff": "Works for any backend. Keeps rules away from the code that needs them."
+    }
+  ],
+  "prompt": "Fix CORS for the API at [api origin] used by [frontend origins].\n\nRequirements:\n- Allow only these exact origins: [list], read from config per environment. No wildcard, and never reflect the request's Origin header back without checking it against the list.\n- If the browser sends cookies, set Access-Control-Allow-Credentials: true. That requires a specific origin, never *.\n- Allow only the methods and headers the frontend uses, and handle OPTIONS preflight requests.\n- Add Vary: Origin when the response depends on the origin.\n- Explain in a comment that CORS is not access control. Every endpoint still checks authentication.\n\nAcceptance checks (run each and show me the result):\n1. The real frontend can call the API with no CORS errors in the console.\n2. A request with Origin: https://evil.example gets no Access-Control-Allow-Origin header.\n3. curl -X OPTIONS with an allowed origin returns the expected allow headers.\n4. No response anywhere has Access-Control-Allow-Origin: * together with credentials.",
+  "acceptance_checks": [
+    "The real frontend can call the API with no CORS errors in the console.",
+    "A request with Origin: https://evil.example gets no Access-Control-Allow-Origin header.",
+    "curl -X OPTIONS with an allowed origin returns the expected allow headers.",
+    "No response anywhere has Access-Control-Allow-Origin: * together with credentials."
+  ],
+  "if_you_skip_it": "Either the frontend can't reach the API, or a wide-open setting lets any website read signed-in users' data through their browser.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "MDN: Cross-Origin Resource Sharing (CORS)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS"
+    },
+    {
+      "title": "Express cors middleware",
+      "url": "https://expressjs.com/en/resources/middleware/cors/"
+    },
+    {
+      "title": "django-cors-headers",
+      "url": "https://github.com/adamchainz/django-cors-headers"
+    }
+  ],
+  "page": "e/cors/index.html",
+  "json": "api/cors.json",
+  "updated": "2026-10-21"
+}

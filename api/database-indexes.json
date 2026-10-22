@@ -1,0 +1,94 @@
+{
+  "id": "database-indexes",
+  "name": "Database indexes",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "slow query",
+    "query optimization",
+    "EXPLAIN ANALYZE",
+    "composite index",
+    "N+1 queries"
+  ],
+  "needs": [
+    "my app got slow as the data grew",
+    "this query takes seconds",
+    "the dashboard runs hundreds of queries",
+    "which columns should I index"
+  ],
+  "keywords": [
+    "index",
+    "indexes",
+    "indices",
+    "slow",
+    "query",
+    "queries",
+    "explain",
+    "analyze",
+    "performance",
+    "n+1",
+    "composite",
+    "postgres",
+    "seconds",
+    "grew",
+    "dashboard"
+  ],
+  "summary": "Lookup structures that let the database find rows without reading the whole table. Most slow pages in young apps come from a missing index on the columns a query filters and sorts by, or from N+1 queries that run one query per row.",
+  "need_when": [
+    "Pages get slower as tables grow past tens of thousands of rows.",
+    "Your query log shows the same query running once per item in a list."
+  ],
+  "skip_when": [
+    "Tiny tables. Extra indexes slow down writes and take space, so add them for real queries, not just in case."
+  ],
+  "ways": [
+    {
+      "title": "Measure, then index what queries use",
+      "cost": "$0",
+      "how": "Turn on pg_stat_statements (Postgres) or your framework's query log, find the slowest and most frequent queries, run EXPLAIN ANALYZE, and add an index matching the WHERE and ORDER BY columns.",
+      "tradeoff": "Fixes the real problems. Needs production-like data to see them."
+    },
+    {
+      "title": "Composite and partial indexes",
+      "cost": "$0",
+      "how": "One index on (user_id, created_at) serves 'this user's newest items'. A partial index (WHERE deleted_at IS NULL) keeps it small.",
+      "tradeoff": "Column order matters: equality filters first, then the sort column."
+    },
+    {
+      "title": "Fix N+1 queries",
+      "cost": "$0",
+      "how": "Load related rows in one query: select_related and prefetch_related (Django), include (Prisma), joins or batched loaders.",
+      "tradeoff": "Often a bigger win than any index. Tools like django-debug-toolbar show the query count."
+    }
+  ],
+  "prompt": "Find and fix slow database queries in this app.\n\nRequirements:\n- Turn on query logging or pg_stat_statements and list the 10 slowest and 10 most frequent queries.\n- For each, run EXPLAIN ANALYZE on production-like data and show whether it uses an index.\n- Add indexes that match the filters and sort order, composite where needed, with equality columns first. Note that Postgres doesn't index foreign keys automatically.\n- On large tables, create indexes without blocking writes (CREATE INDEX CONCURRENTLY on Postgres).\n- Find N+1 query patterns in list pages and APIs and load related data in batches.\n- Report the before and after timings and the query count for the main pages.\n\nAcceptance checks (run each and show me the result):\n1. EXPLAIN ANALYZE for the main list query shows an index scan, not a sequential scan, on a large table.\n2. The main list page runs a fixed number of queries no matter how many rows it shows.\n3. Before and after timings are shown for each fix.\n4. Each new index is used by at least one real query.",
+  "acceptance_checks": [
+    "EXPLAIN ANALYZE for the main list query shows an index scan, not a sequential scan, on a large table.",
+    "The main list page runs a fixed number of queries no matter how many rows it shows.",
+    "Before and after timings are shown for each fix.",
+    "Each new index is used by at least one real query."
+  ],
+  "if_you_skip_it": "An app that was fast in the demo slows to seconds per page with real data, and the database bill climbs to compensate.",
+  "how_derek_runs_it": "Custody Journal's journal entries have a composite index on (user, is_archived, newest date first), which matches the main entry list. Its email outbox has an index on (status, next attempt time, created time) so the sender can find due emails quickly.",
+  "links": [
+    {
+      "title": "PostgreSQL: indexes",
+      "url": "https://www.postgresql.org/docs/current/indexes.html"
+    },
+    {
+      "title": "PostgreSQL: using EXPLAIN",
+      "url": "https://www.postgresql.org/docs/current/using-explain.html"
+    },
+    {
+      "title": "PostgreSQL: pg_stat_statements",
+      "url": "https://www.postgresql.org/docs/current/pgstatstatements.html"
+    },
+    {
+      "title": "Use The Index, Luke",
+      "url": "https://use-the-index-luke.com/"
+    }
+  ],
+  "page": "e/database-indexes/index.html",
+  "json": "api/database-indexes.json",
+  "updated": "2026-10-21"
+}

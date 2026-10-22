@@ -1,0 +1,83 @@
+{
+  "id": "soft-delete",
+  "name": "Soft delete and restore",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "trash",
+    "undo delete",
+    "archive",
+    "deleted_at",
+    "recycle bin"
+  ],
+  "needs": [
+    "a user removed something by mistake and wants it back",
+    "add a trash folder with restore",
+    "undo a delete"
+  ],
+  "keywords": [
+    "soft",
+    "delete",
+    "trash",
+    "restore",
+    "undo",
+    "archive",
+    "deleted_at",
+    "recover",
+    "bin",
+    "mistake",
+    "remove",
+    "removed"
+  ],
+  "summary": "Marking a record as deleted instead of removing it, so it disappears from the app but can be restored. A purge job removes it for real after a set time, which also matters when someone asks you to erase their data.",
+  "need_when": [
+    "Users delete things they might want back.",
+    "Support keeps getting 'I deleted it by accident' requests."
+  ],
+  "skip_when": [
+    "The data is cheap to recreate, or must be gone at once for privacy reasons."
+  ],
+  "ways": [
+    {
+      "title": "A deleted_at column and a default filter",
+      "cost": "$0",
+      "how": "Add deleted_at, make the default query hide rows where it's set, and keep a separate way to reach all rows for admin and purge.",
+      "tradeoff": "Simple. Every raw query, join and unique constraint has to remember the filter."
+    },
+    {
+      "title": "A library",
+      "cost": "$0",
+      "how": "django-safedelete, Rails' discard gem, or Prisma query extensions.",
+      "tradeoff": "Less code to write. Learn how it treats related records."
+    },
+    {
+      "title": "Move rows to an archive table",
+      "cost": "$0",
+      "how": "On delete, copy the row to a trash table and delete the original. Restore copies it back.",
+      "tradeoff": "Main queries stay simple. Restoring rows with relations takes more work."
+    }
+  ],
+  "prompt": "Add soft delete with restore to [model].\n\nRequirements:\n- Add deleted_at (nullable, indexed). Deleting sets it instead of removing the row.\n- The default query everywhere hides deleted rows. Admin and the purge job use an explicit all-rows query.\n- Unique constraints only apply to rows that aren't deleted (a partial unique index on Postgres).\n- Add a Trash view where the owner can restore items within [30] days.\n- A daily job permanently deletes rows that have been in the trash longer than [30] days, including their files.\n- An account deletion request skips the trash and removes the data for good.\n- Log who deleted and restored what.\n\nAcceptance checks (run each and show me the result):\n1. A deleted item disappears from lists, search and the API.\n2. Restoring brings it back with its related data.\n3. Creating a new item with the same unique name as a deleted one works.\n4. After the retention period the purge job removes it and its files.\n5. Grep shows no raw queries that skip the deleted filter.",
+  "acceptance_checks": [
+    "A deleted item disappears from lists, search and the API.",
+    "Restoring brings it back with its related data.",
+    "Creating a new item with the same unique name as a deleted one works.",
+    "After the retention period the purge job removes it and its files.",
+    "Grep shows no raw queries that skip the deleted filter."
+  ],
+  "if_you_skip_it": "Deleted items come back in search or counts, unique names stay taken forever, or 'deleted' data is still there when someone asks you to erase it.",
+  "how_derek_runs_it": "Custody Journal's journal entries, custody events and communications share a soft-delete base with is_deleted and an indexed deleted_at. The default manager hides deleted rows, and a separate all_objects manager is used for admin, migrations and purging. Admin actions restore selected items, and soft deletes are written to the audit log.",
+  "links": [
+    {
+      "title": "Django: managers",
+      "url": "https://docs.djangoproject.com/en/5.2/topics/db/managers/"
+    },
+    {
+      "title": "PostgreSQL: partial indexes",
+      "url": "https://www.postgresql.org/docs/current/indexes-partial.html"
+    }
+  ],
+  "page": "e/soft-delete/index.html",
+  "json": "api/soft-delete.json",
+  "updated": "2026-10-21"
+}

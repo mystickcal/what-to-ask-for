@@ -1,0 +1,90 @@
+{
+  "id": "connection-pooling",
+  "name": "Database connection pooling",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "connection pool",
+    "PgBouncer",
+    "too many connections",
+    "pooler",
+    "Supavisor"
+  ],
+  "needs": [
+    "too many connections error from Postgres",
+    "my serverless functions run out of database connections",
+    "the database is slow to connect on every request"
+  ],
+  "keywords": [
+    "connection",
+    "connections",
+    "pool",
+    "pooling",
+    "pgbouncer",
+    "supavisor",
+    "serverless",
+    "postgres",
+    "too",
+    "many",
+    "max_connections",
+    "conn_max_age"
+  ],
+  "summary": "Reusing a small set of open database connections instead of opening a new one for each request. Postgres handles a limited number of connections, and serverless functions can open hundreds at once, so a pooler sits in between and shares a few real connections.",
+  "need_when": [
+    "You run on serverless or many workers and see 'too many connections'.",
+    "Each request spends noticeable time connecting to the database."
+  ],
+  "skip_when": [
+    "One long-running server with a few workers that keep their connections open."
+  ],
+  "ways": [
+    {
+      "title": "Persistent connections in your app",
+      "cost": "$0",
+      "how": "Django CONN_MAX_AGE, or Django 5.1+'s built-in pool option with psycopg[pool], SQLAlchemy's pool, or a single shared Prisma client per process.",
+      "tradeoff": "Enough for normal servers. Doesn't help when every function invocation is a new process."
+    },
+    {
+      "title": "Your host's pooler",
+      "cost": "$0, included",
+      "how": "Supabase (Supavisor), Neon and most managed Postgres providers give a pooled connection string. Use it for app traffic and the direct one for migrations.",
+      "tradeoff": "One-line change. Transaction mode breaks session features like some prepared statements, LISTEN and advisory locks held across queries."
+    },
+    {
+      "title": "PgBouncer",
+      "cost": "$0 self-hosted",
+      "how": "Run PgBouncer next to Postgres in transaction pooling mode and point the app at it.",
+      "tradeoff": "Fast and proven. One more service to run and monitor."
+    }
+  ],
+  "prompt": "Fix database connection limits for this app on [host].\n\nRequirements:\n- Count the maximum connections we could open: processes or functions times pool size per process. Compare with the database's max_connections and show the math.\n- Use [the host's pooled connection string / PgBouncer in transaction mode] for app traffic, and a direct connection for migrations.\n- Check the code for features that break under transaction pooling (session settings, LISTEN/NOTIFY, prepared statements, advisory locks) and fix or document each.\n- In serverless code, create one database client per process, not per request.\n- Close or reset inherited connections after a worker forks.\n- Add a health check that fails if the database can't be reached.\n\nAcceptance checks (run each and show me the result):\n1. A load test of [100] concurrent requests produces no 'too many connections' errors.\n2. The connection count in pg_stat_activity stays under the planned limit during the test.\n3. Migrations still run over the direct connection.\n4. Nothing in the code depends on session state that the pooler would break.",
+  "acceptance_checks": [
+    "A load test of [100] concurrent requests produces no 'too many connections' errors.",
+    "The connection count in pg_stat_activity stays under the planned limit during the test.",
+    "Migrations still run over the direct connection.",
+    "Nothing in the code depends on session state that the pooler would break."
+  ],
+  "if_you_skip_it": "The app goes down under a traffic spike with 'too many connections', or every request pays the connection setup time.",
+  "how_derek_runs_it": "Custody Journal doesn't run a separate pooler. Django keeps each connection open for up to 10 minutes (conn_max_age 600), and the Gunicorn fork hooks close database and cache connections inherited from the parent process so workers never share one.",
+  "links": [
+    {
+      "title": "PgBouncer",
+      "url": "https://www.pgbouncer.org/"
+    },
+    {
+      "title": "Django: databases (persistent connections and pooling)",
+      "url": "https://docs.djangoproject.com/en/5.2/ref/databases/"
+    },
+    {
+      "title": "Supabase: connecting to Postgres",
+      "url": "https://supabase.com/docs/guides/database/connecting-to-postgres"
+    },
+    {
+      "title": "Neon: connection pooling",
+      "url": "https://neon.com/docs/connect/connection-pooling"
+    }
+  ],
+  "page": "e/connection-pooling/index.html",
+  "json": "api/connection-pooling.json",
+  "updated": "2026-10-21"
+}

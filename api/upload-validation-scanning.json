@@ -1,0 +1,88 @@
+{
+  "id": "upload-validation-scanning",
+  "name": "Upload validation and scanning",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "file upload security",
+    "file type check",
+    "magic bytes",
+    "virus scanning",
+    "malware scan",
+    "ClamAV"
+  ],
+  "needs": [
+    "someone could upload a virus or a script as a profile picture",
+    "check that an uploaded file is really a PDF",
+    "a huge zip file crashed my server",
+    "only allow images and PDFs"
+  ],
+  "keywords": [
+    "upload",
+    "validation",
+    "virus",
+    "malware",
+    "scan",
+    "clamav",
+    "pdf",
+    "type",
+    "mime",
+    "magic",
+    "bytes",
+    "extension",
+    "zip",
+    "bomb",
+    "file",
+    "safe"
+  ],
+  "summary": "Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can't run it as a page.",
+  "need_when": [
+    "Users can upload anything, and other people or your own code will open those files."
+  ],
+  "skip_when": [
+    "Never fully. Even avatar uploads need a type and size check."
+  ],
+  "ways": [
+    {
+      "title": "Check type, size and structure in code",
+      "cost": "$0",
+      "how": "Read the first bytes (python-magic, file-type for Node) and compare with an allowlist. Cap size and image pixels. Re-encode images with Pillow or sharp, which drops anything hidden in them.",
+      "tradeoff": "Stops most problems cheaply. Doesn't detect known malware inside a valid file."
+    },
+    {
+      "title": "Antivirus scan",
+      "cost": "$0 self-hosted",
+      "how": "ClamAV (clamd) scans each file in a background job before it's marked ready.",
+      "tradeoff": "Catches known malware. Needs memory and signature updates, and misses new threats."
+    },
+    {
+      "title": "Storage provider scanning",
+      "cost": "paid",
+      "how": "Managed malware scanning on your bucket from your cloud provider or a scanning service.",
+      "tradeoff": "No servers to run. Costs per GB scanned."
+    }
+  ],
+  "prompt": "Harden file uploads in [feature].\n\nRequirements:\n- Allow only [PDF, JPEG, PNG, WebP]. Detect the type from the file's bytes, not the extension or the Content-Type header. Reject anything else with a clear message.\n- Cap size at [25 MB]. For images, refuse anything over [40] megapixels before fully decoding it.\n- For zip-based files (DOCX, XLSX), cap the number of entries and the total expanded size, and reject paths containing ../.\n- Store files under a random key you generate. Never use the uploaded file name as a path.\n- Serve downloads with Content-Disposition: attachment and X-Content-Type-Options: nosniff, from storage or a separate domain, never as HTML on the app domain.\n- Optional: scan with ClamAV in a background job and keep the file hidden until it passes.\n\nAcceptance checks (run each and show me the result):\n1. A .exe renamed to photo.jpg is rejected.\n2. An HTML file uploaded as an image never renders as a page on the app domain.\n3. A zip bomb is rejected quickly without filling the disk.\n4. A file named ../../etc/passwd is stored under a random key.\n5. If ClamAV is on, the EICAR test file is caught.",
+  "acceptance_checks": [
+    "A .exe renamed to photo.jpg is rejected.",
+    "An HTML file uploaded as an image never renders as a page on the app domain.",
+    "A zip bomb is rejected quickly without filling the disk.",
+    "A file named ../../etc/passwd is stored under a random key.",
+    "If ClamAV is on, the EICAR test file is caught."
+  ],
+  "if_you_skip_it": "Stored cross-site scripting, malware passed on to other users, and servers knocked over by zip or image bombs.",
+  "how_derek_runs_it": "Custody Journal checks file types from the bytes, caps uploads at 50 MB and refuses images over 40 million pixels. It inspects Office files' zip contents (entry count, expanded size, compression ratio, path traversal, macros) and parses PDFs in a separate process with an 8 second timeout. It doesn't run an antivirus scanner.",
+  "links": [
+    {
+      "title": "OWASP File Upload Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+    },
+    {
+      "title": "ClamAV documentation",
+      "url": "https://docs.clamav.net/"
+    }
+  ],
+  "page": "e/upload-validation-scanning/index.html",
+  "json": "api/upload-validation-scanning.json",
+  "updated": "2026-10-21"
+}

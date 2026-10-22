@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSRF protection: What To Ask For</title>
+<meta name="description" content="Stopping other websites from making a logged-in user&#x27;s browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren&#x27;t exposed in the same way.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="CSRF protection: What To Ask For">
+<meta property="og:description" content="Stopping other websites from making a logged-in user&#x27;s browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren&#x27;t exposed in the same way.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/csrf/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CSRF protection: What To Ask For">
+<meta name="twitter:description" content="Stopping other websites from making a logged-in user&#x27;s browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren&#x27;t exposed in the same way.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>CSRF protection</h1>
+  <p class="aka">Also called: cross-site request forgery, CSRF token, SameSite cookies, XSRF</p>
+  <p class="lead">Stopping other websites from making a logged-in user&#x27;s browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren&#x27;t exposed in the same way.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app uses cookie sessions and has forms or endpoints that change data.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The API accepts only bearer tokens in a header and never reads a cookie for auth.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s built-in protection <span class="cost">$0</span></h3>
+<p>Django&#x27;s CsrfViewMiddleware, Rails&#x27; protect_from_forgery, or Laravel&#x27;s CSRF middleware. Next.js server actions compare the Origin and Host headers by default, but your own route handlers need their own check.</p><p class="trade"><strong>Tradeoff:</strong> Proven. Exemptions added to silence errors are where the holes appear.</p></li>
+<li><h3>SameSite cookies plus Origin checks <span class="cost">$0</span></h3>
+<p>Set session cookies to SameSite=Lax or Strict and reject state-changing requests whose Origin header isn&#x27;t yours.</p><p class="trade"><strong>Tradeoff:</strong> Strong defence in modern browsers. Best used together with tokens, not instead of them.</p></li>
+<li><h3>Header-only token auth <span class="cost">$0</span></h3>
+<p>Keep the auth token out of cookies and send it in the Authorization header from your own code.</p><p class="trade"><strong>Tradeoff:</strong> Not exposed to CSRF. The token then has to be kept away from cross-site scripting.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Audit and fix CSRF protection in this app.
+
+Requirements:
+- Confirm the framework&#x27;s CSRF protection is on for every route that changes data (POST, PUT, PATCH, DELETE).
+- List every CSRF exemption with the reason. Keep an exemption only if the endpoint authenticates another way (a webhook signature, or a bearer token with cookies refused).
+- No GET request changes data. Move any that do to POST.
+- Session cookies use Secure, HttpOnly and SameSite=Lax (or Strict).
+- Set the trusted origins list for production domains only.
+- Add a test that posts a form without the token and expects 403.
+
+Acceptance checks (run each and show me the result):
+1. A form posted from another origin without a token is rejected.
+2. Every CSRF exemption is listed with how that endpoint authenticates instead.
+3. Grep shows no GET handler that writes to the database.
+4. The session cookie shows Secure, HttpOnly and SameSite in the browser&#x27;s dev tools.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A malicious page can change a user&#x27;s email, delete data or make purchases using the user&#x27;s own logged-in browser.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal keeps Django&#x27;s CSRF middleware on for the whole site, and production trusted origins default to the site&#x27;s own https domains. The exemptions are the Stripe webhook (checked by signature), a small anonymous analytics endpoint, OAuth endpoints for an integration, and mobile API endpoints that refuse cookie sessions and accept only bearer tokens. Sign-in links use a POST confirm step, so a GET never logs anyone in.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;another website could submit forms on my site as the logged-in user&rdquo;</li><li>&ldquo;CSRF token missing or incorrect error&rdquo;</li><li>&ldquo;do I need CSRF protection if I use cookies for login&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html">OWASP CSRF Prevention Cheat Sheet</a></li><li><a href="https://docs.djangoproject.com/en/5.2/ref/csrf/">Django: CSRF protection</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie">MDN: Set-Cookie and SameSite</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/csrf.json">api/csrf.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../cors/index.html">&larr; CORS settings</a><a href="../secrets-management/index.html">Secrets management &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

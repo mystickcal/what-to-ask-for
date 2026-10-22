@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secrets management: What To Ask For</title>
+<meta name="description" content="Keeping API keys, passwords and signing keys out of your code, your git history and the browser. They live in your host&#x27;s secret settings or a secrets manager, the app reads them at startup, and you know how to replace each one quickly if it leaks.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Secrets management: What To Ask For">
+<meta property="og:description" content="Keeping API keys, passwords and signing keys out of your code, your git history and the browser. They live in your host&#x27;s secret settings or a secrets manager, the app reads them at startup, and you know how to replace each one quickly if it leaks.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/secrets-management/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Secrets management: What To Ask For">
+<meta name="twitter:description" content="Keeping API keys, passwords and signing keys out of your code, your git history and the browser. They live in your host&#x27;s secret settings or a secrets manager, the app reads them at startup, and you know how to replace each one quickly if it leaks.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Secrets management</h1>
+  <p class="aka">Also called: environment variables, API key storage, .env file, secret rotation, leaked API key</p>
+  <p class="lead">Keeping API keys, passwords and signing keys out of your code, your git history and the browser. They live in your host&#x27;s secret settings or a secrets manager, the app reads them at startup, and you know how to replace each one quickly if it leaks.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app talks to any paid API, database or payment provider. That&#x27;s almost every app.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Host environment variables <span class="cost">$0</span></h3>
+<p>Set secrets in Vercel, Netlify, Render, Fly or your server&#x27;s env, keep .env in .gitignore, and commit a .env.example with names only.</p><p class="trade"><strong>Tradeoff:</strong> Enough for most apps. Copies spread across environments and people&#x27;s laptops.</p></li>
+<li><h3>A secrets manager <span class="cost">$0 self-hosted, paid tiers</span></h3>
+<p>Infisical (open source), Doppler, 1Password Secrets Automation, or your cloud&#x27;s secret manager inject secrets at deploy time.</p><p class="trade"><strong>Tradeoff:</strong> One place to rotate and audit. Another service your deploys depend on.</p></li>
+<li><h3>Leak prevention <span class="cost">$0</span></h3>
+<p>Turn on GitHub secret scanning and push protection, and run gitleaks in a pre-commit hook or CI.</p><p class="trade"><strong>Tradeoff:</strong> Catches mistakes before they ship. Doesn&#x27;t help with a key that&#x27;s already public: that one must be rotated.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Clean up how this app handles secrets.
+
+Requirements:
+- Find every secret in the code, config files and git history (run gitleaks or a similar scanner). List them by name only. Never print a value.
+- Move each to environment variables read at startup. Add a .env.example with the names and no values, and make sure .env is in .gitignore.
+- Make sure no secret reaches the browser: check client bundles and any NEXT_PUBLIC_, VITE_ or similar prefixed variables. Calls that need a secret key go through the server.
+- The app fails to start in production if a required secret is missing, and the error names the variable, not its value.
+- For any secret found in git history, write the rotation steps (create a new key, deploy, revoke the old one). Removing it from history is not enough.
+- Turn on secret scanning and push protection for the repo.
+
+Acceptance checks (run each and show me the result):
+1. gitleaks reports no secrets in the working tree.
+2. Searching the built frontend bundle finds no secret key prefixes (like sk_live_ or sk-).
+3. Starting the app without a required secret fails with a message naming it.
+4. Logs and error pages never show a secret value.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Leaked keys get found and used fast: surprise AI bills, stolen data and abused payment accounts.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal refuses to start in production without a SECRET_KEY. A check script validates each service&#x27;s environment before deploy, fails closed, and reports only variable names and the service role, never values. Key files must be absolute paths with mode 0400 or 0600, and backup encryption keys have IDs so older keys can still decrypt after a rotation.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;I committed my API key to GitHub&rdquo;</li><li>&ldquo;where do I put my Stripe secret key&rdquo;</li><li>&ldquo;my OpenAI key is visible in the browser&rdquo;</li><li>&ldquo;rotate a leaked key&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html">OWASP Secrets Management Cheat Sheet</a></li><li><a href="https://docs.github.com/en/code-security/concepts/secret-security/push-protection">GitHub: push protection</a></li><li><a href="https://github.com/gitleaks/gitleaks">gitleaks</a></li><li><a href="https://infisical.com/docs">Infisical docs</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/secrets-management.json">api/secrets-management.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../csrf/index.html">&larr; CSRF protection</a><a href="../ssrf-protection/index.html">SSRF protection &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

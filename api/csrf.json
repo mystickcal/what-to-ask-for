@@ -1,0 +1,84 @@
+{
+  "id": "csrf",
+  "name": "CSRF protection",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "cross-site request forgery",
+    "CSRF token",
+    "SameSite cookies",
+    "XSRF"
+  ],
+  "needs": [
+    "another website could submit forms on my site as the logged-in user",
+    "CSRF token missing or incorrect error",
+    "do I need CSRF protection if I use cookies for login"
+  ],
+  "keywords": [
+    "csrf",
+    "xsrf",
+    "forgery",
+    "cross",
+    "site",
+    "token",
+    "samesite",
+    "cookie",
+    "form",
+    "post",
+    "origin",
+    "forms"
+  ],
+  "summary": "Stopping other websites from making a logged-in user's browser send state-changing requests to your app. It matters when login lives in cookies, because the browser attaches them automatically. APIs that only accept a token in the Authorization header aren't exposed in the same way.",
+  "need_when": [
+    "Your app uses cookie sessions and has forms or endpoints that change data."
+  ],
+  "skip_when": [
+    "The API accepts only bearer tokens in a header and never reads a cookie for auth."
+  ],
+  "ways": [
+    {
+      "title": "Your framework's built-in protection",
+      "cost": "$0",
+      "how": "Django's CsrfViewMiddleware, Rails' protect_from_forgery, or Laravel's CSRF middleware. Next.js server actions compare the Origin and Host headers by default, but your own route handlers need their own check.",
+      "tradeoff": "Proven. Exemptions added to silence errors are where the holes appear."
+    },
+    {
+      "title": "SameSite cookies plus Origin checks",
+      "cost": "$0",
+      "how": "Set session cookies to SameSite=Lax or Strict and reject state-changing requests whose Origin header isn't yours.",
+      "tradeoff": "Strong defence in modern browsers. Best used together with tokens, not instead of them."
+    },
+    {
+      "title": "Header-only token auth",
+      "cost": "$0",
+      "how": "Keep the auth token out of cookies and send it in the Authorization header from your own code.",
+      "tradeoff": "Not exposed to CSRF. The token then has to be kept away from cross-site scripting."
+    }
+  ],
+  "prompt": "Audit and fix CSRF protection in this app.\n\nRequirements:\n- Confirm the framework's CSRF protection is on for every route that changes data (POST, PUT, PATCH, DELETE).\n- List every CSRF exemption with the reason. Keep an exemption only if the endpoint authenticates another way (a webhook signature, or a bearer token with cookies refused).\n- No GET request changes data. Move any that do to POST.\n- Session cookies use Secure, HttpOnly and SameSite=Lax (or Strict).\n- Set the trusted origins list for production domains only.\n- Add a test that posts a form without the token and expects 403.\n\nAcceptance checks (run each and show me the result):\n1. A form posted from another origin without a token is rejected.\n2. Every CSRF exemption is listed with how that endpoint authenticates instead.\n3. Grep shows no GET handler that writes to the database.\n4. The session cookie shows Secure, HttpOnly and SameSite in the browser's dev tools.",
+  "acceptance_checks": [
+    "A form posted from another origin without a token is rejected.",
+    "Every CSRF exemption is listed with how that endpoint authenticates instead.",
+    "Grep shows no GET handler that writes to the database.",
+    "The session cookie shows Secure, HttpOnly and SameSite in the browser's dev tools."
+  ],
+  "if_you_skip_it": "A malicious page can change a user's email, delete data or make purchases using the user's own logged-in browser.",
+  "how_derek_runs_it": "Custody Journal keeps Django's CSRF middleware on for the whole site, and production trusted origins default to the site's own https domains. The exemptions are the Stripe webhook (checked by signature), a small anonymous analytics endpoint, OAuth endpoints for an integration, and mobile API endpoints that refuse cookie sessions and accept only bearer tokens. Sign-in links use a POST confirm step, so a GET never logs anyone in.",
+  "links": [
+    {
+      "title": "OWASP CSRF Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    },
+    {
+      "title": "Django: CSRF protection",
+      "url": "https://docs.djangoproject.com/en/5.2/ref/csrf/"
+    },
+    {
+      "title": "MDN: Set-Cookie and SameSite",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"
+    }
+  ],
+  "page": "e/csrf/index.html",
+  "json": "api/csrf.json",
+  "updated": "2026-10-21"
+}

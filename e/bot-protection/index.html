@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bot and spam protection: What To Ask For</title>
+<meta name="description" content="Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Bot and spam protection: What To Ask For">
+<meta property="og:description" content="Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/bot-protection/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Bot and spam protection: What To Ask For">
+<meta name="twitter:description" content="Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Bot and spam protection</h1>
+  <p class="aka">Also called: CAPTCHA, Turnstile, honeypot field, signup spam, fake accounts, credential stuffing</p>
+  <p class="lead">Stopping automated traffic on forms that cost you money or reputation: signup, login, contact, checkout and anything that sends email or calls an AI. Layers work best: a hidden honeypot field, a challenge like Turnstile checked on the server, and rate limits behind both.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You see bursts of fake signups, spam messages, or failed card attempts.</li><li>A form triggers something that costs money, like an email, SMS or AI call.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Low-traffic internal tools behind a login.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Honeypot field and timing <span class="cost">$0</span></h3>
+<p>A field hidden from people that bots fill in, plus a check that the form wasn&#x27;t submitted in under a second or two.</p><p class="trade"><strong>Tradeoff:</strong> Invisible to users. Only stops simple bots.</p></li>
+<li><h3>Turnstile, hCaptcha or reCAPTCHA <span class="cost">free tiers</span></h3>
+<p>Add the widget, then verify the token on your server with the provider&#x27;s siteverify API before doing anything. Cloudflare Turnstile tokens are single-use and expire after 300 seconds.</p><p class="trade"><strong>Tradeoff:</strong> Stops most automated abuse. A widget that isn&#x27;t verified on the server does nothing.</p></li>
+<li><h3>Rate limits and verification <span class="cost">$0</span></h3>
+<p>Limit by IP and by account, require email verification before the account can do costly things, and use your payment provider&#x27;s fraud tools on checkout.</p><p class="trade"><strong>Tradeoff:</strong> Catches what gets past the challenge. Needs tuning so real users aren&#x27;t blocked.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add bot protection to [signup / contact / checkout] forms.
+
+Requirements:
+- Add a honeypot field hidden with CSS (not type=hidden), with tabindex=-1 and autocomplete=off so people and password managers skip it. Reject submissions that fill it, with a generic message.
+- Add Cloudflare Turnstile (or hCaptcha). On the server, verify every token with the siteverify endpoint before any other work. Reject missing, failed, expired or reused tokens.
+- Keep the secret key on the server only.
+- Rate-limit each form by IP and by email or account.
+- New accounts must verify their email before they can [send invites / use AI / start a trial].
+- Log rejected attempts with the reason (no personal data) so I can see the volume.
+
+Acceptance checks (run each and show me the result):
+1. Submitting the form with curl and no token is rejected.
+2. Reusing a token that already passed is rejected.
+3. Filling the honeypot field is rejected.
+4. A real user in a normal browser signs up with no extra steps beyond the widget.
+5. The siteverify secret never appears in the page source.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Fake accounts, a spam-filled inbox, email sending suspended for bounces, card-testing fees and disputes, and AI bills run up by scripts.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;bots are signing up thousands of fake accounts&rdquo;</li><li>&ldquo;my contact form gets spam&rdquo;</li><li>&ldquo;add a captcha to signup&rdquo;</li><li>&ldquo;someone is testing stolen card numbers on my checkout&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.cloudflare.com/turnstile/get-started/server-side-validation/">Cloudflare Turnstile: server-side validation</a></li><li><a href="https://docs.hcaptcha.com/">hCaptcha docs</a></li><li><a href="https://docs.stripe.com/disputes/prevention/card-testing">Stripe: card testing</a></li><li><a href="https://owasp.org/projects/automated-threats-to-web-applications">OWASP Automated Threats to Web Applications</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/bot-protection.json">api/bot-protection.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../ssrf-protection/index.html">&larr; SSRF protection</a><a href="../feature-flags/index.html">Feature flag &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>
