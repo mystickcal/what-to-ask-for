@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Password reset tokens: What To Ask For</title>
+<meta name="description" content="A one-time, short-lived link emailed to the account owner that lets them set a new password. The token is random and stored only as a hash (or signed), and it stops working after use, after it expires, and once the password changes.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Password reset tokens: What To Ask For">
+<meta property="og:description" content="A one-time, short-lived link emailed to the account owner that lets them set a new password. The token is random and stored only as a hash (or signed), and it stops working after use, after it expires, and once the password changes.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/password-reset/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Password reset tokens: What To Ask For">
+<meta name="twitter:description" content="A one-time, short-lived link emailed to the account owner that lets them set a new password. The token is random and stored only as a hash (or signed), and it stops working after use, after it expires, and once the password changes.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Password reset tokens</h1>
+  <p class="aka">Also called: forgot password, reset link, password recovery, reset token</p>
+  <p class="lead">A one-time, short-lived link emailed to the account owner that lets them set a new password. The token is random and stored only as a hash (or signed), and it stops working after use, after it expires, and once the password changes.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app has passwords.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You don&#x27;t store passwords at all: login is only by magic link or social login.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s built-in reset <span class="cost">$0</span></h3>
+<p>Django&#x27;s PasswordResetView (tokens stop working once the password changes and expire after PASSWORD_RESET_TIMEOUT, 3 days by default), Laravel&#x27;s password broker, or the Rails authentication generator.</p><p class="trade"><strong>Tradeoff:</strong> Tested and maintained. Shorten the expiry and add rate limits yourself.</p></li>
+<li><h3>Your auth provider&#x27;s reset flow <span class="cost">free tiers</span></h3>
+<p>Supabase Auth, Clerk, Auth0 and Firebase Auth send and check reset emails for you.</p><p class="trade"><strong>Tradeoff:</strong> Nothing to build. Their emails and pages may not match your brand without setup.</p></li>
+<li><h3>Your own reset tokens table <span class="cost">$0</span></h3>
+<p>Generate 32 random bytes, email the raw token, store only its SHA-256 hash with an expiry and a used_at time.</p><p class="trade"><strong>Tradeoff:</strong> Full control. Easy to miss one rule: expiry, single use, or the same reply for unknown emails.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a password reset flow.
+
+Requirements:
+- The request form always shows the same message (&#x27;If an account exists for that email, we sent a link&#x27;), whether or not the email exists.
+- Rate limit requests per IP and per email.
+- Token: random from a secure generator, at least 32 bytes. Store only a hash, with expires_at [30 minutes] and used_at.
+- Build the link from our configured site URL, never from the request&#x27;s Host header.
+- The reset page sets Referrer-Policy: no-referrer so the token doesn&#x27;t leak to other sites.
+- Using the link marks it used. A new request cancels older unused tokens. Changing the password ends the user&#x27;s other sessions.
+- Send a &#x27;your password was changed&#x27; email afterwards.
+
+Acceptance checks (run each and show me the result):
+1. Requesting a reset for an unknown email shows the same message and takes about the same time as a known one.
+2. A link works once, and the second use shows &#x27;invalid or expired&#x27;.
+3. A link older than the expiry fails.
+4. The database holds no raw tokens.
+5. After a reset, a session logged in on another browser is logged out.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Old reset emails become a way into accounts, and the form leaks which emails are registered.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add a forgot password link&rdquo;</li><li>&ldquo;reset links never expire&rdquo;</li><li>&ldquo;the reset page tells people which emails have accounts&rdquo;</li><li>&ldquo;someone used an old reset email to get into an account&rdquo;</li><li>&ldquo;log out other devices after a password change&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">OWASP Forgot Password Cheat Sheet</a></li><li><a href="https://docs.djangoproject.com/en/5.2/topics/auth/default/">Django: authentication views</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html">OWASP Authentication Cheat Sheet</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/password-reset.json">api/password-reset.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../free-trials/index.html">&larr; Free trial (with or without a card)</a><a href="../magic-links/index.html">Magic link sign-in &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

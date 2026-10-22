@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social login (OAuth and OpenID Connect): What To Ask For</title>
+<meta name="description" content="Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Social login (OAuth and OpenID Connect): What To Ask For">
+<meta property="og:description" content="Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/social-login/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Social login (OAuth and OpenID Connect): What To Ask For">
+<meta name="twitter:description" content="Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Social login (OAuth and OpenID Connect)</h1>
+  <p class="aka">Also called: Sign in with Google, OAuth login, OpenID Connect, OIDC, SSO, PKCE</p>
+  <p class="lead">Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You want sign-up with no password and less friction.</li><li>Your users are businesses that expect Google or Microsoft sign-in.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Your users don&#x27;t have, or don&#x27;t want to use, those accounts. Offer email sign-in too.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An auth library in your framework <span class="cost">$0</span></h3>
+<p>django-allauth, Auth.js or Better Auth. They handle the code flow, state, PKCE and account linking.</p><p class="trade"><strong>Tradeoff:</strong> Your data stays in your database. You still register an app with each provider and set exact redirect URLs.</p></li>
+<li><h3>A hosted auth service <span class="cost">free tiers</span></h3>
+<p>Clerk, Auth0, Supabase Auth or Firebase Auth add many providers from a dashboard.</p><p class="trade"><strong>Tradeoff:</strong> Fastest. Your user list lives with them and pricing grows with users.</p></li>
+<li><h3>A self-hosted identity provider <span class="cost">$0 software</span></h3>
+<p>Keycloak, Authentik or Zitadel run on your server and speak OpenID Connect to your apps.</p><p class="trade"><strong>Tradeoff:</strong> Good when several apps share one login. Heavy to run for a single app.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add [Google] sign-in using [library].
+
+Requirements:
+- Use the authorization code flow with PKCE and a state parameter. No implicit flow.
+- Ask only for openid, email and profile. Ask for other permissions later, when a feature needs them.
+- Register exact redirect URIs for each environment. No wildcards.
+- If the email matches an existing account, link them only when the provider marks the email as verified. Otherwise refuse and explain.
+- Keep the provider&#x27;s client secret in an environment variable.
+- Show a friendly error page when the user cancels or the provider fails, and log the provider&#x27;s error code.
+
+Acceptance checks (run each and show me the result):
+1. A new Google user who signs in twice still has one account.
+2. An existing email user who signs in with Google (verified email) lands in their existing account, not a new one.
+3. A callback with a wrong or missing state value is rejected.
+4. The consent screen asks only for basic profile and email.
+5. Canceling on the provider&#x27;s screen shows our error page, not a stack trace.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Duplicate accounts, account takeover through an unverified email, or a consent screen asking for far more than you need.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses django-allauth with Google as the only social provider. PKCE is on, sign-in asks only for profile and email, and calendar access is requested separately inside the app. The Google prompt is set to select_account so the wrong browser account isn&#x27;t reused. A verified Google email can sign in to an existing account with the same email.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add Sign in with Google&rdquo;</li><li>&ldquo;let users log in with GitHub or Apple&rdquo;</li><li>&ldquo;Google login made a second account for an existing user&rdquo;</li><li>&ldquo;redirect_uri_mismatch error&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.rfc-editor.org/info/rfc9700/">RFC 9700: OAuth 2.0 security best current practice</a></li><li><a href="https://developers.google.com/identity/openid-connect/openid-connect">Google: OpenID Connect</a></li><li><a href="https://docs.allauth.org/">django-allauth</a></li><li><a href="https://authjs.dev/">Auth.js</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/social-login.json">api/social-login.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../magic-links/index.html">&larr; Magic link sign-in</a><a href="../sessions-vs-jwt/index.html">Sessions vs JWT &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

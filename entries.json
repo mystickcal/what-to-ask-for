@@ -1,11 +1,55 @@
 {
   "name": "What To Ask For",
   "updated": "2026-10-21",
-  "count": 10,
+  "count": 27,
+  "categories": [
+    {
+      "id": "background",
+      "name": "Background work and scheduling",
+      "count": 4
+    },
+    {
+      "id": "payments",
+      "name": "Payments and billing",
+      "count": 6
+    },
+    {
+      "id": "auth",
+      "name": "Auth and accounts",
+      "count": 6
+    },
+    {
+      "id": "email",
+      "name": "Email and notifications",
+      "count": 4
+    },
+    {
+      "id": "files",
+      "name": "Files and uploads",
+      "count": 1
+    },
+    {
+      "id": "data",
+      "name": "Data and databases",
+      "count": 1
+    },
+    {
+      "id": "security",
+      "name": "Security and abuse",
+      "count": 3
+    },
+    {
+      "id": "deploys",
+      "name": "Deploys, uptime and monitoring",
+      "count": 2
+    }
+  ],
   "entries": [
     {
       "id": "scheduled-jobs",
       "name": "Scheduled job",
+      "category": "background",
+      "category_name": "Background work and scheduling",
       "aliases": [
         "cron job",
         "scheduled task",
@@ -98,6 +142,8 @@
     {
       "id": "background-job-queue",
       "name": "Background job queue",
+      "category": "background",
+      "category_name": "Background work and scheduling",
       "aliases": [
         "task queue",
         "worker",
@@ -195,8 +241,202 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "retries-and-dead-letter-queue",
+      "name": "Retries with backoff and a dead-letter queue",
+      "category": "background",
+      "category_name": "Background work and scheduling",
+      "aliases": [
+        "exponential backoff",
+        "retry policy",
+        "jitter",
+        "dead-letter queue",
+        "DLQ",
+        "failed jobs table",
+        "poison message"
+      ],
+      "needs": [
+        "the email API failed once and the email was never sent",
+        "retry a job if it fails",
+        "my retries hammer the API and make it worse",
+        "where do jobs go when they keep failing",
+        "the third-party API is flaky"
+      ],
+      "keywords": [
+        "retry",
+        "retries",
+        "backoff",
+        "exponential",
+        "jitter",
+        "flaky",
+        "transient",
+        "dead",
+        "letter",
+        "dlq",
+        "failed",
+        "poison",
+        "503",
+        "429"
+      ],
+      "summary": "When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don't all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.",
+      "need_when": [
+        "A job or request calls something that can fail briefly: an email API, a payment API, an AI model, a webhook.",
+        "You have a background queue and need to know which jobs never finished."
+      ],
+      "skip_when": [
+        "The error will never fix itself, like a 400 for bad input or a 401 for a wrong key. Retrying those only adds load."
+      ],
+      "ways": [
+        {
+          "title": "Retry settings in the queue you already run",
+          "cost": "$0",
+          "how": "Celery (autoretry_for, retry_backoff, retry_jitter), BullMQ (attempts plus an exponential backoff option) and pg-boss (retryLimit, retryBackoff) all retry for you and keep failed jobs.",
+          "tradeoff": "Least code. Check what each library does after the last attempt. Some just keep the failed job, and nothing alerts you unless you add it."
+        },
+        {
+          "title": "A retry helper around single calls",
+          "cost": "$0",
+          "how": "tenacity (Python) or p-retry (Node) wraps one function: stop after N attempts, wait exponentially with jitter, retry only on chosen exceptions.",
+          "tradeoff": "Good inside one request or job. It doesn't survive a crash, so for important work put the job in a queue."
+        },
+        {
+          "title": "A managed queue with a dead-letter queue",
+          "cost": "free tiers or pay per use",
+          "how": "Amazon SQS redrive policies and Cloudflare Queues dead letter queues move a message aside after it fails a set number of times.",
+          "tradeoff": "The dead-letter part is built in. Another service and account, and you still need an alert on the dead-letter queue."
+        }
+      ],
+      "prompt": "Add retries with backoff and a dead-letter state to [job or call].\n\nRequirements:\n- Retry only errors that can fix themselves: timeouts, connection errors, 429 and 5xx. Fail at once on other 4xx errors.\n- Wait with exponential backoff plus random jitter, starting at [5 seconds] and capped at [10 minutes]. If the response has a Retry-After header, wait at least that long.\n- Stop after [5] attempts. Then mark the job dead with a short error code and the attempt count. No stack traces or user data in that field.\n- Make the work safe to run twice: use an idempotency key or check whether the effect already happened before redoing it.\n- Add an admin view or command that lists dead jobs and replays one by id.\n- Alert me when the number of dead jobs goes up.\n\nAcceptance checks (run each and show me the result):\n1. A fake API that fails twice and then succeeds ends with the job done and 3 attempts recorded.\n2. A fake API that always returns 503 ends with the job marked dead after the max attempts, with growing gaps between attempts.\n3. A 400 response is not retried.\n4. A 429 with Retry-After: 30 waits at least 30 seconds before the next try.\n5. Replaying a dead job by hand runs it once and does not repeat side effects that already happened.",
+      "acceptance_checks": [
+        "A fake API that fails twice and then succeeds ends with the job done and 3 attempts recorded.",
+        "A fake API that always returns 503 ends with the job marked dead after the max attempts, with growing gaps between attempts.",
+        "A 400 response is not retried.",
+        "A 429 with Retry-After: 30 waits at least 30 seconds before the next try.",
+        "Replaying a dead job by hand runs it once and does not repeat side effects that already happened."
+      ],
+      "if_you_skip_it": "One blip at a provider loses the email or the payment update for good, or tight retry loops pile onto a service that is already struggling.",
+      "how_derek_runs_it": "Custody Journal sends sign-in emails from a database outbox. Each email gets at most 5 attempts, with waits of 15 seconds, 45 seconds, 2 minutes, 5 minutes and 10 minutes, and a worker holds a 2 minute lease while it sends. An email stops retrying when it reaches its attempt limit or when the next retry would land after the sign-in link expires.",
+      "links": [
+        {
+          "title": "AWS Builders' Library: timeouts, retries and backoff with jitter",
+          "url": "https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter"
+        },
+        {
+          "title": "tenacity (Python retries)",
+          "url": "https://tenacity.readthedocs.io/en/latest/"
+        },
+        {
+          "title": "BullMQ: retrying failing jobs",
+          "url": "https://docs.bullmq.io/guide/retrying-failing-jobs"
+        },
+        {
+          "title": "Cloudflare Queues: dead letter queues",
+          "url": "https://developers.cloudflare.com/queues/configuration/dead-letter-queues/"
+        }
+      ],
+      "page": "e/retries-and-dead-letter-queue/index.html",
+      "json": "api/retries-and-dead-letter-queue.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "time-zones",
+      "name": "Time zone handling",
+      "category": "background",
+      "category_name": "Background work and scheduling",
+      "aliases": [
+        "UTC storage",
+        "IANA time zone",
+        "timestamptz",
+        "daylight saving time",
+        "DST bug",
+        "local time"
+      ],
+      "needs": [
+        "reminders show up an hour off after daylight saving",
+        "store dates so users in other countries see their own time",
+        "the daily email goes out at the wrong hour",
+        "dates are off by one day for some users",
+        "let each user pick their time zone"
+      ],
+      "keywords": [
+        "timezone",
+        "time",
+        "zone",
+        "utc",
+        "dst",
+        "daylight",
+        "saving",
+        "local",
+        "hour",
+        "date",
+        "iana",
+        "offset",
+        "tz"
+      ],
+      "summary": "Store moments in time as UTC, store each user's time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.",
+      "need_when": [
+        "Users in more than one time zone, or any feature that says 'at 7 PM' or 'today'.",
+        "Daily limits, streaks, digests or reports that reset at midnight."
+      ],
+      "skip_when": [
+        "Rarely. Even a one-country app crosses a daylight saving change twice a year."
+      ],
+      "ways": [
+        {
+          "title": "Your language's built-in zone support",
+          "cost": "$0",
+          "how": "Python zoneinfo, JavaScript Intl.DateTimeFormat with a timeZone option, or java.time. Keep aware datetimes in UTC and convert at the edges.",
+          "tradeoff": "No dependency. Date math across daylight saving is easy to get wrong without tests."
+        },
+        {
+          "title": "A date library",
+          "cost": "$0",
+          "how": "Luxon, or date-fns with date-fns-tz, in JavaScript. They handle zone-aware arithmetic like 'add one day in this zone'.",
+          "tradeoff": "Clearer code for zone math. One more dependency in the bundle."
+        },
+        {
+          "title": "Let the database convert",
+          "cost": "$0",
+          "how": "Postgres timestamptz columns store an absolute moment. AT TIME ZONE 'America/New_York' converts in a query, for example to group rows by the user's local day.",
+          "tradeoff": "Fast for reports. Spreads time logic across SQL and app code."
+        }
+      ],
+      "prompt": "Fix time zone handling in this app.\n\nRequirements:\n- Store every timestamp as UTC (timestamptz in Postgres, aware datetimes in code).\n- Add a time_zone field on the user that holds an IANA name like America/New_York. Validate it against the zone list and fall back to [default zone] when it is missing or invalid.\n- Show times in the user's zone everywhere in the UI and in emails.\n- For things a user schedules at a local time (like a 7 PM reminder), store the local time and the zone, then compute the next UTC run time from them. Don't store a fixed UTC hour.\n- Daily limits, streaks and 'today' use the user's local day, not the server's.\n- Add tests that cross the spring and fall daylight saving changes.\n\nAcceptance checks (run each and show me the result):\n1. A reminder set for 7:00 PM in New York fires at 7:00 PM local time on both sides of a daylight saving change.\n2. A user in Tokyo and a user in Los Angeles each see an event at their own correct local time.\n3. An invalid zone name falls back to the default instead of crashing.\n4. A daily limit resets at the user's local midnight.\n5. The database holds UTC values. Changing the server's time zone setting changes nothing users see.",
+      "acceptance_checks": [
+        "A reminder set for 7:00 PM in New York fires at 7:00 PM local time on both sides of a daylight saving change.",
+        "A user in Tokyo and a user in Los Angeles each see an event at their own correct local time.",
+        "An invalid zone name falls back to the default instead of crashing.",
+        "A daily limit resets at the user's local midnight.",
+        "The database holds UTC values. Changing the server's time zone setting changes nothing users see."
+      ],
+      "if_you_skip_it": "Reminders drift an hour twice a year, daily limits reset at the wrong time, and dates near midnight show up on the wrong day.",
+      "how_derek_runs_it": "Custody Journal stores times in UTC and keeps an IANA zone name on each user. A middleware switches to that zone on every request, old names like US/Eastern are mapped to their IANA names, and an invalid zone falls back to the default. The monthly AI allowance is counted by the month in the user's own zone.",
+      "links": [
+        {
+          "title": "Python zoneinfo",
+          "url": "https://docs.python.org/3/library/zoneinfo.html"
+        },
+        {
+          "title": "MDN: Intl.DateTimeFormat",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat"
+        },
+        {
+          "title": "PostgreSQL: date and time types",
+          "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+        },
+        {
+          "title": "Luxon",
+          "url": "https://moment.github.io/luxon/"
+        }
+      ],
+      "page": "e/time-zones/index.html",
+      "json": "api/time-zones.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "webhook-signature-verification",
       "name": "Webhook signature verification",
+      "category": "payments",
+      "category_name": "Payments and billing",
       "aliases": [
         "webhook signing",
         "HMAC signature",
@@ -280,6 +520,8 @@
     {
       "id": "idempotent-webhooks",
       "name": "Idempotent webhook handling",
+      "category": "payments",
+      "category_name": "Payments and billing",
       "aliases": [
         "idempotency key",
         "event dedupe",
@@ -360,8 +602,1296 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "subscription-billing",
+      "name": "Subscription billing",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "recurring payments",
+        "Stripe Billing",
+        "plans and upgrades",
+        "proration",
+        "customer portal",
+        "SaaS billing"
+      ],
+      "needs": [
+        "charge users every month",
+        "let users upgrade or downgrade their plan",
+        "what happens when someone switches plans mid-month",
+        "users canceled but still have access",
+        "let customers update their card and cancel themselves"
+      ],
+      "keywords": [
+        "subscription",
+        "stripe",
+        "billing",
+        "plan",
+        "monthly",
+        "yearly",
+        "upgrade",
+        "downgrade",
+        "proration",
+        "prorate",
+        "portal",
+        "cancel",
+        "saas",
+        "recurring",
+        "checkout"
+      ],
+      "summary": "A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer's subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.",
+      "need_when": [
+        "You charge monthly or yearly for access.",
+        "Users can change plans, pause or cancel."
+      ],
+      "skip_when": [
+        "One-time purchases. A single Checkout payment and a webhook are enough."
+      ],
+      "ways": [
+        {
+          "title": "Stripe Checkout plus the customer portal",
+          "cost": "Stripe fees",
+          "how": "Checkout in subscription mode creates the subscription. The hosted customer portal handles card updates, plan changes and cancellation. Webhooks keep your copy in sync.",
+          "tradeoff": "Least code and the most common path. Sales tax and VAT are yours to handle unless you add Stripe Tax or similar."
+        },
+        {
+          "title": "A merchant of record",
+          "cost": "higher fees",
+          "how": "Paddle or Lemon Squeezy sell to the customer on your behalf and handle sales tax and VAT.",
+          "tradeoff": "Tax is handled for you. Higher fees and less control over checkout and payouts."
+        },
+        {
+          "title": "Subscriptions API with your own UI",
+          "cost": "Stripe fees",
+          "how": "Create and update subscriptions from your backend and build your own plan page. Choose proration_behavior on each change: create_prorations (the default), always_invoice to bill the difference now, or none.",
+          "tradeoff": "Full control. Much more code and many more states to test."
+        }
+      ],
+      "prompt": "Add subscription billing with [provider] for plans [plan names and prices].\n\nRequirements:\n- Keep a subscriptions table per account: provider customer id, subscription id, price id, status, period end and cancel_at_period_end.\n- Update it only from verified webhooks (customer.subscription.created, updated and deleted, invoice.paid, invoice.payment_failed). On each event, fetch the latest subscription from the API and copy its state.\n- Grant paid features only for status active or trialing. Treat any other or unknown status as not paid.\n- Plan changes go through [the customer portal / our plan page] with proration_behavior set to [create_prorations / always_invoice].\n- Canceling keeps access until the paid period ends, then removes it.\n- Block a second checkout when the account already has a live subscription. Send that user to the portal instead.\n\nAcceptance checks (run each and show me the result):\n1. Paying in test mode with card 4242 4242 4242 4242 gives access within a few seconds of the webhook.\n2. Canceling in the portal keeps access until the period end, then the subscription.deleted webhook removes it.\n3. Upgrading mid-period shows a proration on the next invoice (or charges at once with always_invoice).\n4. A user with an active subscription who opens checkout again is sent to the portal, not into a second subscription.\n5. Replaying an old subscription.updated event doesn't overwrite newer state.",
+      "acceptance_checks": [
+        "Paying in test mode with card 4242 4242 4242 4242 gives access within a few seconds of the webhook.",
+        "Canceling in the portal keeps access until the period end, then the subscription.deleted webhook removes it.",
+        "Upgrading mid-period shows a proration on the next invoice (or charges at once with always_invoice).",
+        "A user with an active subscription who opens checkout again is sent to the portal, not into a second subscription.",
+        "Replaying an old subscription.updated event doesn't overwrite newer state."
+      ],
+      "if_you_skip_it": "People keep paid features after canceling, get charged twice for two subscriptions, or lose access while still paying.",
+      "how_derek_runs_it": "Custody Journal uses Stripe Checkout and the Stripe billing portal. On each subscription webhook it locks the account's subscription row, fetches the subscription from Stripe and copies that state instead of trusting the event body. Only the Stripe statuses active and trialing set a paid tier, and unknown statuses never grant access. A past-due user who tries to check out again is sent to the portal to fix their payment, which closed a double-subscription bug found in an audit.",
+      "links": [
+        {
+          "title": "Stripe: how subscriptions work",
+          "url": "https://docs.stripe.com/billing/subscriptions/overview"
+        },
+        {
+          "title": "Stripe: prorations",
+          "url": "https://docs.stripe.com/billing/subscriptions/prorations"
+        },
+        {
+          "title": "Stripe: customer portal",
+          "url": "https://docs.stripe.com/customer-management"
+        },
+        {
+          "title": "Paddle developer docs",
+          "url": "https://developer.paddle.com/"
+        }
+      ],
+      "page": "e/subscription-billing/index.html",
+      "json": "api/subscription-billing.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "failed-payment-recovery",
+      "name": "Failed payment recovery (dunning)",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "dunning",
+        "past due",
+        "smart retries",
+        "card declined",
+        "involuntary churn",
+        "grace period"
+      ],
+      "needs": [
+        "a customer's card expired and the renewal failed",
+        "what happens when a renewal payment fails",
+        "remind users to update their card",
+        "users keep access after their payment fails",
+        "should I cut off access right away when a card declines"
+      ],
+      "keywords": [
+        "dunning",
+        "failed",
+        "declined",
+        "past",
+        "due",
+        "card",
+        "expired",
+        "renewal",
+        "grace",
+        "churn",
+        "invoice",
+        "payment",
+        "stripe",
+        "update"
+      ],
+      "summary": "Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.",
+      "need_when": [
+        "You run subscriptions. Some renewals will fail every month."
+      ],
+      "skip_when": [
+        "One-time payments only, where a decline just means the purchase didn't happen."
+      ],
+      "ways": [
+        {
+          "title": "Stripe's built-in recovery settings",
+          "cost": "part of Stripe Billing",
+          "how": "Turn on Smart Retries and failed payment emails in the Billing settings, and pick what happens after the last retry: cancel the subscription, mark it unpaid, or leave it past due.",
+          "tradeoff": "Almost no code. Your app still has to react to the status changes and show the user what to do."
+        },
+        {
+          "title": "Your own grace period and in-app banner",
+          "cost": "$0",
+          "how": "On invoice.payment_failed, record it and show a 'Fix payment' banner that links to the customer portal. Keep or limit access for [N] days, then downgrade.",
+          "tradeoff": "You choose how forgiving to be. More states to test."
+        },
+        {
+          "title": "A dedicated recovery tool",
+          "cost": "paid",
+          "how": "Services that plug into Stripe and add their own email sequences and in-app prompts.",
+          "tradeoff": "Can recover more revenue at scale. Not worth it until failed payments cost real money."
+        }
+      ],
+      "prompt": "Add failed payment handling for our [Stripe] subscriptions.\n\nRequirements:\n- Handle invoice.payment_failed and customer.subscription.updated. On each, fetch the subscription from the API and store its status.\n- While status is past_due, show a banner on every page: 'Your last payment failed. Update your card to keep [paid features].' It links to the billing portal.\n- Access rule: [keep paid access while past_due for up to N days / limit to read-only], and remove it when the status becomes unpaid or canceled.\n- When invoice.paid arrives, clear the banner and restore access.\n- Send our own email on the first failure only if Stripe's failed payment emails are off. Never send both.\n- A past_due user who opens checkout goes to the portal, not into a new subscription.\n\nAcceptance checks (run each and show me the result):\n1. Stripe test card 4000 0000 0000 0341 (attaches, then fails when charged) puts the account in past_due and shows the banner.\n2. Updating to a working card in the portal and paying the invoice clears the banner and restores access.\n3. After the final retry fails, the account loses paid access according to the rule.\n4. The customer gets exactly one failure email per failed invoice.\n5. Checkout is blocked for a past_due account and sends the user to the portal.",
+      "acceptance_checks": [
+        "Stripe test card 4000 0000 0000 0341 (attaches, then fails when charged) puts the account in past_due and shows the banner.",
+        "Updating to a working card in the portal and paying the invoice clears the banner and restores access.",
+        "After the final retry fails, the account loses paid access according to the rule.",
+        "The customer gets exactly one failure email per failed invoice.",
+        "Checkout is blocked for a past_due account and sends the user to the portal."
+      ],
+      "if_you_skip_it": "Customers lose access with no warning and churn, or keep paid features for months without paying.",
+      "how_derek_runs_it": "Custody Journal re-fetches the subscription from Stripe when invoice.payment_failed arrives. Stripe's past_due, unpaid and incomplete statuses all map to past due in the app, which doesn't grant paid features. The dashboard shows a 'Fix payment' banner for past-due accounts, and checkout sends them to the Stripe portal instead of starting a new subscription.",
+      "links": [
+        {
+          "title": "Stripe: revenue recovery",
+          "url": "https://docs.stripe.com/billing/revenue-recovery"
+        },
+        {
+          "title": "Stripe: Smart Retries",
+          "url": "https://docs.stripe.com/billing/revenue-recovery/smart-retries"
+        },
+        {
+          "title": "Stripe: how subscriptions work",
+          "url": "https://docs.stripe.com/billing/subscriptions/overview"
+        }
+      ],
+      "page": "e/failed-payment-recovery/index.html",
+      "json": "api/failed-payment-recovery.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "usage-based-billing",
+      "name": "Usage-based billing",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "metered billing",
+        "billing meters",
+        "pay as you go",
+        "prepaid credits",
+        "credit balance",
+        "overage charges"
+      ],
+      "needs": [
+        "charge per AI generation",
+        "bill customers for what they used this month",
+        "sell credits that get used up",
+        "a plan that includes 1,000 calls and charges for extra",
+        "count API calls for billing"
+      ],
+      "keywords": [
+        "usage",
+        "metered",
+        "meter",
+        "credits",
+        "pay",
+        "overage",
+        "consumption",
+        "calls",
+        "billing",
+        "stripe",
+        "lago",
+        "prepaid",
+        "invoice"
+      ],
+      "summary": "Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.",
+      "need_when": [
+        "Your costs grow with use, like AI tokens, SMS or compute, and a flat price would lose money on heavy users."
+      ],
+      "skip_when": [
+        "Usage is small or predictable. A flat plan with a hard limit is simpler to build and to explain."
+      ],
+      "ways": [
+        {
+          "title": "Stripe billing meters",
+          "cost": "Stripe fees",
+          "how": "Create a meter, attach a usage-based price, and send meter events with a customer id, a value and an identifier. Stripe enforces uniqueness of the identifier within a rolling period of at least 24 hours, which guards against double counting on retries.",
+          "tradeoff": "Invoicing is handled for you. You still need your own usage records to show users their usage and to reconcile."
+        },
+        {
+          "title": "Prepaid credits in your database",
+          "cost": "$0 plus normal payments",
+          "how": "Sell credit packs through Checkout. Keep a credit ledger table with one row per purchase or use, and check the balance inside a transaction before the expensive call.",
+          "tradeoff": "Simple to understand and no surprise bills. Refunds and expiring credits need care."
+        },
+        {
+          "title": "Open-source metering and billing",
+          "cost": "$0 software",
+          "how": "Lago can be self-hosted to take in usage events, add them up and produce invoices, with a payment provider underneath.",
+          "tradeoff": "You own the data and logic. Another system to run and keep in sync."
+        }
+      ],
+      "prompt": "Add usage-based billing for [billable action] using [Stripe meters / prepaid credits].\n\nRequirements:\n- Write one usage row per billable action in our database: account id, quantity, unique event id, created time. The event id is unique so a retry can't count twice.\n- [Meters] A job sends unsent usage rows to Stripe as meter events with our event id as the identifier, marks them sent, and retries failures.\n- [Credits] Keep a ledger table (purchases positive, uses negative). Check and deduct the balance in one transaction with a row lock before the action runs. Refuse with a clear message at zero.\n- Show users their usage or balance for the current period on the billing page.\n- Add a daily reconcile job that compares our totals with the billing provider and reports any difference.\n\nAcceptance checks (run each and show me the result):\n1. Running the same billable action twice with the same event id records it once.\n2. Ten parallel requests with a balance of 5 credits run exactly 5 actions.\n3. The usage on the billing page matches what the provider shows for the same period.\n4. Turning off the send job for an hour, then back on, sends every missed event once.\n5. A user at zero credits gets a clear message and the expensive call is never made.",
+      "acceptance_checks": [
+        "Running the same billable action twice with the same event id records it once.",
+        "Ten parallel requests with a balance of 5 credits run exactly 5 actions.",
+        "The usage on the billing page matches what the provider shows for the same period.",
+        "Turning off the send job for an hour, then back on, sends every missed event once.",
+        "A user at zero credits gets a clear message and the expensive call is never made."
+      ],
+      "if_you_skip_it": "Heavy users cost more than they pay, retries bill people twice, and nobody can explain an invoice.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: usage-based billing",
+          "url": "https://docs.stripe.com/billing/subscriptions/usage-based"
+        },
+        {
+          "title": "Stripe API: create a billing meter event",
+          "url": "https://docs.stripe.com/api/billing/meter-event/create"
+        },
+        {
+          "title": "Lago (open-source metering and billing)",
+          "url": "https://github.com/getlago/lago"
+        }
+      ],
+      "page": "e/usage-based-billing/index.html",
+      "json": "api/usage-based-billing.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "free-trials",
+      "name": "Free trial (with or without a card)",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "trial period",
+        "no card required trial",
+        "card-required trial",
+        "trial_period_days",
+        "trial abuse"
+      ],
+      "needs": [
+        "give new users 7 days free",
+        "free trial without asking for a credit card",
+        "what happens when the trial ends and there's no card",
+        "people keep signing up again for another free trial",
+        "remind users before the trial ends"
+      ],
+      "keywords": [
+        "trial",
+        "free",
+        "days",
+        "card",
+        "credit",
+        "required",
+        "ends",
+        "expire",
+        "reminder",
+        "convert",
+        "stripe",
+        "abuse"
+      ],
+      "summary": "A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.",
+      "need_when": [
+        "People need to use the product before they will pay for it."
+      ],
+      "skip_when": [
+        "A free plan already lets people try the core feature."
+      ],
+      "ways": [
+        {
+          "title": "Stripe trial with a card collected",
+          "cost": "Stripe fees",
+          "how": "Checkout in subscription mode with subscription_data.trial_period_days. The first charge happens when the trial ends.",
+          "tradeoff": "More of the people who start end up paying. Fewer start, and you need a reminder before the first charge."
+        },
+        {
+          "title": "Stripe trial with no card",
+          "cost": "Stripe fees",
+          "how": "Add payment_method_collection=if_required and set trial_settings.end_behavior.missing_payment_method to cancel or pause, so a trial without a card ends cleanly.",
+          "tradeoff": "More starts. You need in-app prompts to collect a card before the end."
+        },
+        {
+          "title": "A trial clock in your own database",
+          "cost": "$0",
+          "how": "Store trial_ends_at on the account and grant paid features until then. Only send people to Checkout when they choose to pay.",
+          "tradeoff": "No payment provider involved until they pay. You build the reminders, the expiry and the abuse checks yourself."
+        }
+      ],
+      "prompt": "Add a [7]-day free trial [with / without] a card.\n\nRequirements:\n- One trial per account. Record trial_used_at so canceling and signing up again on the same account doesn't start a new one.\n- [Stripe] Use Checkout with subscription_data.trial_period_days=[7][, payment_method_collection=if_required and trial_settings.end_behavior.missing_payment_method=[cancel/pause]].\n- During the trial, show the days left on every page and a button to add a card.\n- Handle customer.subscription.trial_will_end (sent 3 days before the end by default) and send our own reminder email with the end date and what happens next.\n- When the trial ends without payment, remove paid features and keep the user's data.\n\nAcceptance checks (run each and show me the result):\n1. A new account gets paid features for exactly the trial length.\n2. The same account can't start a second trial after canceling.\n3. With a Stripe test clock, the trial_will_end webhook sends one reminder email.\n4. A no-card trial that ends without a card loses paid features and keeps its data.\n5. A card-required trial makes the first charge on the end date.",
+      "acceptance_checks": [
+        "A new account gets paid features for exactly the trial length.",
+        "The same account can't start a second trial after canceling.",
+        "With a Stripe test clock, the trial_will_end webhook sends one reminder email.",
+        "A no-card trial that ends without a card loses paid features and keeps its data.",
+        "A card-required trial makes the first charge on the end date."
+      ],
+      "if_you_skip_it": "Surprise charges and refund requests, endless repeat trials, or trials that never end.",
+      "how_derek_runs_it": "Custody Journal has a notifications command that sends its own trial-ending emails 3 days and 1 day before the trial ends. Each reminder goes out once per subscription, and it is skipped for users who turned that email off or are in their quiet hours.",
+      "links": [
+        {
+          "title": "Stripe: use trial periods on subscriptions",
+          "url": "https://docs.stripe.com/billing/subscriptions/trials"
+        },
+        {
+          "title": "Stripe Checkout: free trials",
+          "url": "https://docs.stripe.com/payments/checkout/free-trials"
+        }
+      ],
+      "page": "e/free-trials/index.html",
+      "json": "api/free-trials.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "password-reset",
+      "name": "Password reset tokens",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "forgot password",
+        "reset link",
+        "password recovery",
+        "reset token"
+      ],
+      "needs": [
+        "add a forgot password link",
+        "reset links never expire",
+        "the reset page tells people which emails have accounts",
+        "someone used an old reset email to get into an account",
+        "log out other devices after a password change"
+      ],
+      "keywords": [
+        "password",
+        "reset",
+        "forgot",
+        "recovery",
+        "token",
+        "link",
+        "expire",
+        "email",
+        "login",
+        "account",
+        "enumeration"
+      ],
+      "summary": "A one-time, short-lived link emailed to the account owner that lets them set a new password. The token is random and stored only as a hash (or signed), and it stops working after use, after it expires, and once the password changes.",
+      "need_when": [
+        "Your app has passwords."
+      ],
+      "skip_when": [
+        "You don't store passwords at all: login is only by magic link or social login."
+      ],
+      "ways": [
+        {
+          "title": "Your framework's built-in reset",
+          "cost": "$0",
+          "how": "Django's PasswordResetView (tokens stop working once the password changes and expire after PASSWORD_RESET_TIMEOUT, 3 days by default), Laravel's password broker, or the Rails authentication generator.",
+          "tradeoff": "Tested and maintained. Shorten the expiry and add rate limits yourself."
+        },
+        {
+          "title": "Your auth provider's reset flow",
+          "cost": "free tiers",
+          "how": "Supabase Auth, Clerk, Auth0 and Firebase Auth send and check reset emails for you.",
+          "tradeoff": "Nothing to build. Their emails and pages may not match your brand without setup."
+        },
+        {
+          "title": "Your own reset tokens table",
+          "cost": "$0",
+          "how": "Generate 32 random bytes, email the raw token, store only its SHA-256 hash with an expiry and a used_at time.",
+          "tradeoff": "Full control. Easy to miss one rule: expiry, single use, or the same reply for unknown emails."
+        }
+      ],
+      "prompt": "Add a password reset flow.\n\nRequirements:\n- The request form always shows the same message ('If an account exists for that email, we sent a link'), whether or not the email exists.\n- Rate limit requests per IP and per email.\n- Token: random from a secure generator, at least 32 bytes. Store only a hash, with expires_at [30 minutes] and used_at.\n- Build the link from our configured site URL, never from the request's Host header.\n- The reset page sets Referrer-Policy: no-referrer so the token doesn't leak to other sites.\n- Using the link marks it used. A new request cancels older unused tokens. Changing the password ends the user's other sessions.\n- Send a 'your password was changed' email afterwards.\n\nAcceptance checks (run each and show me the result):\n1. Requesting a reset for an unknown email shows the same message and takes about the same time as a known one.\n2. A link works once, and the second use shows 'invalid or expired'.\n3. A link older than the expiry fails.\n4. The database holds no raw tokens.\n5. After a reset, a session logged in on another browser is logged out.",
+      "acceptance_checks": [
+        "Requesting a reset for an unknown email shows the same message and takes about the same time as a known one.",
+        "A link works once, and the second use shows 'invalid or expired'.",
+        "A link older than the expiry fails.",
+        "The database holds no raw tokens.",
+        "After a reset, a session logged in on another browser is logged out."
+      ],
+      "if_you_skip_it": "Old reset emails become a way into accounts, and the form leaks which emails are registered.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OWASP Forgot Password Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html"
+        },
+        {
+          "title": "Django: authentication views",
+          "url": "https://docs.djangoproject.com/en/5.2/topics/auth/default/"
+        },
+        {
+          "title": "OWASP Authentication Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ],
+      "page": "e/password-reset/index.html",
+      "json": "api/password-reset.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "magic-links",
+      "name": "Magic link sign-in",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "passwordless login",
+        "email link login",
+        "sign in with email",
+        "one-time login link"
+      ],
+      "needs": [
+        "let users log in without a password",
+        "email a sign-in link",
+        "the login link was already used when the user clicked it",
+        "Outlook clicks my login links before the user does"
+      ],
+      "keywords": [
+        "magic",
+        "link",
+        "passwordless",
+        "email",
+        "login",
+        "sign",
+        "signin",
+        "token",
+        "scanner",
+        "prefetch",
+        "otp"
+      ],
+      "summary": "The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.",
+      "need_when": [
+        "You don't want to store passwords, or your users forget them often."
+      ],
+      "skip_when": [
+        "Users sign in many times a day on shared machines, where waiting for an email is painful."
+      ],
+      "ways": [
+        {
+          "title": "Your auth provider",
+          "cost": "free tiers",
+          "how": "Supabase Auth, Clerk and Auth.js (the Email provider) send and check magic links.",
+          "tradeoff": "Quick. Check how each one handles link scanners and expiry."
+        },
+        {
+          "title": "A framework package",
+          "cost": "$0",
+          "how": "django-sesame for Django. Other frameworks have similar packages.",
+          "tradeoff": "Less code. Read its defaults for expiry and single use."
+        },
+        {
+          "title": "Your own tokens table",
+          "cost": "$0",
+          "how": "Store a SHA-256 hash of a random token with an expiry and used_at. The link opens a page with a 'Sign in' button that POSTs the token.",
+          "tradeoff": "You control every rule. You also own the email delivery and rate limits."
+        }
+      ],
+      "prompt": "Add magic link sign-in.\n\nRequirements:\n- The form takes an email and always shows the same message: 'If an account exists, we sent a link. It expires in [15] minutes.'\n- Rate limit per IP and per email.\n- Token: 32 random bytes from a secure generator. Store only its hash with expires_at and used_at. A new request deletes older unused tokens for that user.\n- The link opens a confirm page (GET changes nothing). The user clicks 'Sign in', which POSTs the token with CSRF protection.\n- On POST, in one transaction: lock the token row, check it is unused and unexpired, mark it used, then log the user in.\n- The confirm page sends Cache-Control: no-store and Referrer-Policy: same-origin and loads no analytics.\n- Only allow a 'next' redirect to our own site.\n\nAcceptance checks (run each and show me the result):\n1. Fetching the link with curl (like a scanner would) doesn't use up the token.\n2. Clicking 'Sign in' works once. A second POST with the same token fails.\n3. A link older than the expiry fails with a friendly message.\n4. Requesting a link for an unknown email looks the same as for a known one.\n5. A next=https://evil.example parameter is ignored.",
+      "acceptance_checks": [
+        "Fetching the link with curl (like a scanner would) doesn't use up the token.",
+        "Clicking 'Sign in' works once. A second POST with the same token fails.",
+        "A link older than the expiry fails with a friendly message.",
+        "Requesting a link for an unknown email looks the same as for a known one.",
+        "A next=https://evil.example parameter is ignored."
+      ],
+      "if_you_skip_it": "Links get burned by email scanners, old links stay valid, or a link in a forwarded email signs in a stranger.",
+      "how_derek_runs_it": "Custody Journal's sign-in links expire in 15 minutes. It stores only a SHA-256 hash of each token, and a new request deletes the user's older unused links. Opening the link shows a confirm page with no analytics, no caching and a same-origin referrer policy. Only the CSRF-protected POST uses the token, and it marks the token used inside a locked transaction before logging in. Requests are limited to 8 per IP and 3 per email per hour, and the reply is the same whether or not the account exists.",
+      "links": [
+        {
+          "title": "Auth.js: email (magic link) provider",
+          "url": "https://authjs.dev/getting-started/authentication/email"
+        },
+        {
+          "title": "Supabase: passwordless email logins",
+          "url": "https://supabase.com/docs/guides/auth/auth-email-passwordless"
+        },
+        {
+          "title": "django-sesame",
+          "url": "https://github.com/aaugustin/django-sesame"
+        },
+        {
+          "title": "OWASP Authentication Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+        }
+      ],
+      "page": "e/magic-links/index.html",
+      "json": "api/magic-links.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "social-login",
+      "name": "Social login (OAuth and OpenID Connect)",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "Sign in with Google",
+        "OAuth login",
+        "OpenID Connect",
+        "OIDC",
+        "SSO",
+        "PKCE"
+      ],
+      "needs": [
+        "add Sign in with Google",
+        "let users log in with GitHub or Apple",
+        "Google login made a second account for an existing user",
+        "redirect_uri_mismatch error"
+      ],
+      "keywords": [
+        "oauth",
+        "oidc",
+        "openid",
+        "google",
+        "github",
+        "apple",
+        "social",
+        "login",
+        "sso",
+        "pkce",
+        "redirect",
+        "callback"
+      ],
+      "summary": "Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.",
+      "need_when": [
+        "You want sign-up with no password and less friction.",
+        "Your users are businesses that expect Google or Microsoft sign-in."
+      ],
+      "skip_when": [
+        "Your users don't have, or don't want to use, those accounts. Offer email sign-in too."
+      ],
+      "ways": [
+        {
+          "title": "An auth library in your framework",
+          "cost": "$0",
+          "how": "django-allauth, Auth.js or Better Auth. They handle the code flow, state, PKCE and account linking.",
+          "tradeoff": "Your data stays in your database. You still register an app with each provider and set exact redirect URLs."
+        },
+        {
+          "title": "A hosted auth service",
+          "cost": "free tiers",
+          "how": "Clerk, Auth0, Supabase Auth or Firebase Auth add many providers from a dashboard.",
+          "tradeoff": "Fastest. Your user list lives with them and pricing grows with users."
+        },
+        {
+          "title": "A self-hosted identity provider",
+          "cost": "$0 software",
+          "how": "Keycloak, Authentik or Zitadel run on your server and speak OpenID Connect to your apps.",
+          "tradeoff": "Good when several apps share one login. Heavy to run for a single app."
+        }
+      ],
+      "prompt": "Add [Google] sign-in using [library].\n\nRequirements:\n- Use the authorization code flow with PKCE and a state parameter. No implicit flow.\n- Ask only for openid, email and profile. Ask for other permissions later, when a feature needs them.\n- Register exact redirect URIs for each environment. No wildcards.\n- If the email matches an existing account, link them only when the provider marks the email as verified. Otherwise refuse and explain.\n- Keep the provider's client secret in an environment variable.\n- Show a friendly error page when the user cancels or the provider fails, and log the provider's error code.\n\nAcceptance checks (run each and show me the result):\n1. A new Google user who signs in twice still has one account.\n2. An existing email user who signs in with Google (verified email) lands in their existing account, not a new one.\n3. A callback with a wrong or missing state value is rejected.\n4. The consent screen asks only for basic profile and email.\n5. Canceling on the provider's screen shows our error page, not a stack trace.",
+      "acceptance_checks": [
+        "A new Google user who signs in twice still has one account.",
+        "An existing email user who signs in with Google (verified email) lands in their existing account, not a new one.",
+        "A callback with a wrong or missing state value is rejected.",
+        "The consent screen asks only for basic profile and email.",
+        "Canceling on the provider's screen shows our error page, not a stack trace."
+      ],
+      "if_you_skip_it": "Duplicate accounts, account takeover through an unverified email, or a consent screen asking for far more than you need.",
+      "how_derek_runs_it": "Custody Journal uses django-allauth with Google as the only social provider. PKCE is on, sign-in asks only for profile and email, and calendar access is requested separately inside the app. The Google prompt is set to select_account so the wrong browser account isn't reused. A verified Google email can sign in to an existing account with the same email.",
+      "links": [
+        {
+          "title": "RFC 9700: OAuth 2.0 security best current practice",
+          "url": "https://www.rfc-editor.org/info/rfc9700/"
+        },
+        {
+          "title": "Google: OpenID Connect",
+          "url": "https://developers.google.com/identity/openid-connect/openid-connect"
+        },
+        {
+          "title": "django-allauth",
+          "url": "https://docs.allauth.org/"
+        },
+        {
+          "title": "Auth.js",
+          "url": "https://authjs.dev/"
+        }
+      ],
+      "page": "e/social-login/index.html",
+      "json": "api/social-login.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "sessions-vs-jwt",
+      "name": "Sessions vs JWT",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "session cookie",
+        "JSON Web Token",
+        "access token",
+        "refresh token",
+        "stateless auth",
+        "bearer token"
+      ],
+      "needs": [
+        "should I use JWT or sessions",
+        "log a user out everywhere",
+        "where do I store the login token in the browser",
+        "keep users logged in on the mobile app",
+        "a stolen token still works after logout"
+      ],
+      "keywords": [
+        "jwt",
+        "session",
+        "cookie",
+        "token",
+        "refresh",
+        "access",
+        "logout",
+        "localstorage",
+        "httponly",
+        "samesite",
+        "bearer",
+        "revoke",
+        "stateless"
+      ],
+      "summary": "Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user's details itself, so the server doesn't look anything up, but it stays valid until it expires unless you add a revocation list.",
+      "need_when": [
+        "Every app with logins makes this choice, often without noticing."
+      ],
+      "skip_when": [
+        "Your auth provider already decides it. Learn which one it uses and how logout works."
+      ],
+      "ways": [
+        {
+          "title": "Server-side sessions in a cookie",
+          "cost": "$0",
+          "how": "Your framework's sessions, stored in the database or Redis. Cookie flags: HttpOnly, Secure, SameSite=Lax.",
+          "tradeoff": "Simple and easy to revoke. The usual right answer for a web app on one domain."
+        },
+        {
+          "title": "Short-lived JWT plus a refresh token",
+          "cost": "$0",
+          "how": "An access token valid for minutes and a refresh token that is rotated on each use and stored server-side so it can be revoked.",
+          "tradeoff": "Fits APIs used by many services. More moving parts, and logout only takes effect when the access token expires."
+        },
+        {
+          "title": "Opaque tokens stored hashed",
+          "cost": "$0",
+          "how": "For mobile apps and API keys: a random token sent as a bearer header, stored as a hash, and checked against the database on each request.",
+          "tradeoff": "Revocable like sessions and no cookies needed. One lookup per request."
+        }
+      ],
+      "prompt": "Set up login state for this app using [server-side sessions / short-lived JWT plus refresh token].\n\nRequirements:\n- Web: session cookie with HttpOnly, Secure and SameSite=Lax. Don't put tokens in localStorage.\n- Sessions expire after [30 minutes idle / 14 days absolute] and on logout.\n- A 'log out of all devices' button ends every session or refresh token for the user.\n- Changing the password or email ends other sessions.\n- [JWT] Access tokens expire in [10 minutes]. Refresh tokens are random, stored hashed, rotated on every use, and reuse of an old refresh token revokes the whole family.\n- Rotate the session id at login.\n\nAcceptance checks (run each and show me the result):\n1. document.cookie in the browser console doesn't show the session cookie.\n2. After 'log out of all devices', a second browser that was logged in is logged out on its next request.\n3. A copied session cookie stops working after logout.\n4. [JWT] Using an old refresh token a second time fails and logs out that device.\n5. The session id changes after login.",
+      "acceptance_checks": [
+        "document.cookie in the browser console doesn't show the session cookie.",
+        "After 'log out of all devices', a second browser that was logged in is logged out on its next request.",
+        "A copied session cookie stops working after logout.",
+        "[JWT] Using an old refresh token a second time fails and logs out that device.",
+        "The session id changes after login."
+      ],
+      "if_you_skip_it": "Logout doesn't really log anyone out, and a stolen token works until it expires.",
+      "how_derek_runs_it": "Custody Journal's website uses server-side Django sessions (the cached_db engine), with secure cookies in production, a 30 minute idle timeout by default, and expiry when the browser closes. Its mobile app uses opaque access and refresh tokens that are stored as hashes and can be revoked. There is no JWT signing.",
+      "links": [
+        {
+          "title": "OWASP Session Management Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+        },
+        {
+          "title": "OWASP JSON Web Token Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html"
+        },
+        {
+          "title": "RFC 7519: JSON Web Token",
+          "url": "https://www.rfc-editor.org/info/rfc7519/"
+        },
+        {
+          "title": "MDN: Set-Cookie",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"
+        }
+      ],
+      "page": "e/sessions-vs-jwt/index.html",
+      "json": "api/sessions-vs-jwt.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "roles-and-permissions",
+      "name": "Roles and permissions",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "RBAC",
+        "role-based access control",
+        "authorization",
+        "admin role",
+        "access control",
+        "permission checks"
+      ],
+      "needs": [
+        "admins can do more than regular users",
+        "let some team members view but not edit",
+        "a normal user found the admin page",
+        "hide the delete button for viewers"
+      ],
+      "keywords": [
+        "role",
+        "roles",
+        "permission",
+        "permissions",
+        "rbac",
+        "admin",
+        "viewer",
+        "editor",
+        "owner",
+        "member",
+        "authorization",
+        "team"
+      ],
+      "summary": "Rules for who may do what. Users get a role (owner, admin, member, viewer) and each action checks the role on the server. Hiding a button only changes what people see. The server must refuse the request too.",
+      "need_when": [
+        "More than one kind of user: staff, admins, team members, read-only guests."
+      ],
+      "skip_when": [
+        "Every user only ever sees and edits their own data. Ownership checks cover that."
+      ],
+      "ways": [
+        {
+          "title": "A role column and one permission helper",
+          "cost": "$0",
+          "how": "Store the role on the membership row and write one function, can(user, action, thing), that every view and API calls. Deny by default.",
+          "tradeoff": "Enough for most apps. Gets messy if rules depend on many conditions."
+        },
+        {
+          "title": "A permissions library",
+          "cost": "$0",
+          "how": "django-rules, CASL (JavaScript) or Pundit (Rails) keep named rules in one place, usable in code and templates.",
+          "tradeoff": "Cleaner rules. One more concept for your agent to learn."
+        },
+        {
+          "title": "A policy engine",
+          "cost": "$0 software or paid",
+          "how": "OpenFGA (open source, relationship-based) or a hosted service works out permissions outside your app.",
+          "tradeoff": "Good for complex sharing like Google Docs. Overkill for a few roles."
+        }
+      ],
+      "prompt": "Add roles and permissions: [owner, admin, member, viewer].\n\nRequirements:\n- Store the role on the membership between a user and [team/workspace].\n- Write one function can(user, action, object) with a table of which role may do which action. Deny anything not listed.\n- Call it on the server in every view and API route that reads or changes data. The UI can use the same function to hide buttons, but the server check is the protection.\n- Only owners can change roles, and the last owner can't be removed or demoted.\n- Log role changes with who, whom, old role, new role and time.\n- Add a test per role per action from the table.\n\nAcceptance checks (run each and show me the result):\n1. A viewer who sends the edit request directly (curl or devtools) gets 403.\n2. An admin can't promote themselves to owner.\n3. Removing the last owner is refused.\n4. Every route in the app is covered by a permission check (list any that aren't).\n5. The test suite has a passing test for each role and action pair.",
+      "acceptance_checks": [
+        "A viewer who sends the edit request directly (curl or devtools) gets 403.",
+        "An admin can't promote themselves to owner.",
+        "Removing the last owner is refused.",
+        "Every route in the app is covered by a permission check (list any that aren't).",
+        "The test suite has a passing test for each role and action pair."
+      ],
+      "if_you_skip_it": "Any logged-in user can reach admin actions by guessing the URL.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OWASP Authorization Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+        },
+        {
+          "title": "django-rules",
+          "url": "https://github.com/dfunckt/django-rules"
+        },
+        {
+          "title": "CASL (JavaScript permissions)",
+          "url": "https://casl.js.org/"
+        },
+        {
+          "title": "OpenFGA",
+          "url": "https://openfga.dev/"
+        }
+      ],
+      "page": "e/roles-and-permissions/index.html",
+      "json": "api/roles-and-permissions.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "multi-tenant-isolation",
+      "name": "Multi-tenant data isolation",
+      "category": "auth",
+      "category_name": "Auth and accounts",
+      "aliases": [
+        "tenant isolation",
+        "workspaces",
+        "organizations",
+        "row level security",
+        "RLS",
+        "tenant_id"
+      ],
+      "needs": [
+        "one company can see another company's data",
+        "add teams or workspaces to my app",
+        "my Supabase tables are readable by anyone with the anon key",
+        "make sure every query only returns this customer's rows"
+      ],
+      "keywords": [
+        "tenant",
+        "multi",
+        "workspace",
+        "organization",
+        "org",
+        "team",
+        "rls",
+        "row",
+        "level",
+        "supabase",
+        "isolation",
+        "leak",
+        "company"
+      ],
+      "summary": "Keeping each customer's data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.",
+      "need_when": [
+        "Customers are companies or teams, not single people.",
+        "Your frontend talks to the database directly, as with Supabase."
+      ],
+      "skip_when": [
+        "Each user only has their own data and nothing is shared. Ownership checks on each query are enough."
+      ],
+      "ways": [
+        {
+          "title": "A tenant_id column and scoped queries",
+          "cost": "$0",
+          "how": "Add tenant_id to every table, set the current tenant once per request, and use a base query or manager that always filters by it.",
+          "tradeoff": "Simple and cheap. One unscoped query leaks data, so test it."
+        },
+        {
+          "title": "Postgres row level security",
+          "cost": "$0",
+          "how": "Turn on RLS for each table and write policies that compare tenant_id to the current user's tenant. On Supabase this is required for any table the browser can reach with the anon key.",
+          "tradeoff": "The database enforces it. Table owners skip RLS unless you FORCE it, and roles with BYPASSRLS (like Supabase's service_role key) always skip it."
+        },
+        {
+          "title": "A schema or database per tenant",
+          "cost": "more ops",
+          "how": "django-tenants (schema per tenant), or a separate database for each big customer.",
+          "tradeoff": "Strong separation. Migrations and reporting across tenants get harder."
+        }
+      ],
+      "prompt": "Add tenant isolation for [organizations/workspaces].\n\nRequirements:\n- Every table with customer data gets a non-null tenant_id with an index.\n- Work out the current tenant once per request from the logged-in user's membership, never from a request parameter alone.\n- All reads and writes go through a scoped query helper that filters by tenant_id. Search the codebase and list any query that bypasses it.\n- [Postgres/Supabase] Enable row level security on these tables with policies that limit rows to the user's tenant. Never ship the service_role key to the browser.\n- Background jobs carry the tenant id explicitly.\n- Add tests that create two tenants and prove neither can read or change the other's rows through any API route.\n\nAcceptance checks (run each and show me the result):\n1. Logged in as tenant A, requesting tenant B's record id returns 404.\n2. With the anon key, a direct select on each table returns no other tenant's rows.\n3. Exports, search and reports for tenant A contain no tenant B data.\n4. A background job for tenant A can't write to tenant B.\n5. The browser bundle contains no service_role or admin key.",
+      "acceptance_checks": [
+        "Logged in as tenant A, requesting tenant B's record id returns 404.",
+        "With the anon key, a direct select on each table returns no other tenant's rows.",
+        "Exports, search and reports for tenant A contain no tenant B data.",
+        "A background job for tenant A can't write to tenant B.",
+        "The browser bundle contains no service_role or admin key."
+      ],
+      "if_you_skip_it": "One customer sees another customer's data. For a B2B app that can end the business.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "PostgreSQL: row security policies",
+          "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html"
+        },
+        {
+          "title": "Supabase: row level security",
+          "url": "https://supabase.com/docs/guides/database/postgres/row-level-security"
+        },
+        {
+          "title": "django-tenants",
+          "url": "https://django-tenants.readthedocs.io/en/latest/"
+        }
+      ],
+      "page": "e/multi-tenant-isolation/index.html",
+      "json": "api/multi-tenant-isolation.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "email-authentication",
+      "name": "Email authentication (SPF, DKIM, DMARC)",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "email deliverability",
+        "SPF record",
+        "DKIM signing",
+        "DMARC policy",
+        "emails going to spam"
+      ],
+      "needs": [
+        "my password reset emails go to spam",
+        "Gmail says it can't verify the sender",
+        "set up my domain to send email",
+        "send receipts from my own domain"
+      ],
+      "keywords": [
+        "email",
+        "spam",
+        "spf",
+        "dkim",
+        "dmarc",
+        "dns",
+        "deliverability",
+        "gmail",
+        "inbox",
+        "smtp",
+        "mail",
+        "newsletter",
+        "transactional",
+        "receipt"
+      ],
+      "summary": "Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.",
+      "need_when": [
+        "As soon as your app sends any email from your own domain.",
+        "Gmail's sender guidelines require them, with stricter rules for bulk senders."
+      ],
+      "skip_when": [
+        "You don't send from your own domain at all."
+      ],
+      "ways": [
+        {
+          "title": "A transactional email provider",
+          "cost": "free or cheap tiers",
+          "how": "Postmark, Resend or Amazon SES give you the DKIM records to paste into DNS and handle sending reputation.",
+          "tradeoff": "The easy path for password resets and receipts. Per-message cost at volume and another account."
+        },
+        {
+          "title": "Self-hosted mail server",
+          "cost": "$0 software",
+          "how": "Postfix with OpenDKIM on a VPS.",
+          "tradeoff": "Hard to keep out of spam. New VPS IPs often have poor reputation, and many hosts block outbound port 25. Not a good choice for password resets."
+        },
+        {
+          "title": "Self-hosted newsletter tool over provider SMTP",
+          "cost": "$0 software",
+          "how": "Listmonk for lists and campaigns, sending through a provider's SMTP.",
+          "tradeoff": "You own the list. You still need the same DNS records, and newsletters should use a separate subdomain or stream from transactional mail."
+        }
+      ],
+      "prompt": "Set up email authentication for [domain], sending through [provider].\n\nRequirements:\n- List the exact DNS records to add: one SPF TXT record that includes the provider, the provider's DKIM records, and a DMARC record at _dmarc starting with p=none and a rua reporting address.\n- Keep transactional mail (resets, receipts) separate from marketing mail: different subdomain or provider stream.\n- Make the app's From address use the authenticated domain.\n- In local development, send all mail to Mailpit instead of real inboxes.\n- Add List-Unsubscribe headers to marketing mail.\n\nAcceptance checks (run each and show me the result):\n1. dig TXT [domain] shows exactly one SPF record.\n2. A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.\n3. A mail-tester.com run lists no authentication problems.\n4. Local development never delivers to a real inbox.\n5. After DMARC reports show only your real senders passing, the policy moves to p=quarantine.",
+      "acceptance_checks": [
+        "dig TXT [domain] shows exactly one SPF record.",
+        "A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.",
+        "A mail-tester.com run lists no authentication problems.",
+        "Local development never delivers to a real inbox.",
+        "After DMARC reports show only your real senders passing, the policy moves to p=quarantine."
+      ],
+      "if_you_skip_it": "Password resets and receipts land in spam or get rejected, and users think your app is broken.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Gmail email sender guidelines",
+          "url": "https://support.google.com/mail/answer/81126"
+        },
+        {
+          "title": "DMARC (RFC 7489)",
+          "url": "https://www.rfc-editor.org/rfc/rfc7489"
+        },
+        {
+          "title": "Mailpit (local test inbox)",
+          "url": "https://github.com/axllent/mailpit"
+        },
+        {
+          "title": "mail-tester.com",
+          "url": "https://www.mail-tester.com/"
+        },
+        {
+          "title": "Listmonk",
+          "url": "https://listmonk.app/"
+        }
+      ],
+      "page": "e/email-authentication/index.html",
+      "json": "api/email-authentication.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "transactional-vs-bulk-email",
+      "name": "Transactional vs bulk email",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "transactional email",
+        "marketing email",
+        "newsletter sending",
+        "message streams",
+        "email outbox"
+      ],
+      "needs": [
+        "send receipts and newsletters from the same app",
+        "my newsletter hurt my password reset delivery",
+        "which email service should I use",
+        "sending email makes my signup page slow"
+      ],
+      "keywords": [
+        "email",
+        "transactional",
+        "marketing",
+        "bulk",
+        "newsletter",
+        "receipt",
+        "postmark",
+        "resend",
+        "ses",
+        "listmonk",
+        "stream",
+        "outbox",
+        "smtp",
+        "send"
+      ],
+      "summary": "Transactional email is one message to one person because of something they did: a sign-in link, a receipt, a reset. Bulk email is the same message to many people: newsletters, announcements. Send them through separate streams or providers so complaints about one don't hurt delivery of the other, and send from a background job, not inside the web request.",
+      "need_when": [
+        "Your app sends both kinds, or plans to."
+      ],
+      "skip_when": [
+        "You send only a few transactional emails and no marketing at all."
+      ],
+      "ways": [
+        {
+          "title": "One provider with separate streams",
+          "cost": "free or cheap tiers",
+          "how": "Postmark message streams, or separate configuration sets and subdomains in Amazon SES, keep the two kinds of mail apart.",
+          "tradeoff": "One account to manage. Some providers don't allow marketing mail on the transactional stream at all."
+        },
+        {
+          "title": "A transactional provider plus a newsletter tool",
+          "cost": "$0 software for self-hosted lists",
+          "how": "Postmark, Resend or SES for app mail. Listmonk (self-hosted) or a hosted newsletter tool for lists.",
+          "tradeoff": "Each tool does its own job well. Two places to keep unsubscribes in sync."
+        },
+        {
+          "title": "A database outbox for app mail",
+          "cost": "$0",
+          "how": "Save the email as a row in the same transaction as the change that caused it. A worker sends it and retries.",
+          "tradeoff": "Mail is never lost, and never sent for a change that was rolled back. You run the worker."
+        }
+      ],
+      "prompt": "Split our email into transactional and bulk.\n\nRequirements:\n- Transactional mail (sign-in, reset, receipts, alerts) goes through [provider/stream A] from [mail.example.com].\n- Bulk mail (newsletters, announcements) goes through [provider/stream B] from [news.example.com], with List-Unsubscribe headers.\n- Never send from inside the web request. Save an outbox row in the same transaction and let a worker send it with retries.\n- Transactional mail doesn't need an unsubscribe link, but it must not carry marketing content.\n- In development, all mail goes to Mailpit.\n- Log message id, type and status. Never log full bodies with personal data.\n\nAcceptance checks (run each and show me the result):\n1. Signing up returns quickly even when the email provider is slow or down.\n2. Stopping the worker, signing up, then starting it again delivers the email once.\n3. A newsletter test send shows the bulk subdomain and a List-Unsubscribe header.\n4. Password reset emails still arrive during a newsletter send.\n5. No email is sent for a change that was rolled back.",
+      "acceptance_checks": [
+        "Signing up returns quickly even when the email provider is slow or down.",
+        "Stopping the worker, signing up, then starting it again delivers the email once.",
+        "A newsletter test send shows the bulk subdomain and a List-Unsubscribe header.",
+        "Password reset emails still arrive during a newsletter send.",
+        "No email is sent for a change that was rolled back."
+      ],
+      "if_you_skip_it": "A spike in newsletter complaints sends your password resets to spam, and a slow email API slows down signups.",
+      "how_derek_runs_it": "Custody Journal sends sign-in email through its own database outbox. The outbox row is created in the same transaction as the sign-in token, and the recipient, subject and body are stored encrypted. Onboarding tips and the weekly digest are separate email types, each with its own unsubscribe link, and a code comment notes that trial reminders go through the transactional backend because marketing providers don't own billing mail.",
+      "links": [
+        {
+          "title": "Gmail email sender guidelines",
+          "url": "https://support.google.com/mail/answer/81126"
+        },
+        {
+          "title": "Postmark: message streams",
+          "url": "https://postmarkapp.com/support/article/how-to-create-and-send-through-message-streams"
+        },
+        {
+          "title": "Amazon SES developer guide",
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/Welcome.html"
+        },
+        {
+          "title": "Listmonk",
+          "url": "https://listmonk.app/"
+        }
+      ],
+      "page": "e/transactional-vs-bulk-email/index.html",
+      "json": "api/transactional-vs-bulk-email.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "unsubscribe-handling",
+      "name": "Unsubscribe and suppression list",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "one-click unsubscribe",
+        "List-Unsubscribe header",
+        "email preferences",
+        "suppression list",
+        "bounce handling",
+        "spam complaints"
+      ],
+      "needs": [
+        "add an unsubscribe link to my emails",
+        "Gmail requires one-click unsubscribe",
+        "people unsubscribed but still get emails",
+        "stop emailing addresses that bounce",
+        "let users pick which emails they get"
+      ],
+      "keywords": [
+        "unsubscribe",
+        "opt",
+        "out",
+        "one",
+        "click",
+        "suppression",
+        "bounce",
+        "complaint",
+        "preferences",
+        "gmail",
+        "yahoo",
+        "rfc8058",
+        "newsletter"
+      ],
+      "summary": "A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).",
+      "need_when": [
+        "You send newsletters, digests, tips or any non-transactional email."
+      ],
+      "skip_when": [
+        "Purely transactional mail like receipts and password resets."
+      ],
+      "ways": [
+        {
+          "title": "Let the email tool handle it",
+          "cost": "included",
+          "how": "Listmonk, Postmark broadcast streams and most newsletter tools add the headers, host the unsubscribe page and keep a suppression list.",
+          "tradeoff": "Easy. If your app also sends mail on its own, it must read that suppression list."
+        },
+        {
+          "title": "Your own signed unsubscribe links",
+          "cost": "$0",
+          "how": "A signed token holding the user id and email type. GET shows a confirm page, POST unsubscribes. The same URL goes in the List-Unsubscribe header.",
+          "tradeoff": "Works across all your mail types. You build the preference page and suppression checks."
+        },
+        {
+          "title": "Provider bounce and complaint webhooks",
+          "cost": "$0",
+          "how": "Postmark, SES and Resend send events for bounces and complaints. Add those addresses to your suppression table.",
+          "tradeoff": "Keeps your sender reputation healthy. Another webhook to verify and test."
+        }
+      ],
+      "prompt": "Add unsubscribe handling and a suppression list.\n\nRequirements:\n- Every non-transactional email has a visible unsubscribe link and the headers List-Unsubscribe: <https://...> and List-Unsubscribe-Post: List-Unsubscribe=One-Click.\n- The link holds a signed token (user id plus email type). A POST to it unsubscribes with no login. A GET shows a confirm page and changes nothing, so link scanners can't unsubscribe people.\n- A preferences page lets users turn each email type on or off.\n- A suppression table stores unsubscribes, hard bounces and spam complaints from the provider's webhooks. Every send checks it first.\n- Unsubscribes take effect before the next send.\n\nAcceptance checks (run each and show me the result):\n1. curl -X POST to the List-Unsubscribe URL unsubscribes the user with no cookies.\n2. A GET to the same URL doesn't change anything.\n3. A tampered token returns 404.\n4. An address marked as a hard bounce is skipped on the next send.\n5. Turning off one email type in preferences keeps the others.",
+      "acceptance_checks": [
+        "curl -X POST to the List-Unsubscribe URL unsubscribes the user with no cookies.",
+        "A GET to the same URL doesn't change anything.",
+        "A tampered token returns 404.",
+        "An address marked as a hard bounce is skipped on the next send.",
+        "Turning off one email type in preferences keeps the others."
+      ],
+      "if_you_skip_it": "Spam complaints rise, Gmail and Yahoo start filtering all your mail, and you risk breaking laws like CAN-SPAM.",
+      "how_derek_runs_it": "Custody Journal's digest and tips emails link to signed unsubscribe tokens that expire after 180 days. Opening the link shows a confirm page and changes nothing. Only the POST turns the email off, so mail scanners that prefetch links can't unsubscribe anyone.",
+      "links": [
+        {
+          "title": "RFC 8058: one-click unsubscribe",
+          "url": "https://www.rfc-editor.org/info/rfc8058/"
+        },
+        {
+          "title": "Gmail email sender guidelines",
+          "url": "https://support.google.com/mail/answer/81126"
+        },
+        {
+          "title": "Listmonk",
+          "url": "https://listmonk.app/"
+        }
+      ],
+      "page": "e/unsubscribe-handling/index.html",
+      "json": "api/unsubscribe-handling.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "push-notifications",
+      "name": "Push notifications",
+      "category": "email",
+      "category_name": "Email and notifications",
+      "aliases": [
+        "web push",
+        "browser notifications",
+        "service worker push",
+        "VAPID",
+        "FCM",
+        "APNs",
+        "mobile push"
+      ],
+      "needs": [
+        "notify users even when the site is closed",
+        "send a phone notification from my web app",
+        "do push notifications work on iPhone",
+        "stop sending to people who turned notifications off"
+      ],
+      "keywords": [
+        "push",
+        "notification",
+        "notifications",
+        "web",
+        "service",
+        "worker",
+        "vapid",
+        "fcm",
+        "apns",
+        "iphone",
+        "ios",
+        "android",
+        "browser",
+        "pwa"
+      ],
+      "summary": "Messages that appear on a device even when your app isn't open. On the web, a service worker receives them through the browser's push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).",
+      "need_when": [
+        "Something time-sensitive happens and email is too slow: a message, a reminder, an order update."
+      ],
+      "skip_when": [
+        "The update can wait for the next visit or an email. Unwanted pushes get turned off fast."
+      ],
+      "ways": [
+        {
+          "title": "Standard web push from your server",
+          "cost": "$0",
+          "how": "A service worker, the Push API, VAPID keys, and the web-push library (Node) or pywebpush (Python) to send.",
+          "tradeoff": "No third party. On iPhone it only works after the user adds your site to the home screen."
+        },
+        {
+          "title": "Firebase Cloud Messaging",
+          "cost": "free",
+          "how": "One API for Android, web and iOS (through APNs). Common for native and hybrid apps.",
+          "tradeoff": "A Google account and SDK in your app. Apple setup is still needed for iOS."
+        },
+        {
+          "title": "A hosted notification service",
+          "cost": "free tiers",
+          "how": "OneSignal, or Novu (open source, self-hostable) for push, email and in-app messages from one place.",
+          "tradeoff": "Dashboards and scheduling built in. Another vendor holds your device tokens."
+        }
+      ],
+      "prompt": "Add web push notifications for [event].\n\nRequirements:\n- Ask for permission only after the user clicks 'Turn on notifications', never on page load.\n- Generate VAPID keys once and keep the private key in an environment variable.\n- Save each subscription (endpoint and keys) per user and device. Delete it when the push service answers 404 or 410.\n- Send from a background job, not the web request.\n- Notification text says what happened and links to the right page. No sensitive details on the lock screen.\n- A settings page lets users turn push off per type and see their devices.\n\nAcceptance checks (run each and show me the result):\n1. Loading the site doesn't show a permission prompt.\n2. After opting in on desktop Chrome, a test event shows a notification with the site closed.\n3. On an iPhone with the site added to the home screen, the same test works.\n4. A subscription that returns 410 is deleted and not retried.\n5. Turning a type off stops those notifications on all devices.",
+      "acceptance_checks": [
+        "Loading the site doesn't show a permission prompt.",
+        "After opting in on desktop Chrome, a test event shows a notification with the site closed.",
+        "On an iPhone with the site added to the home screen, the same test works.",
+        "A subscription that returns 410 is deleted and not retried.",
+        "Turning a type off stops those notifications on all devices."
+      ],
+      "if_you_skip_it": "Permission prompts on page load get blocked for good, and dead subscriptions pile up and slow every send.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "MDN: Push API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Push_API"
+        },
+        {
+          "title": "web.dev: push notifications overview",
+          "url": "https://web.dev/articles/push-notifications-overview"
+        },
+        {
+          "title": "WebKit: web push for web apps on iOS and iPadOS",
+          "url": "https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/"
+        },
+        {
+          "title": "web-push (Node library)",
+          "url": "https://github.com/web-push-libs/web-push"
+        },
+        {
+          "title": "Firebase Cloud Messaging",
+          "url": "https://firebase.google.com/docs/cloud-messaging"
+        }
+      ],
+      "page": "e/push-notifications/index.html",
+      "json": "api/push-notifications.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "signed-download-links",
       "name": "Signed download link",
+      "category": "files",
+      "category_name": "Files and uploads",
       "aliases": [
         "presigned URL",
         "expiring link",
@@ -450,8 +1980,96 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "backups-tested-restore",
+      "name": "Backups with a tested restore",
+      "category": "data",
+      "category_name": "Data and databases",
+      "aliases": [
+        "database backup",
+        "pg_dump",
+        "restore drill",
+        "disaster recovery",
+        "point-in-time recovery"
+      ],
+      "needs": [
+        "what happens if my database gets deleted",
+        "I have backups but never tried restoring one",
+        "take a backup before I deploy",
+        "back up user uploads too"
+      ],
+      "keywords": [
+        "backup",
+        "restore",
+        "database",
+        "postgres",
+        "pg_dump",
+        "disaster",
+        "recovery",
+        "deleted",
+        "lost",
+        "data",
+        "snapshot"
+      ],
+      "summary": "A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.",
+      "need_when": [
+        "You store anything users would be upset to lose."
+      ],
+      "skip_when": [
+        "The data can be rebuilt from somewhere else."
+      ],
+      "ways": [
+        {
+          "title": "pg_dump on a schedule, shipped off the server with restic",
+          "cost": "$0 software plus storage",
+          "how": "A nightly pg_dump and an archive of uploads, encrypted and deduplicated by restic into object storage.",
+          "tradeoff": "Simple. You lose whatever changed since the last dump."
+        },
+        {
+          "title": "Continuous WAL archiving",
+          "cost": "$0 software",
+          "how": "pgBackRest (or similar) for point-in-time recovery.",
+          "tradeoff": "More setup. Worth it when losing hours of data is not acceptable."
+        },
+        {
+          "title": "Managed database backups",
+          "cost": "monthly cost",
+          "how": "A managed Postgres such as DigitalOcean's takes automated backups.",
+          "tradeoff": "Less to run, but you still have to test a restore, and uploaded files need their own backup. A server snapshot is not the same as a tested database restore."
+        }
+      ],
+      "prompt": "Add backups with an automated restore test for [Postgres database + uploads folder].\n\nRequirements:\n- Nightly job: pg_dump in custom format plus an archive of uploaded files, taken together so they match.\n- Encrypt and copy off the server to [bucket]. Keep [7 daily and 4 weekly].\n- Write a manifest per run with file checksums.\n- Restore test job: start a disposable Postgres, restore the latest backup into it, run a migrations check and a few row-count queries, then delete it. Record pass or fail.\n- Refuse to run the restore test against anything that isn't the disposable database.\n- Alert if the last good backup is older than [26 hours] or the last passing restore test is older than [8 days].\n- Before each deploy, take a backup and stop the deploy if it fails.\n\nAcceptance checks (run each and show me the result):\n1. Restoring last night's backup into a scratch database shows a row created yesterday.\n2. Pointing the restore test at the production database URL makes it refuse to run.\n3. Backup files can't be read without the key.\n4. Turning off the backup job triggers the stale-backup alert.\n5. A deploy with a failed backup stops before migrations run.",
+      "acceptance_checks": [
+        "Restoring last night's backup into a scratch database shows a row created yesterday.",
+        "Pointing the restore test at the production database URL makes it refuse to run.",
+        "Backup files can't be read without the key.",
+        "Turning off the backup job triggers the stale-backup alert.",
+        "A deploy with a failed backup stops before migrations run."
+      ],
+      "if_you_skip_it": "You find out the backups were empty or unreadable on the day you need them.",
+      "how_derek_runs_it": "Custody Journal's release runbook makes a matched database and media backup a hard gate before any release. Its encrypted manifest has to pass a restore into a disposable PostgreSQL container, and an attest command records that result. The app's operations health report flags a failed or uncommitted latest backup. There is also a command for copying backups off the server.",
+      "links": [
+        {
+          "title": "PostgreSQL: pg_dump",
+          "url": "https://www.postgresql.org/docs/current/app-pgdump.html"
+        },
+        {
+          "title": "restic",
+          "url": "https://restic.net/"
+        },
+        {
+          "title": "pgBackRest",
+          "url": "https://pgbackrest.org/"
+        }
+      ],
+      "page": "e/backups-tested-restore/index.html",
+      "json": "api/backups-tested-restore.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "rate-limiting",
       "name": "Rate limiting",
+      "category": "security",
+      "category_name": "Security and abuse",
       "aliases": [
         "throttling",
         "request limits",
@@ -538,188 +2156,187 @@
       "updated": "2026-10-21"
     },
     {
-      "id": "email-authentication",
-      "name": "Email authentication (SPF, DKIM, DMARC)",
+      "id": "ownership-checks",
+      "name": "Ownership checks (IDOR)",
+      "category": "security",
+      "category_name": "Security and abuse",
       "aliases": [
-        "email deliverability",
-        "SPF record",
-        "DKIM signing",
-        "DMARC policy",
-        "emails going to spam"
+        "IDOR",
+        "insecure direct object reference",
+        "broken object level authorization",
+        "BOLA",
+        "object-level authorization"
       ],
       "needs": [
-        "my password reset emails go to spam",
-        "Gmail says it can't verify the sender",
-        "set up my domain to send email",
-        "send receipts from my own domain"
+        "change the id in the URL and see someone else's data",
+        "make sure users can only edit their own posts",
+        "my API returns any record if you know the id",
+        "are UUIDs enough to keep records private"
       ],
       "keywords": [
-        "email",
-        "spam",
-        "spf",
-        "dkim",
-        "dmarc",
-        "dns",
-        "deliverability",
-        "gmail",
-        "inbox",
-        "smtp",
-        "mail",
-        "newsletter",
-        "transactional",
-        "receipt"
+        "idor",
+        "bola",
+        "ownership",
+        "owner",
+        "authorization",
+        "id",
+        "url",
+        "other",
+        "user",
+        "leak",
+        "uuid",
+        "permission",
+        "own"
       ],
-      "summary": "Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.",
+      "summary": "Checking on every request that the logged-in user is allowed to touch the exact record they asked for. The usual bug: the code loads a record by id and never checks who owns it. Hard-to-guess ids help but don't replace the check.",
       "need_when": [
-        "As soon as your app sends any email from your own domain.",
-        "Gmail's sender guidelines require them, with stricter rules for bulk senders."
+        "Any URL or API with a record id in it."
       ],
       "skip_when": [
-        "You don't send from your own domain at all."
+        "The record is public on purpose."
       ],
       "ways": [
         {
-          "title": "A transactional email provider",
-          "cost": "free or cheap tiers",
-          "how": "Postmark, Resend or Amazon SES give you the DKIM records to paste into DNS and handle sending reputation.",
-          "tradeoff": "The easy path for password resets and receipts. Per-message cost at volume and another account."
+          "title": "Put the owner in the query",
+          "cost": "$0",
+          "how": "Load records with the owner in the filter, like get(id=..., owner=current_user), so another user's id finds nothing and returns 404.",
+          "tradeoff": "Simple and hard to get wrong once it's a habit. Every new endpoint must follow it."
         },
         {
-          "title": "Self-hosted mail server",
-          "cost": "$0 software",
-          "how": "Postfix with OpenDKIM on a VPS.",
-          "tradeoff": "Hard to keep out of spam. New VPS IPs often have poor reputation, and many hosts block outbound port 25. Not a good choice for password resets."
+          "title": "A scoped helper or manager",
+          "cost": "$0",
+          "how": "One function, for_user(user), that every query starts from. Code review flags any query that doesn't use it.",
+          "tradeoff": "Makes the safe path the easy path. Admin and background code need a clearly named way around it."
         },
         {
-          "title": "Self-hosted newsletter tool over provider SMTP",
-          "cost": "$0 software",
-          "how": "Listmonk for lists and campaigns, sending through a provider's SMTP.",
-          "tradeoff": "You own the list. You still need the same DNS records, and newsletters should use a separate subdomain or stream from transactional mail."
+          "title": "Database row level security",
+          "cost": "$0",
+          "how": "Postgres RLS policies as a backstop, so even a buggy query can't return other users' rows.",
+          "tradeoff": "Strong. Needs the user identity passed into the database session."
         }
       ],
-      "prompt": "Set up email authentication for [domain], sending through [provider].\n\nRequirements:\n- List the exact DNS records to add: one SPF TXT record that includes the provider, the provider's DKIM records, and a DMARC record at _dmarc starting with p=none and a rua reporting address.\n- Keep transactional mail (resets, receipts) separate from marketing mail: different subdomain or provider stream.\n- Make the app's From address use the authenticated domain.\n- In local development, send all mail to Mailpit instead of real inboxes.\n- Add List-Unsubscribe headers to marketing mail.\n\nAcceptance checks (run each and show me the result):\n1. dig TXT [domain] shows exactly one SPF record.\n2. A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.\n3. A mail-tester.com run lists no authentication problems.\n4. Local development never delivers to a real inbox.\n5. After DMARC reports show only your real senders passing, the policy moves to p=quarantine.",
+      "prompt": "Audit and fix object-level authorization in this app.\n\nRequirements:\n- List every route and API endpoint that takes a record id (path, query string or body).\n- For each, load the record with the current user (or their tenant) in the query. Another user's id must return 404, not the record and not a 403 that confirms it exists.\n- Check nested ids too, like an attachment id inside a request for a note the user owns.\n- Writes and deletes get the same check as reads.\n- Add a test per endpoint: user A creates a record, user B tries to read, edit and delete it.\n- Produce a table of endpoints with the check used and the test name.\n\nAcceptance checks (run each and show me the result):\n1. User B gets 404 for user A's record on every endpoint in the table.\n2. Changing an id inside a JSON body (not only the URL) is blocked.\n3. File and download endpoints check ownership the same way.\n4. List endpoints never include other users' rows, even with filters changed.\n5. The test suite covers every endpoint in the table.",
       "acceptance_checks": [
-        "dig TXT [domain] shows exactly one SPF record.",
-        "A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.",
-        "A mail-tester.com run lists no authentication problems.",
-        "Local development never delivers to a real inbox.",
-        "After DMARC reports show only your real senders passing, the policy moves to p=quarantine."
+        "User B gets 404 for user A's record on every endpoint in the table.",
+        "Changing an id inside a JSON body (not only the URL) is blocked.",
+        "File and download endpoints check ownership the same way.",
+        "List endpoints never include other users' rows, even with filters changed.",
+        "The test suite covers every endpoint in the table."
       ],
-      "if_you_skip_it": "Password resets and receipts land in spam or get rejected, and users think your app is broken.",
-      "how_derek_runs_it": null,
+      "if_you_skip_it": "Anyone can read or change other users' records by counting up ids. Broken object level authorization is the first item on the OWASP API Security Top 10.",
+      "how_derek_runs_it": "Custody Journal loads user records with the owner in the query, for example get_object_or_404(Entry, pk=pk, user=request.user), so another user's id returns 404.",
       "links": [
         {
-          "title": "Gmail email sender guidelines",
-          "url": "https://support.google.com/a/answer/81126"
+          "title": "OWASP API1:2023 Broken Object Level Authorization",
+          "url": "https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/"
         },
         {
-          "title": "DMARC (RFC 7489)",
-          "url": "https://www.rfc-editor.org/rfc/rfc7489"
-        },
-        {
-          "title": "Mailpit (local test inbox)",
-          "url": "https://github.com/axllent/mailpit"
-        },
-        {
-          "title": "mail-tester.com",
-          "url": "https://www.mail-tester.com/"
-        },
-        {
-          "title": "Listmonk",
-          "url": "https://listmonk.app/"
+          "title": "OWASP IDOR Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html"
         }
       ],
-      "page": "e/email-authentication/index.html",
-      "json": "api/email-authentication.json",
+      "page": "e/ownership-checks/index.html",
+      "json": "api/ownership-checks.json",
       "updated": "2026-10-21"
     },
     {
-      "id": "backups-tested-restore",
-      "name": "Backups with a tested restore",
+      "id": "input-validation",
+      "name": "Input validation",
+      "category": "security",
+      "category_name": "Security and abuse",
       "aliases": [
-        "database backup",
-        "pg_dump",
-        "restore drill",
-        "disaster recovery",
-        "point-in-time recovery"
+        "server-side validation",
+        "schema validation",
+        "mass assignment",
+        "allowlist",
+        "SQL injection prevention"
       ],
       "needs": [
-        "what happens if my database gets deleted",
-        "I have backups but never tried restoring one",
-        "take a backup before I deploy",
-        "back up user uploads too"
+        "users can send any data to my API",
+        "someone made themselves admin by adding a field to the request",
+        "validate form data on the server too",
+        "a huge request crashed my server"
       ],
       "keywords": [
-        "backup",
-        "restore",
-        "database",
-        "postgres",
-        "pg_dump",
-        "disaster",
-        "recovery",
-        "deleted",
-        "lost",
-        "data",
-        "snapshot"
+        "validation",
+        "validate",
+        "input",
+        "schema",
+        "zod",
+        "pydantic",
+        "injection",
+        "sql",
+        "mass",
+        "assignment",
+        "sanitize",
+        "form",
+        "body",
+        "length"
       ],
-      "summary": "A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.",
+      "summary": "Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them.",
       "need_when": [
-        "You store anything users would be upset to lose."
+        "Every form, API endpoint, webhook and file import."
       ],
       "skip_when": [
-        "The data can be rebuilt from somewhere else."
+        "Never on the server. Even internal endpoints get called with bad data eventually."
       ],
       "ways": [
         {
-          "title": "pg_dump on a schedule, shipped off the server with restic",
-          "cost": "$0 software plus storage",
-          "how": "A nightly pg_dump and an archive of uploads, encrypted and deduplicated by restic into object storage.",
-          "tradeoff": "Simple. You lose whatever changed since the last dump."
+          "title": "A schema at each endpoint",
+          "cost": "$0",
+          "how": "Zod or Valibot (TypeScript), Pydantic (Python) or JSON Schema. Parse the body into the schema and use only the parsed result.",
+          "tradeoff": "Clear and typed. You need the habit of never reading the raw body after parsing."
         },
         {
-          "title": "Continuous WAL archiving",
-          "cost": "$0 software",
-          "how": "pgBackRest (or similar) for point-in-time recovery.",
-          "tradeoff": "More setup. Worth it when losing hours of data is not acceptable."
+          "title": "Your framework's forms or serializers",
+          "cost": "$0",
+          "how": "Django forms or DRF serializers with explicit field lists, Rails strong parameters, Laravel validation.",
+          "tradeoff": "Built in. 'All fields' shortcuts bring back mass assignment."
         },
         {
-          "title": "Managed database backups",
-          "cost": "monthly cost",
-          "how": "A managed Postgres such as DigitalOcean's takes automated backups.",
-          "tradeoff": "Less to run, but you still have to test a restore, and uploaded files need their own backup. A server snapshot is not the same as a tested database restore."
+          "title": "Database constraints as the last line",
+          "cost": "$0",
+          "how": "NOT NULL, CHECK constraints, foreign keys, unique indexes and column lengths.",
+          "tradeoff": "Catches what code misses. Errors arrive late and are less friendly."
         }
       ],
-      "prompt": "Add backups with an automated restore test for [Postgres database + uploads folder].\n\nRequirements:\n- Nightly job: pg_dump in custom format plus an archive of uploaded files, taken together so they match.\n- Encrypt and copy off the server to [bucket]. Keep [7 daily and 4 weekly].\n- Write a manifest per run with file checksums.\n- Restore test job: start a disposable Postgres, restore the latest backup into it, run a migrations check and a few row-count queries, then delete it. Record pass or fail.\n- Refuse to run the restore test against anything that isn't the disposable database.\n- Alert if the last good backup is older than [26 hours] or the last passing restore test is older than [8 days].\n- Before each deploy, take a backup and stop the deploy if it fails.\n\nAcceptance checks (run each and show me the result):\n1. Restoring last night's backup into a scratch database shows a row created yesterday.\n2. Pointing the restore test at the production database URL makes it refuse to run.\n3. Backup files can't be read without the key.\n4. Turning off the backup job triggers the stale-backup alert.\n5. A deploy with a failed backup stops before migrations run.",
+      "prompt": "Add server-side input validation to [endpoints/forms].\n\nRequirements:\n- Define a schema for each endpoint's input: types, required fields, max lengths, allowed values, number ranges.\n- Reject unknown fields. Never copy request data straight onto a model. Set allowed fields one by one (no mass assignment of role, owner_id, is_admin or price).\n- Cap request body size at [1 MB] unless the endpoint needs more.\n- Use parameterized queries or the ORM everywhere. No SQL built from strings.\n- Return 400 with a field-by-field message the UI can show. Don't echo raw input back into HTML.\n- Add database constraints for the rules that must never break.\n\nAcceptance checks (run each and show me the result):\n1. Sending is_admin=true or a different owner_id in the body changes nothing.\n2. A 10,000-character name is rejected with a clear message.\n3. A body over the size cap returns 413.\n4. Searching for ' OR 1=1 -- returns a normal empty result.\n5. Every endpoint in the app is listed with its schema.",
       "acceptance_checks": [
-        "Restoring last night's backup into a scratch database shows a row created yesterday.",
-        "Pointing the restore test at the production database URL makes it refuse to run.",
-        "Backup files can't be read without the key.",
-        "Turning off the backup job triggers the stale-backup alert.",
-        "A deploy with a failed backup stops before migrations run."
+        "Sending is_admin=true or a different owner_id in the body changes nothing.",
+        "A 10,000-character name is rejected with a clear message.",
+        "A body over the size cap returns 413.",
+        "Searching for ' OR 1=1 -- returns a normal empty result.",
+        "Every endpoint in the app is listed with its schema."
       ],
-      "if_you_skip_it": "You find out the backups were empty or unreadable on the day you need them.",
-      "how_derek_runs_it": "Custody Journal's release runbook makes a matched database and media backup a hard gate before any release. Its encrypted manifest has to pass a restore into a disposable PostgreSQL container, and an attest command records that result. The app's operations health report flags a failed or uncommitted latest backup. There is also a command for copying backups off the server.",
+      "if_you_skip_it": "People give themselves admin rights, store junk that breaks pages, or crash the server with huge requests.",
+      "how_derek_runs_it": null,
       "links": [
         {
-          "title": "PostgreSQL: pg_dump",
-          "url": "https://www.postgresql.org/docs/current/app-pgdump.html"
+          "title": "OWASP Input Validation Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"
         },
         {
-          "title": "restic",
-          "url": "https://restic.net/"
+          "title": "OWASP Mass Assignment Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html"
         },
         {
-          "title": "pgBackRest",
-          "url": "https://pgbackrest.org/"
+          "title": "Zod",
+          "url": "https://zod.dev/"
+        },
+        {
+          "title": "Pydantic",
+          "url": "https://pydantic.dev/docs/"
         }
       ],
-      "page": "e/backups-tested-restore/index.html",
-      "json": "api/backups-tested-restore.json",
+      "page": "e/input-validation/index.html",
+      "json": "api/input-validation.json",
       "updated": "2026-10-21"
     },
     {
       "id": "feature-flags",
       "name": "Feature flag",
+      "category": "deploys",
+      "category_name": "Deploys, uptime and monitoring",
       "aliases": [
         "feature toggle",
         "kill switch",
@@ -812,6 +2429,8 @@
     {
       "id": "health-checks",
       "name": "Health checks and safe deploys",
+      "category": "deploys",
+      "category_name": "Deploys, uptime and monitoring",
       "aliases": [
         "health endpoint",
         "readiness probe",

@@ -1,0 +1,90 @@
+{
+  "id": "usage-based-billing",
+  "name": "Usage-based billing",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "metered billing",
+    "billing meters",
+    "pay as you go",
+    "prepaid credits",
+    "credit balance",
+    "overage charges"
+  ],
+  "needs": [
+    "charge per AI generation",
+    "bill customers for what they used this month",
+    "sell credits that get used up",
+    "a plan that includes 1,000 calls and charges for extra",
+    "count API calls for billing"
+  ],
+  "keywords": [
+    "usage",
+    "metered",
+    "meter",
+    "credits",
+    "pay",
+    "overage",
+    "consumption",
+    "calls",
+    "billing",
+    "stripe",
+    "lago",
+    "prepaid",
+    "invoice"
+  ],
+  "summary": "Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.",
+  "need_when": [
+    "Your costs grow with use, like AI tokens, SMS or compute, and a flat price would lose money on heavy users."
+  ],
+  "skip_when": [
+    "Usage is small or predictable. A flat plan with a hard limit is simpler to build and to explain."
+  ],
+  "ways": [
+    {
+      "title": "Stripe billing meters",
+      "cost": "Stripe fees",
+      "how": "Create a meter, attach a usage-based price, and send meter events with a customer id, a value and an identifier. Stripe enforces uniqueness of the identifier within a rolling period of at least 24 hours, which guards against double counting on retries.",
+      "tradeoff": "Invoicing is handled for you. You still need your own usage records to show users their usage and to reconcile."
+    },
+    {
+      "title": "Prepaid credits in your database",
+      "cost": "$0 plus normal payments",
+      "how": "Sell credit packs through Checkout. Keep a credit ledger table with one row per purchase or use, and check the balance inside a transaction before the expensive call.",
+      "tradeoff": "Simple to understand and no surprise bills. Refunds and expiring credits need care."
+    },
+    {
+      "title": "Open-source metering and billing",
+      "cost": "$0 software",
+      "how": "Lago can be self-hosted to take in usage events, add them up and produce invoices, with a payment provider underneath.",
+      "tradeoff": "You own the data and logic. Another system to run and keep in sync."
+    }
+  ],
+  "prompt": "Add usage-based billing for [billable action] using [Stripe meters / prepaid credits].\n\nRequirements:\n- Write one usage row per billable action in our database: account id, quantity, unique event id, created time. The event id is unique so a retry can't count twice.\n- [Meters] A job sends unsent usage rows to Stripe as meter events with our event id as the identifier, marks them sent, and retries failures.\n- [Credits] Keep a ledger table (purchases positive, uses negative). Check and deduct the balance in one transaction with a row lock before the action runs. Refuse with a clear message at zero.\n- Show users their usage or balance for the current period on the billing page.\n- Add a daily reconcile job that compares our totals with the billing provider and reports any difference.\n\nAcceptance checks (run each and show me the result):\n1. Running the same billable action twice with the same event id records it once.\n2. Ten parallel requests with a balance of 5 credits run exactly 5 actions.\n3. The usage on the billing page matches what the provider shows for the same period.\n4. Turning off the send job for an hour, then back on, sends every missed event once.\n5. A user at zero credits gets a clear message and the expensive call is never made.",
+  "acceptance_checks": [
+    "Running the same billable action twice with the same event id records it once.",
+    "Ten parallel requests with a balance of 5 credits run exactly 5 actions.",
+    "The usage on the billing page matches what the provider shows for the same period.",
+    "Turning off the send job for an hour, then back on, sends every missed event once.",
+    "A user at zero credits gets a clear message and the expensive call is never made."
+  ],
+  "if_you_skip_it": "Heavy users cost more than they pay, retries bill people twice, and nobody can explain an invoice.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: usage-based billing",
+      "url": "https://docs.stripe.com/billing/subscriptions/usage-based"
+    },
+    {
+      "title": "Stripe API: create a billing meter event",
+      "url": "https://docs.stripe.com/api/billing/meter-event/create"
+    },
+    {
+      "title": "Lago (open-source metering and billing)",
+      "url": "https://github.com/getlago/lago"
+    }
+  ],
+  "page": "e/usage-based-billing/index.html",
+  "json": "api/usage-based-billing.json",
+  "updated": "2026-10-21"
+}

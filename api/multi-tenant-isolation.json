@@ -1,0 +1,90 @@
+{
+  "id": "multi-tenant-isolation",
+  "name": "Multi-tenant data isolation",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "tenant isolation",
+    "workspaces",
+    "organizations",
+    "row level security",
+    "RLS",
+    "tenant_id"
+  ],
+  "needs": [
+    "one company can see another company's data",
+    "add teams or workspaces to my app",
+    "my Supabase tables are readable by anyone with the anon key",
+    "make sure every query only returns this customer's rows"
+  ],
+  "keywords": [
+    "tenant",
+    "multi",
+    "workspace",
+    "organization",
+    "org",
+    "team",
+    "rls",
+    "row",
+    "level",
+    "supabase",
+    "isolation",
+    "leak",
+    "company"
+  ],
+  "summary": "Keeping each customer's data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.",
+  "need_when": [
+    "Customers are companies or teams, not single people.",
+    "Your frontend talks to the database directly, as with Supabase."
+  ],
+  "skip_when": [
+    "Each user only has their own data and nothing is shared. Ownership checks on each query are enough."
+  ],
+  "ways": [
+    {
+      "title": "A tenant_id column and scoped queries",
+      "cost": "$0",
+      "how": "Add tenant_id to every table, set the current tenant once per request, and use a base query or manager that always filters by it.",
+      "tradeoff": "Simple and cheap. One unscoped query leaks data, so test it."
+    },
+    {
+      "title": "Postgres row level security",
+      "cost": "$0",
+      "how": "Turn on RLS for each table and write policies that compare tenant_id to the current user's tenant. On Supabase this is required for any table the browser can reach with the anon key.",
+      "tradeoff": "The database enforces it. Table owners skip RLS unless you FORCE it, and roles with BYPASSRLS (like Supabase's service_role key) always skip it."
+    },
+    {
+      "title": "A schema or database per tenant",
+      "cost": "more ops",
+      "how": "django-tenants (schema per tenant), or a separate database for each big customer.",
+      "tradeoff": "Strong separation. Migrations and reporting across tenants get harder."
+    }
+  ],
+  "prompt": "Add tenant isolation for [organizations/workspaces].\n\nRequirements:\n- Every table with customer data gets a non-null tenant_id with an index.\n- Work out the current tenant once per request from the logged-in user's membership, never from a request parameter alone.\n- All reads and writes go through a scoped query helper that filters by tenant_id. Search the codebase and list any query that bypasses it.\n- [Postgres/Supabase] Enable row level security on these tables with policies that limit rows to the user's tenant. Never ship the service_role key to the browser.\n- Background jobs carry the tenant id explicitly.\n- Add tests that create two tenants and prove neither can read or change the other's rows through any API route.\n\nAcceptance checks (run each and show me the result):\n1. Logged in as tenant A, requesting tenant B's record id returns 404.\n2. With the anon key, a direct select on each table returns no other tenant's rows.\n3. Exports, search and reports for tenant A contain no tenant B data.\n4. A background job for tenant A can't write to tenant B.\n5. The browser bundle contains no service_role or admin key.",
+  "acceptance_checks": [
+    "Logged in as tenant A, requesting tenant B's record id returns 404.",
+    "With the anon key, a direct select on each table returns no other tenant's rows.",
+    "Exports, search and reports for tenant A contain no tenant B data.",
+    "A background job for tenant A can't write to tenant B.",
+    "The browser bundle contains no service_role or admin key."
+  ],
+  "if_you_skip_it": "One customer sees another customer's data. For a B2B app that can end the business.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "PostgreSQL: row security policies",
+      "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html"
+    },
+    {
+      "title": "Supabase: row level security",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security"
+    },
+    {
+      "title": "django-tenants",
+      "url": "https://django-tenants.readthedocs.io/en/latest/"
+    }
+  ],
+  "page": "e/multi-tenant-isolation/index.html",
+  "json": "api/multi-tenant-isolation.json",
+  "updated": "2026-10-21"
+}

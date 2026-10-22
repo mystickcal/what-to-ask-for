@@ -1,6 +1,8 @@
 {
   "id": "signed-download-links",
   "name": "Signed download link",
+  "category": "files",
+  "category_name": "Files and uploads",
   "aliases": [
     "presigned URL",
     "expiring link",

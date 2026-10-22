@@ -31,7 +31,7 @@
 <main id="main">
 
 <article class="entry">
-  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=email">Email and notifications</a></p>
   <h1>Email authentication (SPF, DKIM, DMARC)</h1>
   <p class="aka">Also called: email deliverability, SPF record, DKIM signing, DMARC policy, emails going to spam</p>
   <p class="lead">Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.</p>
@@ -67,9 +67,9 @@ Acceptance checks (run each and show me the result):
   <section><h2>If you skip it</h2><p>Password resets and receipts land in spam or get rejected, and users think your app is broken.</p></section>
   
   <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my password reset emails go to spam&rdquo;</li><li>&ldquo;Gmail says it can&#x27;t verify the sender&rdquo;</li><li>&ldquo;set up my domain to send email&rdquo;</li><li>&ldquo;send receipts from my own domain&rdquo;</li></ul></section>
-  <section><h2>Further reading</h2><ul class="links"><li><a href="https://support.google.com/a/answer/81126">Gmail email sender guidelines</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc7489">DMARC (RFC 7489)</a></li><li><a href="https://github.com/axllent/mailpit">Mailpit (local test inbox)</a></li><li><a href="https://www.mail-tester.com/">mail-tester.com</a></li><li><a href="https://listmonk.app/">Listmonk</a></li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://support.google.com/mail/answer/81126">Gmail email sender guidelines</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc7489">DMARC (RFC 7489)</a></li><li><a href="https://github.com/axllent/mailpit">Mailpit (local test inbox)</a></li><li><a href="https://www.mail-tester.com/">mail-tester.com</a></li><li><a href="https://listmonk.app/">Listmonk</a></li></ul></section>
   <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/email-authentication.json">api/email-authentication.json</a></p>
-  <nav class="pn" aria-label="More entries"><a href="../rate-limiting/index.html">&larr; Rate limiting</a><a href="../backups-tested-restore/index.html">Backups with a tested restore &rarr;</a></nav>
+  <nav class="pn" aria-label="More entries"><a href="../multi-tenant-isolation/index.html">&larr; Multi-tenant data isolation</a><a href="../transactional-vs-bulk-email/index.html">Transactional vs bulk email &rarr;</a></nav>
 </article>
 
 </main>

@@ -47,19 +47,22 @@
     });
   }
 
-  // Search (home page only)
+  // Search and category browse (home page only)
   var q = document.getElementById("q");
   if (!q) return;
   var list = document.getElementById("results"), count = document.getElementById("count"), none = document.getElementById("none");
+  var browse = document.getElementById("browse");
+  var groups = Array.prototype.slice.call(document.querySelectorAll("#browse .group"));
+  var chips = Array.prototype.slice.call(document.querySelectorAll("#cats .cat"));
   var STOP = "a an the to of for in on my i me is it and or how do does what when with without can get make let our we you your be at by from this that so".split(" ");
-  var entries = [];
+  var entries = [], cat = "", catNames = {};
   function norm(s) { return (s || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " "); }
   function tokens(s) { return norm(s).split(/\s+/).filter(function (t) { return t && STOP.indexOf(t) < 0; }); }
   function stem(t) { return t.length > 4 ? t.replace(/(ing|ed|es|s)$/, "") : t; }
   function prep(x) {
     return { x: x, f: [
       [tokens(x.name), 6], [tokens(x.aliases.join(" ")), 5], [tokens(x.keywords.join(" ")), 4],
-      [tokens(x.needs.join(" ")), 3], [tokens(x.summary), 1]
+      [tokens(x.needs.join(" ")), 3], [tokens(x.category_name || ""), 2], [tokens(x.summary), 1]
     ], needs: x.needs.map(norm), name: norm(x.name + " " + x.aliases.join(" ")) };
   }
   function score(p, qt, qs) {
@@ -95,28 +98,58 @@
     p.x.needs.forEach(function (n) { var nt = tokens(n).map(stem); var c = qt.filter(function (t) { return nt.some(function (w) { return w.indexOf(stem(t)) === 0; }); }).length; if (c > bs) { bs = c; best = n; } });
     return best;
   }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
   function run() {
     var raw = q.value.trim(), qt = tokens(raw), qs = norm(raw).trim();
-    var out;
-    if (!qt.length) out = entries.map(function (p) { return [p, 1]; });
-    else out = entries.map(function (p) { return [p, score(p, qt, qs)]; }).filter(function (r) { return r[1] >= 2; }).sort(function (a, b) { return b[1] - a[1]; });
-    list.innerHTML = "";
-    out.forEach(function (r) { list.appendChild(row(r[0].x, qt.length ? bestNeed(r[0], qt) : null)); });
-    count.textContent = qt.length ? (out.length + (out.length === 1 ? " match" : " matches")) : (entries.length + " entries");
-    none.hidden = out.length > 0;
+    chips.forEach(function (c) {
+      if (c.getAttribute("data-c") === cat) c.setAttribute("aria-current", "true"); else c.removeAttribute("aria-current");
+    });
+    if (!qt.length) {
+      list.hidden = true; list.innerHTML = ""; browse.hidden = false; none.hidden = true;
+      var shown = 0;
+      groups.forEach(function (g) {
+        var on = !cat || g.getAttribute("data-c") === cat;
+        g.hidden = !on;
+        if (on) shown += g.querySelectorAll("li").length;
+      });
+      count.textContent = cat ? plural(shown, "entry", "entries") + " in " + (catNames[cat] || cat) : plural(entries.length, "entry", "entries") + " in " + groups.length + " categories";
+    } else {
+      var out = entries.filter(function (p) { return !cat || p.x.category === cat; })
+        .map(function (p) { return [p, score(p, qt, qs)]; })
+        .filter(function (r) { return r[1] >= 2; })
+        .sort(function (a, b) { return b[1] - a[1]; });
+      list.innerHTML = "";
+      out.forEach(function (r) { list.appendChild(row(r[0].x, bestNeed(r[0], qt))); });
+      list.hidden = false; browse.hidden = true;
+      count.textContent = plural(out.length, "match", "matches") + (cat ? " in " + (catNames[cat] || cat) : "");
+      none.hidden = out.length > 0;
+    }
     var url = new URL(location.href);
     if (raw) url.searchParams.set("q", raw); else url.searchParams.delete("q");
+    if (cat) url.searchParams.set("c", cat); else url.searchParams.delete("c");
+    url.hash = "";
     history.replaceState(null, "", url);
   }
+  chips.forEach(function (c) {
+    c.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      var v = c.getAttribute("data-c");
+      cat = (v === cat) ? "" : v;
+      run();
+    });
+  });
   fetch("entries.json").then(function (r) { return r.json(); }).then(function (d) {
     entries = d.entries.map(prep);
-    var init = new URL(location.href).searchParams.get("q");
+    (d.categories || []).forEach(function (c) { catNames[c.id] = c.name; });
+    var params = new URL(location.href).searchParams;
+    var init = params.get("q"), ic = params.get("c");
+    if (ic && catNames[ic]) cat = ic;
     if (init) q.value = init;
     q.addEventListener("input", run);
     run();
     document.documentElement.setAttribute("data-search-ready", "1");
   });
   document.querySelectorAll(".ex").forEach(function (b) {
-    b.addEventListener("click", function () { q.value = b.getAttribute("data-q"); run(); q.focus(); });
+    b.addEventListener("click", function () { q.value = b.getAttribute("data-q"); cat = ""; run(); q.focus(); });
   });
 })();

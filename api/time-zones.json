@@ -1,0 +1,95 @@
+{
+  "id": "time-zones",
+  "name": "Time zone handling",
+  "category": "background",
+  "category_name": "Background work and scheduling",
+  "aliases": [
+    "UTC storage",
+    "IANA time zone",
+    "timestamptz",
+    "daylight saving time",
+    "DST bug",
+    "local time"
+  ],
+  "needs": [
+    "reminders show up an hour off after daylight saving",
+    "store dates so users in other countries see their own time",
+    "the daily email goes out at the wrong hour",
+    "dates are off by one day for some users",
+    "let each user pick their time zone"
+  ],
+  "keywords": [
+    "timezone",
+    "time",
+    "zone",
+    "utc",
+    "dst",
+    "daylight",
+    "saving",
+    "local",
+    "hour",
+    "date",
+    "iana",
+    "offset",
+    "tz"
+  ],
+  "summary": "Store moments in time as UTC, store each user's time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.",
+  "need_when": [
+    "Users in more than one time zone, or any feature that says 'at 7 PM' or 'today'.",
+    "Daily limits, streaks, digests or reports that reset at midnight."
+  ],
+  "skip_when": [
+    "Rarely. Even a one-country app crosses a daylight saving change twice a year."
+  ],
+  "ways": [
+    {
+      "title": "Your language's built-in zone support",
+      "cost": "$0",
+      "how": "Python zoneinfo, JavaScript Intl.DateTimeFormat with a timeZone option, or java.time. Keep aware datetimes in UTC and convert at the edges.",
+      "tradeoff": "No dependency. Date math across daylight saving is easy to get wrong without tests."
+    },
+    {
+      "title": "A date library",
+      "cost": "$0",
+      "how": "Luxon, or date-fns with date-fns-tz, in JavaScript. They handle zone-aware arithmetic like 'add one day in this zone'.",
+      "tradeoff": "Clearer code for zone math. One more dependency in the bundle."
+    },
+    {
+      "title": "Let the database convert",
+      "cost": "$0",
+      "how": "Postgres timestamptz columns store an absolute moment. AT TIME ZONE 'America/New_York' converts in a query, for example to group rows by the user's local day.",
+      "tradeoff": "Fast for reports. Spreads time logic across SQL and app code."
+    }
+  ],
+  "prompt": "Fix time zone handling in this app.\n\nRequirements:\n- Store every timestamp as UTC (timestamptz in Postgres, aware datetimes in code).\n- Add a time_zone field on the user that holds an IANA name like America/New_York. Validate it against the zone list and fall back to [default zone] when it is missing or invalid.\n- Show times in the user's zone everywhere in the UI and in emails.\n- For things a user schedules at a local time (like a 7 PM reminder), store the local time and the zone, then compute the next UTC run time from them. Don't store a fixed UTC hour.\n- Daily limits, streaks and 'today' use the user's local day, not the server's.\n- Add tests that cross the spring and fall daylight saving changes.\n\nAcceptance checks (run each and show me the result):\n1. A reminder set for 7:00 PM in New York fires at 7:00 PM local time on both sides of a daylight saving change.\n2. A user in Tokyo and a user in Los Angeles each see an event at their own correct local time.\n3. An invalid zone name falls back to the default instead of crashing.\n4. A daily limit resets at the user's local midnight.\n5. The database holds UTC values. Changing the server's time zone setting changes nothing users see.",
+  "acceptance_checks": [
+    "A reminder set for 7:00 PM in New York fires at 7:00 PM local time on both sides of a daylight saving change.",
+    "A user in Tokyo and a user in Los Angeles each see an event at their own correct local time.",
+    "An invalid zone name falls back to the default instead of crashing.",
+    "A daily limit resets at the user's local midnight.",
+    "The database holds UTC values. Changing the server's time zone setting changes nothing users see."
+  ],
+  "if_you_skip_it": "Reminders drift an hour twice a year, daily limits reset at the wrong time, and dates near midnight show up on the wrong day.",
+  "how_derek_runs_it": "Custody Journal stores times in UTC and keeps an IANA zone name on each user. A middleware switches to that zone on every request, old names like US/Eastern are mapped to their IANA names, and an invalid zone falls back to the default. The monthly AI allowance is counted by the month in the user's own zone.",
+  "links": [
+    {
+      "title": "Python zoneinfo",
+      "url": "https://docs.python.org/3/library/zoneinfo.html"
+    },
+    {
+      "title": "MDN: Intl.DateTimeFormat",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat"
+    },
+    {
+      "title": "PostgreSQL: date and time types",
+      "url": "https://www.postgresql.org/docs/current/datatype-datetime.html"
+    },
+    {
+      "title": "Luxon",
+      "url": "https://moment.github.io/luxon/"
+    }
+  ],
+  "page": "e/time-zones/index.html",
+  "json": "api/time-zones.json",
+  "updated": "2026-10-21"
+}

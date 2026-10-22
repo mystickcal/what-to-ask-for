@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retries with backoff and a dead-letter queue: What To Ask For</title>
+<meta name="description" content="When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don&#x27;t all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Retries with backoff and a dead-letter queue: What To Ask For">
+<meta property="og:description" content="When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don&#x27;t all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/retries-and-dead-letter-queue/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Retries with backoff and a dead-letter queue: What To Ask For">
+<meta name="twitter:description" content="When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don&#x27;t all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=background">Background work and scheduling</a></p>
+  <h1>Retries with backoff and a dead-letter queue</h1>
+  <p class="aka">Also called: exponential backoff, retry policy, jitter, dead-letter queue, DLQ, failed jobs table, poison message</p>
+  <p class="lead">When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don&#x27;t all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>A job or request calls something that can fail briefly: an email API, a payment API, an AI model, a webhook.</li><li>You have a background queue and need to know which jobs never finished.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The error will never fix itself, like a 400 for bad input or a 401 for a wrong key. Retrying those only adds load.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Retry settings in the queue you already run <span class="cost">$0</span></h3>
+<p>Celery (autoretry_for, retry_backoff, retry_jitter), BullMQ (attempts plus an exponential backoff option) and pg-boss (retryLimit, retryBackoff) all retry for you and keep failed jobs.</p><p class="trade"><strong>Tradeoff:</strong> Least code. Check what each library does after the last attempt. Some just keep the failed job, and nothing alerts you unless you add it.</p></li>
+<li><h3>A retry helper around single calls <span class="cost">$0</span></h3>
+<p>tenacity (Python) or p-retry (Node) wraps one function: stop after N attempts, wait exponentially with jitter, retry only on chosen exceptions.</p><p class="trade"><strong>Tradeoff:</strong> Good inside one request or job. It doesn&#x27;t survive a crash, so for important work put the job in a queue.</p></li>
+<li><h3>A managed queue with a dead-letter queue <span class="cost">free tiers or pay per use</span></h3>
+<p>Amazon SQS redrive policies and Cloudflare Queues dead letter queues move a message aside after it fails a set number of times.</p><p class="trade"><strong>Tradeoff:</strong> The dead-letter part is built in. Another service and account, and you still need an alert on the dead-letter queue.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add retries with backoff and a dead-letter state to [job or call].
+
+Requirements:
+- Retry only errors that can fix themselves: timeouts, connection errors, 429 and 5xx. Fail at once on other 4xx errors.
+- Wait with exponential backoff plus random jitter, starting at [5 seconds] and capped at [10 minutes]. If the response has a Retry-After header, wait at least that long.
+- Stop after [5] attempts. Then mark the job dead with a short error code and the attempt count. No stack traces or user data in that field.
+- Make the work safe to run twice: use an idempotency key or check whether the effect already happened before redoing it.
+- Add an admin view or command that lists dead jobs and replays one by id.
+- Alert me when the number of dead jobs goes up.
+
+Acceptance checks (run each and show me the result):
+1. A fake API that fails twice and then succeeds ends with the job done and 3 attempts recorded.
+2. A fake API that always returns 503 ends with the job marked dead after the max attempts, with growing gaps between attempts.
+3. A 400 response is not retried.
+4. A 429 with Retry-After: 30 waits at least 30 seconds before the next try.
+5. Replaying a dead job by hand runs it once and does not repeat side effects that already happened.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>One blip at a provider loses the email or the payment update for good, or tight retry loops pile onto a service that is already struggling.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal sends sign-in emails from a database outbox. Each email gets at most 5 attempts, with waits of 15 seconds, 45 seconds, 2 minutes, 5 minutes and 10 minutes, and a worker holds a 2 minute lease while it sends. An email stops retrying when it reaches its attempt limit or when the next retry would land after the sign-in link expires.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the email API failed once and the email was never sent&rdquo;</li><li>&ldquo;retry a job if it fails&rdquo;</li><li>&ldquo;my retries hammer the API and make it worse&rdquo;</li><li>&ldquo;where do jobs go when they keep failing&rdquo;</li><li>&ldquo;the third-party API is flaky&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter">AWS Builders&#x27; Library: timeouts, retries and backoff with jitter</a></li><li><a href="https://tenacity.readthedocs.io/en/latest/">tenacity (Python retries)</a></li><li><a href="https://docs.bullmq.io/guide/retrying-failing-jobs">BullMQ: retrying failing jobs</a></li><li><a href="https://developers.cloudflare.com/queues/configuration/dead-letter-queues/">Cloudflare Queues: dead letter queues</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/retries-and-dead-letter-queue.json">api/retries-and-dead-letter-queue.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../background-job-queue/index.html">&larr; Background job queue</a><a href="../time-zones/index.html">Time zone handling &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

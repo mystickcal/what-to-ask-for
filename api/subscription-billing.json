@@ -1,0 +1,97 @@
+{
+  "id": "subscription-billing",
+  "name": "Subscription billing",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "recurring payments",
+    "Stripe Billing",
+    "plans and upgrades",
+    "proration",
+    "customer portal",
+    "SaaS billing"
+  ],
+  "needs": [
+    "charge users every month",
+    "let users upgrade or downgrade their plan",
+    "what happens when someone switches plans mid-month",
+    "users canceled but still have access",
+    "let customers update their card and cancel themselves"
+  ],
+  "keywords": [
+    "subscription",
+    "stripe",
+    "billing",
+    "plan",
+    "monthly",
+    "yearly",
+    "upgrade",
+    "downgrade",
+    "proration",
+    "prorate",
+    "portal",
+    "cancel",
+    "saas",
+    "recurring",
+    "checkout"
+  ],
+  "summary": "A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer's subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.",
+  "need_when": [
+    "You charge monthly or yearly for access.",
+    "Users can change plans, pause or cancel."
+  ],
+  "skip_when": [
+    "One-time purchases. A single Checkout payment and a webhook are enough."
+  ],
+  "ways": [
+    {
+      "title": "Stripe Checkout plus the customer portal",
+      "cost": "Stripe fees",
+      "how": "Checkout in subscription mode creates the subscription. The hosted customer portal handles card updates, plan changes and cancellation. Webhooks keep your copy in sync.",
+      "tradeoff": "Least code and the most common path. Sales tax and VAT are yours to handle unless you add Stripe Tax or similar."
+    },
+    {
+      "title": "A merchant of record",
+      "cost": "higher fees",
+      "how": "Paddle or Lemon Squeezy sell to the customer on your behalf and handle sales tax and VAT.",
+      "tradeoff": "Tax is handled for you. Higher fees and less control over checkout and payouts."
+    },
+    {
+      "title": "Subscriptions API with your own UI",
+      "cost": "Stripe fees",
+      "how": "Create and update subscriptions from your backend and build your own plan page. Choose proration_behavior on each change: create_prorations (the default), always_invoice to bill the difference now, or none.",
+      "tradeoff": "Full control. Much more code and many more states to test."
+    }
+  ],
+  "prompt": "Add subscription billing with [provider] for plans [plan names and prices].\n\nRequirements:\n- Keep a subscriptions table per account: provider customer id, subscription id, price id, status, period end and cancel_at_period_end.\n- Update it only from verified webhooks (customer.subscription.created, updated and deleted, invoice.paid, invoice.payment_failed). On each event, fetch the latest subscription from the API and copy its state.\n- Grant paid features only for status active or trialing. Treat any other or unknown status as not paid.\n- Plan changes go through [the customer portal / our plan page] with proration_behavior set to [create_prorations / always_invoice].\n- Canceling keeps access until the paid period ends, then removes it.\n- Block a second checkout when the account already has a live subscription. Send that user to the portal instead.\n\nAcceptance checks (run each and show me the result):\n1. Paying in test mode with card 4242 4242 4242 4242 gives access within a few seconds of the webhook.\n2. Canceling in the portal keeps access until the period end, then the subscription.deleted webhook removes it.\n3. Upgrading mid-period shows a proration on the next invoice (or charges at once with always_invoice).\n4. A user with an active subscription who opens checkout again is sent to the portal, not into a second subscription.\n5. Replaying an old subscription.updated event doesn't overwrite newer state.",
+  "acceptance_checks": [
+    "Paying in test mode with card 4242 4242 4242 4242 gives access within a few seconds of the webhook.",
+    "Canceling in the portal keeps access until the period end, then the subscription.deleted webhook removes it.",
+    "Upgrading mid-period shows a proration on the next invoice (or charges at once with always_invoice).",
+    "A user with an active subscription who opens checkout again is sent to the portal, not into a second subscription.",
+    "Replaying an old subscription.updated event doesn't overwrite newer state."
+  ],
+  "if_you_skip_it": "People keep paid features after canceling, get charged twice for two subscriptions, or lose access while still paying.",
+  "how_derek_runs_it": "Custody Journal uses Stripe Checkout and the Stripe billing portal. On each subscription webhook it locks the account's subscription row, fetches the subscription from Stripe and copies that state instead of trusting the event body. Only the Stripe statuses active and trialing set a paid tier, and unknown statuses never grant access. A past-due user who tries to check out again is sent to the portal to fix their payment, which closed a double-subscription bug found in an audit.",
+  "links": [
+    {
+      "title": "Stripe: how subscriptions work",
+      "url": "https://docs.stripe.com/billing/subscriptions/overview"
+    },
+    {
+      "title": "Stripe: prorations",
+      "url": "https://docs.stripe.com/billing/subscriptions/prorations"
+    },
+    {
+      "title": "Stripe: customer portal",
+      "url": "https://docs.stripe.com/customer-management"
+    },
+    {
+      "title": "Paddle developer docs",
+      "url": "https://developer.paddle.com/"
+    }
+  ],
+  "page": "e/subscription-billing/index.html",
+  "json": "api/subscription-billing.json",
+  "updated": "2026-10-21"
+}

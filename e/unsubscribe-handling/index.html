@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unsubscribe and suppression list: What To Ask For</title>
+<meta name="description" content="A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Unsubscribe and suppression list: What To Ask For">
+<meta property="og:description" content="A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/unsubscribe-handling/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Unsubscribe and suppression list: What To Ask For">
+<meta name="twitter:description" content="A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=email">Email and notifications</a></p>
+  <h1>Unsubscribe and suppression list</h1>
+  <p class="aka">Also called: one-click unsubscribe, List-Unsubscribe header, email preferences, suppression list, bounce handling, spam complaints</p>
+  <p class="lead">A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You send newsletters, digests, tips or any non-transactional email.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Purely transactional mail like receipts and password resets.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Let the email tool handle it <span class="cost">included</span></h3>
+<p>Listmonk, Postmark broadcast streams and most newsletter tools add the headers, host the unsubscribe page and keep a suppression list.</p><p class="trade"><strong>Tradeoff:</strong> Easy. If your app also sends mail on its own, it must read that suppression list.</p></li>
+<li><h3>Your own signed unsubscribe links <span class="cost">$0</span></h3>
+<p>A signed token holding the user id and email type. GET shows a confirm page, POST unsubscribes. The same URL goes in the List-Unsubscribe header.</p><p class="trade"><strong>Tradeoff:</strong> Works across all your mail types. You build the preference page and suppression checks.</p></li>
+<li><h3>Provider bounce and complaint webhooks <span class="cost">$0</span></h3>
+<p>Postmark, SES and Resend send events for bounces and complaints. Add those addresses to your suppression table.</p><p class="trade"><strong>Tradeoff:</strong> Keeps your sender reputation healthy. Another webhook to verify and test.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add unsubscribe handling and a suppression list.
+
+Requirements:
+- Every non-transactional email has a visible unsubscribe link and the headers List-Unsubscribe: &lt;https://...&gt; and List-Unsubscribe-Post: List-Unsubscribe=One-Click.
+- The link holds a signed token (user id plus email type). A POST to it unsubscribes with no login. A GET shows a confirm page and changes nothing, so link scanners can&#x27;t unsubscribe people.
+- A preferences page lets users turn each email type on or off.
+- A suppression table stores unsubscribes, hard bounces and spam complaints from the provider&#x27;s webhooks. Every send checks it first.
+- Unsubscribes take effect before the next send.
+
+Acceptance checks (run each and show me the result):
+1. curl -X POST to the List-Unsubscribe URL unsubscribes the user with no cookies.
+2. A GET to the same URL doesn&#x27;t change anything.
+3. A tampered token returns 404.
+4. An address marked as a hard bounce is skipped on the next send.
+5. Turning off one email type in preferences keeps the others.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Spam complaints rise, Gmail and Yahoo start filtering all your mail, and you risk breaking laws like CAN-SPAM.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s digest and tips emails link to signed unsubscribe tokens that expire after 180 days. Opening the link shows a confirm page and changes nothing. Only the POST turns the email off, so mail scanners that prefetch links can&#x27;t unsubscribe anyone.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add an unsubscribe link to my emails&rdquo;</li><li>&ldquo;Gmail requires one-click unsubscribe&rdquo;</li><li>&ldquo;people unsubscribed but still get emails&rdquo;</li><li>&ldquo;stop emailing addresses that bounce&rdquo;</li><li>&ldquo;let users pick which emails they get&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.rfc-editor.org/info/rfc8058/">RFC 8058: one-click unsubscribe</a></li><li><a href="https://support.google.com/mail/answer/81126">Gmail email sender guidelines</a></li><li><a href="https://listmonk.app/">Listmonk</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/unsubscribe-handling.json">api/unsubscribe-handling.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../transactional-vs-bulk-email/index.html">&larr; Transactional vs bulk email</a><a href="../push-notifications/index.html">Push notifications &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

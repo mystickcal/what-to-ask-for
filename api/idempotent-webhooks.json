@@ -1,6 +1,8 @@
 {
   "id": "idempotent-webhooks",
   "name": "Idempotent webhook handling",
+  "category": "payments",
+  "category_name": "Payments and billing",
   "aliases": [
     "idempotency key",
     "event dedupe",

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free trial (with or without a card): What To Ask For</title>
+<meta name="description" content="A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Free trial (with or without a card): What To Ask For">
+<meta property="og:description" content="A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/free-trials/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free trial (with or without a card): What To Ask For">
+<meta name="twitter:description" content="A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Free trial (with or without a card)</h1>
+  <p class="aka">Also called: trial period, no card required trial, card-required trial, trial_period_days, trial abuse</p>
+  <p class="lead">A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>People need to use the product before they will pay for it.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>A free plan already lets people try the core feature.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Stripe trial with a card collected <span class="cost">Stripe fees</span></h3>
+<p>Checkout in subscription mode with subscription_data.trial_period_days. The first charge happens when the trial ends.</p><p class="trade"><strong>Tradeoff:</strong> More of the people who start end up paying. Fewer start, and you need a reminder before the first charge.</p></li>
+<li><h3>Stripe trial with no card <span class="cost">Stripe fees</span></h3>
+<p>Add payment_method_collection=if_required and set trial_settings.end_behavior.missing_payment_method to cancel or pause, so a trial without a card ends cleanly.</p><p class="trade"><strong>Tradeoff:</strong> More starts. You need in-app prompts to collect a card before the end.</p></li>
+<li><h3>A trial clock in your own database <span class="cost">$0</span></h3>
+<p>Store trial_ends_at on the account and grant paid features until then. Only send people to Checkout when they choose to pay.</p><p class="trade"><strong>Tradeoff:</strong> No payment provider involved until they pay. You build the reminders, the expiry and the abuse checks yourself.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a [7]-day free trial [with / without] a card.
+
+Requirements:
+- One trial per account. Record trial_used_at so canceling and signing up again on the same account doesn&#x27;t start a new one.
+- [Stripe] Use Checkout with subscription_data.trial_period_days=[7][, payment_method_collection=if_required and trial_settings.end_behavior.missing_payment_method=[cancel/pause]].
+- During the trial, show the days left on every page and a button to add a card.
+- Handle customer.subscription.trial_will_end (sent 3 days before the end by default) and send our own reminder email with the end date and what happens next.
+- When the trial ends without payment, remove paid features and keep the user&#x27;s data.
+
+Acceptance checks (run each and show me the result):
+1. A new account gets paid features for exactly the trial length.
+2. The same account can&#x27;t start a second trial after canceling.
+3. With a Stripe test clock, the trial_will_end webhook sends one reminder email.
+4. A no-card trial that ends without a card loses paid features and keeps its data.
+5. A card-required trial makes the first charge on the end date.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Surprise charges and refund requests, endless repeat trials, or trials that never end.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal has a notifications command that sends its own trial-ending emails 3 days and 1 day before the trial ends. Each reminder goes out once per subscription, and it is skipped for users who turned that email off or are in their quiet hours.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;give new users 7 days free&rdquo;</li><li>&ldquo;free trial without asking for a credit card&rdquo;</li><li>&ldquo;what happens when the trial ends and there&#x27;s no card&rdquo;</li><li>&ldquo;people keep signing up again for another free trial&rdquo;</li><li>&ldquo;remind users before the trial ends&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/subscriptions/trials">Stripe: use trial periods on subscriptions</a></li><li><a href="https://docs.stripe.com/payments/checkout/free-trials">Stripe Checkout: free trials</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/free-trials.json">api/free-trials.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../usage-based-billing/index.html">&larr; Usage-based billing</a><a href="../password-reset/index.html">Password reset tokens &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

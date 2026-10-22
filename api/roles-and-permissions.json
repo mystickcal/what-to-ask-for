@@ -1,0 +1,92 @@
+{
+  "id": "roles-and-permissions",
+  "name": "Roles and permissions",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "RBAC",
+    "role-based access control",
+    "authorization",
+    "admin role",
+    "access control",
+    "permission checks"
+  ],
+  "needs": [
+    "admins can do more than regular users",
+    "let some team members view but not edit",
+    "a normal user found the admin page",
+    "hide the delete button for viewers"
+  ],
+  "keywords": [
+    "role",
+    "roles",
+    "permission",
+    "permissions",
+    "rbac",
+    "admin",
+    "viewer",
+    "editor",
+    "owner",
+    "member",
+    "authorization",
+    "team"
+  ],
+  "summary": "Rules for who may do what. Users get a role (owner, admin, member, viewer) and each action checks the role on the server. Hiding a button only changes what people see. The server must refuse the request too.",
+  "need_when": [
+    "More than one kind of user: staff, admins, team members, read-only guests."
+  ],
+  "skip_when": [
+    "Every user only ever sees and edits their own data. Ownership checks cover that."
+  ],
+  "ways": [
+    {
+      "title": "A role column and one permission helper",
+      "cost": "$0",
+      "how": "Store the role on the membership row and write one function, can(user, action, thing), that every view and API calls. Deny by default.",
+      "tradeoff": "Enough for most apps. Gets messy if rules depend on many conditions."
+    },
+    {
+      "title": "A permissions library",
+      "cost": "$0",
+      "how": "django-rules, CASL (JavaScript) or Pundit (Rails) keep named rules in one place, usable in code and templates.",
+      "tradeoff": "Cleaner rules. One more concept for your agent to learn."
+    },
+    {
+      "title": "A policy engine",
+      "cost": "$0 software or paid",
+      "how": "OpenFGA (open source, relationship-based) or a hosted service works out permissions outside your app.",
+      "tradeoff": "Good for complex sharing like Google Docs. Overkill for a few roles."
+    }
+  ],
+  "prompt": "Add roles and permissions: [owner, admin, member, viewer].\n\nRequirements:\n- Store the role on the membership between a user and [team/workspace].\n- Write one function can(user, action, object) with a table of which role may do which action. Deny anything not listed.\n- Call it on the server in every view and API route that reads or changes data. The UI can use the same function to hide buttons, but the server check is the protection.\n- Only owners can change roles, and the last owner can't be removed or demoted.\n- Log role changes with who, whom, old role, new role and time.\n- Add a test per role per action from the table.\n\nAcceptance checks (run each and show me the result):\n1. A viewer who sends the edit request directly (curl or devtools) gets 403.\n2. An admin can't promote themselves to owner.\n3. Removing the last owner is refused.\n4. Every route in the app is covered by a permission check (list any that aren't).\n5. The test suite has a passing test for each role and action pair.",
+  "acceptance_checks": [
+    "A viewer who sends the edit request directly (curl or devtools) gets 403.",
+    "An admin can't promote themselves to owner.",
+    "Removing the last owner is refused.",
+    "Every route in the app is covered by a permission check (list any that aren't).",
+    "The test suite has a passing test for each role and action pair."
+  ],
+  "if_you_skip_it": "Any logged-in user can reach admin actions by guessing the URL.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OWASP Authorization Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+    },
+    {
+      "title": "django-rules",
+      "url": "https://github.com/dfunckt/django-rules"
+    },
+    {
+      "title": "CASL (JavaScript permissions)",
+      "url": "https://casl.js.org/"
+    },
+    {
+      "title": "OpenFGA",
+      "url": "https://openfga.dev/"
+    }
+  ],
+  "page": "e/roles-and-permissions/index.html",
+  "json": "api/roles-and-permissions.json",
+  "updated": "2026-10-21"
+}

@@ -1,6 +1,8 @@
 {
   "id": "backups-tested-restore",
   "name": "Backups with a tested restore",
+  "category": "data",
+  "category_name": "Data and databases",
   "aliases": [
     "database backup",
     "pg_dump",

@@ -1,6 +1,8 @@
 {
   "id": "webhook-signature-verification",
   "name": "Webhook signature verification",
+  "category": "payments",
+  "category_name": "Payments and billing",
   "aliases": [
     "webhook signing",
     "HMAC signature",

@@ -1,0 +1,94 @@
+{
+  "id": "sessions-vs-jwt",
+  "name": "Sessions vs JWT",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "session cookie",
+    "JSON Web Token",
+    "access token",
+    "refresh token",
+    "stateless auth",
+    "bearer token"
+  ],
+  "needs": [
+    "should I use JWT or sessions",
+    "log a user out everywhere",
+    "where do I store the login token in the browser",
+    "keep users logged in on the mobile app",
+    "a stolen token still works after logout"
+  ],
+  "keywords": [
+    "jwt",
+    "session",
+    "cookie",
+    "token",
+    "refresh",
+    "access",
+    "logout",
+    "localstorage",
+    "httponly",
+    "samesite",
+    "bearer",
+    "revoke",
+    "stateless"
+  ],
+  "summary": "Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user's details itself, so the server doesn't look anything up, but it stays valid until it expires unless you add a revocation list.",
+  "need_when": [
+    "Every app with logins makes this choice, often without noticing."
+  ],
+  "skip_when": [
+    "Your auth provider already decides it. Learn which one it uses and how logout works."
+  ],
+  "ways": [
+    {
+      "title": "Server-side sessions in a cookie",
+      "cost": "$0",
+      "how": "Your framework's sessions, stored in the database or Redis. Cookie flags: HttpOnly, Secure, SameSite=Lax.",
+      "tradeoff": "Simple and easy to revoke. The usual right answer for a web app on one domain."
+    },
+    {
+      "title": "Short-lived JWT plus a refresh token",
+      "cost": "$0",
+      "how": "An access token valid for minutes and a refresh token that is rotated on each use and stored server-side so it can be revoked.",
+      "tradeoff": "Fits APIs used by many services. More moving parts, and logout only takes effect when the access token expires."
+    },
+    {
+      "title": "Opaque tokens stored hashed",
+      "cost": "$0",
+      "how": "For mobile apps and API keys: a random token sent as a bearer header, stored as a hash, and checked against the database on each request.",
+      "tradeoff": "Revocable like sessions and no cookies needed. One lookup per request."
+    }
+  ],
+  "prompt": "Set up login state for this app using [server-side sessions / short-lived JWT plus refresh token].\n\nRequirements:\n- Web: session cookie with HttpOnly, Secure and SameSite=Lax. Don't put tokens in localStorage.\n- Sessions expire after [30 minutes idle / 14 days absolute] and on logout.\n- A 'log out of all devices' button ends every session or refresh token for the user.\n- Changing the password or email ends other sessions.\n- [JWT] Access tokens expire in [10 minutes]. Refresh tokens are random, stored hashed, rotated on every use, and reuse of an old refresh token revokes the whole family.\n- Rotate the session id at login.\n\nAcceptance checks (run each and show me the result):\n1. document.cookie in the browser console doesn't show the session cookie.\n2. After 'log out of all devices', a second browser that was logged in is logged out on its next request.\n3. A copied session cookie stops working after logout.\n4. [JWT] Using an old refresh token a second time fails and logs out that device.\n5. The session id changes after login.",
+  "acceptance_checks": [
+    "document.cookie in the browser console doesn't show the session cookie.",
+    "After 'log out of all devices', a second browser that was logged in is logged out on its next request.",
+    "A copied session cookie stops working after logout.",
+    "[JWT] Using an old refresh token a second time fails and logs out that device.",
+    "The session id changes after login."
+  ],
+  "if_you_skip_it": "Logout doesn't really log anyone out, and a stolen token works until it expires.",
+  "how_derek_runs_it": "Custody Journal's website uses server-side Django sessions (the cached_db engine), with secure cookies in production, a 30 minute idle timeout by default, and expiry when the browser closes. Its mobile app uses opaque access and refresh tokens that are stored as hashes and can be revoked. There is no JWT signing.",
+  "links": [
+    {
+      "title": "OWASP Session Management Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+    },
+    {
+      "title": "OWASP JSON Web Token Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html"
+    },
+    {
+      "title": "RFC 7519: JSON Web Token",
+      "url": "https://www.rfc-editor.org/info/rfc7519/"
+    },
+    {
+      "title": "MDN: Set-Cookie",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"
+    }
+  ],
+  "page": "e/sessions-vs-jwt/index.html",
+  "json": "api/sessions-vs-jwt.json",
+  "updated": "2026-10-21"
+}

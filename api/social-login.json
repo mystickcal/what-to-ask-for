@@ -1,0 +1,93 @@
+{
+  "id": "social-login",
+  "name": "Social login (OAuth and OpenID Connect)",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "Sign in with Google",
+    "OAuth login",
+    "OpenID Connect",
+    "OIDC",
+    "SSO",
+    "PKCE"
+  ],
+  "needs": [
+    "add Sign in with Google",
+    "let users log in with GitHub or Apple",
+    "Google login made a second account for an existing user",
+    "redirect_uri_mismatch error"
+  ],
+  "keywords": [
+    "oauth",
+    "oidc",
+    "openid",
+    "google",
+    "github",
+    "apple",
+    "social",
+    "login",
+    "sso",
+    "pkce",
+    "redirect",
+    "callback"
+  ],
+  "summary": "Users sign in with an account they already have. Your app sends them to the provider, gets back a code, and swaps it on the server for tokens that say who they are. Use a library for this, keep the requested permissions small, and only link to an existing account when the provider says the email is verified.",
+  "need_when": [
+    "You want sign-up with no password and less friction.",
+    "Your users are businesses that expect Google or Microsoft sign-in."
+  ],
+  "skip_when": [
+    "Your users don't have, or don't want to use, those accounts. Offer email sign-in too."
+  ],
+  "ways": [
+    {
+      "title": "An auth library in your framework",
+      "cost": "$0",
+      "how": "django-allauth, Auth.js or Better Auth. They handle the code flow, state, PKCE and account linking.",
+      "tradeoff": "Your data stays in your database. You still register an app with each provider and set exact redirect URLs."
+    },
+    {
+      "title": "A hosted auth service",
+      "cost": "free tiers",
+      "how": "Clerk, Auth0, Supabase Auth or Firebase Auth add many providers from a dashboard.",
+      "tradeoff": "Fastest. Your user list lives with them and pricing grows with users."
+    },
+    {
+      "title": "A self-hosted identity provider",
+      "cost": "$0 software",
+      "how": "Keycloak, Authentik or Zitadel run on your server and speak OpenID Connect to your apps.",
+      "tradeoff": "Good when several apps share one login. Heavy to run for a single app."
+    }
+  ],
+  "prompt": "Add [Google] sign-in using [library].\n\nRequirements:\n- Use the authorization code flow with PKCE and a state parameter. No implicit flow.\n- Ask only for openid, email and profile. Ask for other permissions later, when a feature needs them.\n- Register exact redirect URIs for each environment. No wildcards.\n- If the email matches an existing account, link them only when the provider marks the email as verified. Otherwise refuse and explain.\n- Keep the provider's client secret in an environment variable.\n- Show a friendly error page when the user cancels or the provider fails, and log the provider's error code.\n\nAcceptance checks (run each and show me the result):\n1. A new Google user who signs in twice still has one account.\n2. An existing email user who signs in with Google (verified email) lands in their existing account, not a new one.\n3. A callback with a wrong or missing state value is rejected.\n4. The consent screen asks only for basic profile and email.\n5. Canceling on the provider's screen shows our error page, not a stack trace.",
+  "acceptance_checks": [
+    "A new Google user who signs in twice still has one account.",
+    "An existing email user who signs in with Google (verified email) lands in their existing account, not a new one.",
+    "A callback with a wrong or missing state value is rejected.",
+    "The consent screen asks only for basic profile and email.",
+    "Canceling on the provider's screen shows our error page, not a stack trace."
+  ],
+  "if_you_skip_it": "Duplicate accounts, account takeover through an unverified email, or a consent screen asking for far more than you need.",
+  "how_derek_runs_it": "Custody Journal uses django-allauth with Google as the only social provider. PKCE is on, sign-in asks only for profile and email, and calendar access is requested separately inside the app. The Google prompt is set to select_account so the wrong browser account isn't reused. A verified Google email can sign in to an existing account with the same email.",
+  "links": [
+    {
+      "title": "RFC 9700: OAuth 2.0 security best current practice",
+      "url": "https://www.rfc-editor.org/info/rfc9700/"
+    },
+    {
+      "title": "Google: OpenID Connect",
+      "url": "https://developers.google.com/identity/openid-connect/openid-connect"
+    },
+    {
+      "title": "django-allauth",
+      "url": "https://docs.allauth.org/"
+    },
+    {
+      "title": "Auth.js",
+      "url": "https://authjs.dev/"
+    }
+  ],
+  "page": "e/social-login/index.html",
+  "json": "api/social-login.json",
+  "updated": "2026-10-21"
+}

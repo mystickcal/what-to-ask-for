@@ -1,0 +1,84 @@
+{
+  "id": "ownership-checks",
+  "name": "Ownership checks (IDOR)",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "IDOR",
+    "insecure direct object reference",
+    "broken object level authorization",
+    "BOLA",
+    "object-level authorization"
+  ],
+  "needs": [
+    "change the id in the URL and see someone else's data",
+    "make sure users can only edit their own posts",
+    "my API returns any record if you know the id",
+    "are UUIDs enough to keep records private"
+  ],
+  "keywords": [
+    "idor",
+    "bola",
+    "ownership",
+    "owner",
+    "authorization",
+    "id",
+    "url",
+    "other",
+    "user",
+    "leak",
+    "uuid",
+    "permission",
+    "own"
+  ],
+  "summary": "Checking on every request that the logged-in user is allowed to touch the exact record they asked for. The usual bug: the code loads a record by id and never checks who owns it. Hard-to-guess ids help but don't replace the check.",
+  "need_when": [
+    "Any URL or API with a record id in it."
+  ],
+  "skip_when": [
+    "The record is public on purpose."
+  ],
+  "ways": [
+    {
+      "title": "Put the owner in the query",
+      "cost": "$0",
+      "how": "Load records with the owner in the filter, like get(id=..., owner=current_user), so another user's id finds nothing and returns 404.",
+      "tradeoff": "Simple and hard to get wrong once it's a habit. Every new endpoint must follow it."
+    },
+    {
+      "title": "A scoped helper or manager",
+      "cost": "$0",
+      "how": "One function, for_user(user), that every query starts from. Code review flags any query that doesn't use it.",
+      "tradeoff": "Makes the safe path the easy path. Admin and background code need a clearly named way around it."
+    },
+    {
+      "title": "Database row level security",
+      "cost": "$0",
+      "how": "Postgres RLS policies as a backstop, so even a buggy query can't return other users' rows.",
+      "tradeoff": "Strong. Needs the user identity passed into the database session."
+    }
+  ],
+  "prompt": "Audit and fix object-level authorization in this app.\n\nRequirements:\n- List every route and API endpoint that takes a record id (path, query string or body).\n- For each, load the record with the current user (or their tenant) in the query. Another user's id must return 404, not the record and not a 403 that confirms it exists.\n- Check nested ids too, like an attachment id inside a request for a note the user owns.\n- Writes and deletes get the same check as reads.\n- Add a test per endpoint: user A creates a record, user B tries to read, edit and delete it.\n- Produce a table of endpoints with the check used and the test name.\n\nAcceptance checks (run each and show me the result):\n1. User B gets 404 for user A's record on every endpoint in the table.\n2. Changing an id inside a JSON body (not only the URL) is blocked.\n3. File and download endpoints check ownership the same way.\n4. List endpoints never include other users' rows, even with filters changed.\n5. The test suite covers every endpoint in the table.",
+  "acceptance_checks": [
+    "User B gets 404 for user A's record on every endpoint in the table.",
+    "Changing an id inside a JSON body (not only the URL) is blocked.",
+    "File and download endpoints check ownership the same way.",
+    "List endpoints never include other users' rows, even with filters changed.",
+    "The test suite covers every endpoint in the table."
+  ],
+  "if_you_skip_it": "Anyone can read or change other users' records by counting up ids. Broken object level authorization is the first item on the OWASP API Security Top 10.",
+  "how_derek_runs_it": "Custody Journal loads user records with the owner in the query, for example get_object_or_404(Entry, pk=pk, user=request.user), so another user's id returns 404.",
+  "links": [
+    {
+      "title": "OWASP API1:2023 Broken Object Level Authorization",
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/"
+    },
+    {
+      "title": "OWASP IDOR Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html"
+    }
+  ],
+  "page": "e/ownership-checks/index.html",
+  "json": "api/ownership-checks.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage-based billing: What To Ask For</title>
+<meta name="description" content="Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Usage-based billing: What To Ask For">
+<meta property="og:description" content="Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/usage-based-billing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Usage-based billing: What To Ask For">
+<meta name="twitter:description" content="Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Usage-based billing</h1>
+  <p class="aka">Also called: metered billing, billing meters, pay as you go, prepaid credits, credit balance, overage charges</p>
+  <p class="lead">Charging for how much someone used instead of a flat fee. Your app records each billable event in its own database first, then reports totals to the billing system, which adds them to the invoice. Prepaid credits are the other common shape: the user buys a balance and each use draws it down.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your costs grow with use, like AI tokens, SMS or compute, and a flat price would lose money on heavy users.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Usage is small or predictable. A flat plan with a hard limit is simpler to build and to explain.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Stripe billing meters <span class="cost">Stripe fees</span></h3>
+<p>Create a meter, attach a usage-based price, and send meter events with a customer id, a value and an identifier. Stripe enforces uniqueness of the identifier within a rolling period of at least 24 hours, which guards against double counting on retries.</p><p class="trade"><strong>Tradeoff:</strong> Invoicing is handled for you. You still need your own usage records to show users their usage and to reconcile.</p></li>
+<li><h3>Prepaid credits in your database <span class="cost">$0 plus normal payments</span></h3>
+<p>Sell credit packs through Checkout. Keep a credit ledger table with one row per purchase or use, and check the balance inside a transaction before the expensive call.</p><p class="trade"><strong>Tradeoff:</strong> Simple to understand and no surprise bills. Refunds and expiring credits need care.</p></li>
+<li><h3>Open-source metering and billing <span class="cost">$0 software</span></h3>
+<p>Lago can be self-hosted to take in usage events, add them up and produce invoices, with a payment provider underneath.</p><p class="trade"><strong>Tradeoff:</strong> You own the data and logic. Another system to run and keep in sync.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add usage-based billing for [billable action] using [Stripe meters / prepaid credits].
+
+Requirements:
+- Write one usage row per billable action in our database: account id, quantity, unique event id, created time. The event id is unique so a retry can&#x27;t count twice.
+- [Meters] A job sends unsent usage rows to Stripe as meter events with our event id as the identifier, marks them sent, and retries failures.
+- [Credits] Keep a ledger table (purchases positive, uses negative). Check and deduct the balance in one transaction with a row lock before the action runs. Refuse with a clear message at zero.
+- Show users their usage or balance for the current period on the billing page.
+- Add a daily reconcile job that compares our totals with the billing provider and reports any difference.
+
+Acceptance checks (run each and show me the result):
+1. Running the same billable action twice with the same event id records it once.
+2. Ten parallel requests with a balance of 5 credits run exactly 5 actions.
+3. The usage on the billing page matches what the provider shows for the same period.
+4. Turning off the send job for an hour, then back on, sends every missed event once.
+5. A user at zero credits gets a clear message and the expensive call is never made.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Heavy users cost more than they pay, retries bill people twice, and nobody can explain an invoice.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;charge per AI generation&rdquo;</li><li>&ldquo;bill customers for what they used this month&rdquo;</li><li>&ldquo;sell credits that get used up&rdquo;</li><li>&ldquo;a plan that includes 1,000 calls and charges for extra&rdquo;</li><li>&ldquo;count API calls for billing&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/subscriptions/usage-based">Stripe: usage-based billing</a></li><li><a href="https://docs.stripe.com/api/billing/meter-event/create">Stripe API: create a billing meter event</a></li><li><a href="https://github.com/getlago/lago">Lago (open-source metering and billing)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/usage-based-billing.json">api/usage-based-billing.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../failed-payment-recovery/index.html">&larr; Failed payment recovery (dunning)</a><a href="../free-trials/index.html">Free trial (with or without a card) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

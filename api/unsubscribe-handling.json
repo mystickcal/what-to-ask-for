@@ -1,0 +1,90 @@
+{
+  "id": "unsubscribe-handling",
+  "name": "Unsubscribe and suppression list",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "one-click unsubscribe",
+    "List-Unsubscribe header",
+    "email preferences",
+    "suppression list",
+    "bounce handling",
+    "spam complaints"
+  ],
+  "needs": [
+    "add an unsubscribe link to my emails",
+    "Gmail requires one-click unsubscribe",
+    "people unsubscribed but still get emails",
+    "stop emailing addresses that bounce",
+    "let users pick which emails they get"
+  ],
+  "keywords": [
+    "unsubscribe",
+    "opt",
+    "out",
+    "one",
+    "click",
+    "suppression",
+    "bounce",
+    "complaint",
+    "preferences",
+    "gmail",
+    "yahoo",
+    "rfc8058",
+    "newsletter"
+  ],
+  "summary": "A way for people to stop marketing email, honored quickly, plus a list of addresses you never mail again: unsubscribes, hard bounces and spam complaints. Gmail requires bulk senders to support one-click unsubscribe through the List-Unsubscribe and List-Unsubscribe-Post headers (RFC 8058).",
+  "need_when": [
+    "You send newsletters, digests, tips or any non-transactional email."
+  ],
+  "skip_when": [
+    "Purely transactional mail like receipts and password resets."
+  ],
+  "ways": [
+    {
+      "title": "Let the email tool handle it",
+      "cost": "included",
+      "how": "Listmonk, Postmark broadcast streams and most newsletter tools add the headers, host the unsubscribe page and keep a suppression list.",
+      "tradeoff": "Easy. If your app also sends mail on its own, it must read that suppression list."
+    },
+    {
+      "title": "Your own signed unsubscribe links",
+      "cost": "$0",
+      "how": "A signed token holding the user id and email type. GET shows a confirm page, POST unsubscribes. The same URL goes in the List-Unsubscribe header.",
+      "tradeoff": "Works across all your mail types. You build the preference page and suppression checks."
+    },
+    {
+      "title": "Provider bounce and complaint webhooks",
+      "cost": "$0",
+      "how": "Postmark, SES and Resend send events for bounces and complaints. Add those addresses to your suppression table.",
+      "tradeoff": "Keeps your sender reputation healthy. Another webhook to verify and test."
+    }
+  ],
+  "prompt": "Add unsubscribe handling and a suppression list.\n\nRequirements:\n- Every non-transactional email has a visible unsubscribe link and the headers List-Unsubscribe: <https://...> and List-Unsubscribe-Post: List-Unsubscribe=One-Click.\n- The link holds a signed token (user id plus email type). A POST to it unsubscribes with no login. A GET shows a confirm page and changes nothing, so link scanners can't unsubscribe people.\n- A preferences page lets users turn each email type on or off.\n- A suppression table stores unsubscribes, hard bounces and spam complaints from the provider's webhooks. Every send checks it first.\n- Unsubscribes take effect before the next send.\n\nAcceptance checks (run each and show me the result):\n1. curl -X POST to the List-Unsubscribe URL unsubscribes the user with no cookies.\n2. A GET to the same URL doesn't change anything.\n3. A tampered token returns 404.\n4. An address marked as a hard bounce is skipped on the next send.\n5. Turning off one email type in preferences keeps the others.",
+  "acceptance_checks": [
+    "curl -X POST to the List-Unsubscribe URL unsubscribes the user with no cookies.",
+    "A GET to the same URL doesn't change anything.",
+    "A tampered token returns 404.",
+    "An address marked as a hard bounce is skipped on the next send.",
+    "Turning off one email type in preferences keeps the others."
+  ],
+  "if_you_skip_it": "Spam complaints rise, Gmail and Yahoo start filtering all your mail, and you risk breaking laws like CAN-SPAM.",
+  "how_derek_runs_it": "Custody Journal's digest and tips emails link to signed unsubscribe tokens that expire after 180 days. Opening the link shows a confirm page and changes nothing. Only the POST turns the email off, so mail scanners that prefetch links can't unsubscribe anyone.",
+  "links": [
+    {
+      "title": "RFC 8058: one-click unsubscribe",
+      "url": "https://www.rfc-editor.org/info/rfc8058/"
+    },
+    {
+      "title": "Gmail email sender guidelines",
+      "url": "https://support.google.com/mail/answer/81126"
+    },
+    {
+      "title": "Listmonk",
+      "url": "https://listmonk.app/"
+    }
+  ],
+  "page": "e/unsubscribe-handling/index.html",
+  "json": "api/unsubscribe-handling.json",
+  "updated": "2026-10-21"
+}

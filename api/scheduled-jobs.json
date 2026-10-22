@@ -1,6 +1,8 @@
 {
   "id": "scheduled-jobs",
   "name": "Scheduled job",
+  "category": "background",
+  "category_name": "Background work and scheduling",
   "aliases": [
     "cron job",
     "scheduled task",

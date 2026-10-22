@@ -32,28 +32,71 @@
 
 <section class="hero">
   <h1>Say what your app needs. Get the name of the piece, and a prompt for your coding agent.</h1>
-  <p class="lead">For the parts of an app nobody sees: jobs, webhooks, backups, limits. Each entry says when you need it, a few ways to build it, and a prompt with checks for Claude Code, Cursor or Codex.</p>
+  <p class="lead">For the parts of an app nobody sees: jobs, payments, logins, email, uploads, data. Each entry says when you need it, a few ways to build it, and a prompt with checks for Claude Code, Cursor or Codex.</p>
   <form class="search" role="search" onsubmit="return false">
     <label for="q" class="vh">Describe what you need</label>
     <input id="q" type="search" placeholder="e.g. send each user an email at a time they pick" autocomplete="off" spellcheck="false">
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>27</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>4</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>6</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>6</span></a><a class="cat" href="#c-email" data-c="email">Email <span>4</span></a><a class="cat" href="#c-files" data-c="files">Files <span>1</span></a><a class="cat" href="#c-data" data-c="data">Data <span>1</span></a><a class="cat" href="#c-security" data-c="security">Security <span>3</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>2</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">10 entries</p>
-  <ol class="results" id="results">
+  <p class="count" id="count" aria-live="polite">27 entries in 8 categories</p>
+  <ol class="results" id="results" hidden></ol>
+  <div id="browse">
+<section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">4</span></h3>
+<ol class="results">
 <li><a href="e/scheduled-jobs/index.html"><span class="r-name">Scheduled job</span><span class="r-need">&ldquo;send each user an email at a time they pick&rdquo;</span></a></li>
 <li><a href="e/background-job-queue/index.html"><span class="r-name">Background job queue</span><span class="r-need">&ldquo;the AI step takes 40 seconds and the page hangs&rdquo;</span></a></li>
+<li><a href="e/retries-and-dead-letter-queue/index.html"><span class="r-name">Retries with backoff and a dead-letter queue</span><span class="r-need">&ldquo;the email API failed once and the email was never sent&rdquo;</span></a></li>
+<li><a href="e/time-zones/index.html"><span class="r-name">Time zone handling</span><span class="r-need">&ldquo;reminders show up an hour off after daylight saving&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-payments" data-c="payments" aria-labelledby="h-payments"><h3 class="group-h" id="h-payments">Payments and billing <span class="group-n">6</span></h3>
+<ol class="results">
 <li><a href="e/webhook-signature-verification/index.html"><span class="r-name">Webhook signature verification</span><span class="r-need">&ldquo;Stripe calls my server when someone pays&rdquo;</span></a></li>
 <li><a href="e/idempotent-webhooks/index.html"><span class="r-name">Idempotent webhook handling</span><span class="r-need">&ldquo;a customer paid once but got upgraded twice&rdquo;</span></a></li>
-<li><a href="e/signed-download-links/index.html"><span class="r-name">Signed download link</span><span class="r-need">&ldquo;let a user download their file without making it public&rdquo;</span></a></li>
-<li><a href="e/rate-limiting/index.html"><span class="r-name">Rate limiting</span><span class="r-need">&ldquo;someone keeps trying passwords on my login&rdquo;</span></a></li>
+<li><a href="e/subscription-billing/index.html"><span class="r-name">Subscription billing</span><span class="r-need">&ldquo;charge users every month&rdquo;</span></a></li>
+<li><a href="e/failed-payment-recovery/index.html"><span class="r-name">Failed payment recovery (dunning)</span><span class="r-need">&ldquo;a customer&#x27;s card expired and the renewal failed&rdquo;</span></a></li>
+<li><a href="e/usage-based-billing/index.html"><span class="r-name">Usage-based billing</span><span class="r-need">&ldquo;charge per AI generation&rdquo;</span></a></li>
+<li><a href="e/free-trials/index.html"><span class="r-name">Free trial (with or without a card)</span><span class="r-need">&ldquo;give new users 7 days free&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-auth" data-c="auth" aria-labelledby="h-auth"><h3 class="group-h" id="h-auth">Auth and accounts <span class="group-n">6</span></h3>
+<ol class="results">
+<li><a href="e/password-reset/index.html"><span class="r-name">Password reset tokens</span><span class="r-need">&ldquo;add a forgot password link&rdquo;</span></a></li>
+<li><a href="e/magic-links/index.html"><span class="r-name">Magic link sign-in</span><span class="r-need">&ldquo;let users log in without a password&rdquo;</span></a></li>
+<li><a href="e/social-login/index.html"><span class="r-name">Social login (OAuth and OpenID Connect)</span><span class="r-need">&ldquo;add Sign in with Google&rdquo;</span></a></li>
+<li><a href="e/sessions-vs-jwt/index.html"><span class="r-name">Sessions vs JWT</span><span class="r-need">&ldquo;should I use JWT or sessions&rdquo;</span></a></li>
+<li><a href="e/roles-and-permissions/index.html"><span class="r-name">Roles and permissions</span><span class="r-need">&ldquo;admins can do more than regular users&rdquo;</span></a></li>
+<li><a href="e/multi-tenant-isolation/index.html"><span class="r-name">Multi-tenant data isolation</span><span class="r-need">&ldquo;one company can see another company&#x27;s data&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-email" data-c="email" aria-labelledby="h-email"><h3 class="group-h" id="h-email">Email and notifications <span class="group-n">4</span></h3>
+<ol class="results">
 <li><a href="e/email-authentication/index.html"><span class="r-name">Email authentication (SPF, DKIM, DMARC)</span><span class="r-need">&ldquo;my password reset emails go to spam&rdquo;</span></a></li>
+<li><a href="e/transactional-vs-bulk-email/index.html"><span class="r-name">Transactional vs bulk email</span><span class="r-need">&ldquo;send receipts and newsletters from the same app&rdquo;</span></a></li>
+<li><a href="e/unsubscribe-handling/index.html"><span class="r-name">Unsubscribe and suppression list</span><span class="r-need">&ldquo;add an unsubscribe link to my emails&rdquo;</span></a></li>
+<li><a href="e/push-notifications/index.html"><span class="r-name">Push notifications</span><span class="r-need">&ldquo;notify users even when the site is closed&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-files" data-c="files" aria-labelledby="h-files"><h3 class="group-h" id="h-files">Files and uploads <span class="group-n">1</span></h3>
+<ol class="results">
+<li><a href="e/signed-download-links/index.html"><span class="r-name">Signed download link</span><span class="r-need">&ldquo;let a user download their file without making it public&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">1</span></h3>
+<ol class="results">
 <li><a href="e/backups-tested-restore/index.html"><span class="r-name">Backups with a tested restore</span><span class="r-need">&ldquo;what happens if my database gets deleted&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-security" data-c="security" aria-labelledby="h-security"><h3 class="group-h" id="h-security">Security and abuse <span class="group-n">3</span></h3>
+<ol class="results">
+<li><a href="e/rate-limiting/index.html"><span class="r-name">Rate limiting</span><span class="r-need">&ldquo;someone keeps trying passwords on my login&rdquo;</span></a></li>
+<li><a href="e/ownership-checks/index.html"><span class="r-name">Ownership checks (IDOR)</span><span class="r-need">&ldquo;change the id in the URL and see someone else&#x27;s data&rdquo;</span></a></li>
+<li><a href="e/input-validation/index.html"><span class="r-name">Input validation</span><span class="r-need">&ldquo;users can send any data to my API&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">2</span></h3>
+<ol class="results">
 <li><a href="e/feature-flags/index.html"><span class="r-name">Feature flag</span><span class="r-need">&ldquo;ship code but keep the feature off&rdquo;</span></a></li>
 <li><a href="e/health-checks/index.html"><span class="r-name">Health checks and safe deploys</span><span class="r-need">&ldquo;the site goes down every time I deploy&rdquo;</span></a></li>
-  </ol>
+</ol></section>
+  </div>
   <p class="none" id="none" hidden>No match. Try plainer words, like &ldquo;slow&rdquo;, &ldquo;twice&rdquo; or &ldquo;spam&rdquo;.</p>
 </section>
 

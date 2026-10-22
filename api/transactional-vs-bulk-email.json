@@ -1,0 +1,93 @@
+{
+  "id": "transactional-vs-bulk-email",
+  "name": "Transactional vs bulk email",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "transactional email",
+    "marketing email",
+    "newsletter sending",
+    "message streams",
+    "email outbox"
+  ],
+  "needs": [
+    "send receipts and newsletters from the same app",
+    "my newsletter hurt my password reset delivery",
+    "which email service should I use",
+    "sending email makes my signup page slow"
+  ],
+  "keywords": [
+    "email",
+    "transactional",
+    "marketing",
+    "bulk",
+    "newsletter",
+    "receipt",
+    "postmark",
+    "resend",
+    "ses",
+    "listmonk",
+    "stream",
+    "outbox",
+    "smtp",
+    "send"
+  ],
+  "summary": "Transactional email is one message to one person because of something they did: a sign-in link, a receipt, a reset. Bulk email is the same message to many people: newsletters, announcements. Send them through separate streams or providers so complaints about one don't hurt delivery of the other, and send from a background job, not inside the web request.",
+  "need_when": [
+    "Your app sends both kinds, or plans to."
+  ],
+  "skip_when": [
+    "You send only a few transactional emails and no marketing at all."
+  ],
+  "ways": [
+    {
+      "title": "One provider with separate streams",
+      "cost": "free or cheap tiers",
+      "how": "Postmark message streams, or separate configuration sets and subdomains in Amazon SES, keep the two kinds of mail apart.",
+      "tradeoff": "One account to manage. Some providers don't allow marketing mail on the transactional stream at all."
+    },
+    {
+      "title": "A transactional provider plus a newsletter tool",
+      "cost": "$0 software for self-hosted lists",
+      "how": "Postmark, Resend or SES for app mail. Listmonk (self-hosted) or a hosted newsletter tool for lists.",
+      "tradeoff": "Each tool does its own job well. Two places to keep unsubscribes in sync."
+    },
+    {
+      "title": "A database outbox for app mail",
+      "cost": "$0",
+      "how": "Save the email as a row in the same transaction as the change that caused it. A worker sends it and retries.",
+      "tradeoff": "Mail is never lost, and never sent for a change that was rolled back. You run the worker."
+    }
+  ],
+  "prompt": "Split our email into transactional and bulk.\n\nRequirements:\n- Transactional mail (sign-in, reset, receipts, alerts) goes through [provider/stream A] from [mail.example.com].\n- Bulk mail (newsletters, announcements) goes through [provider/stream B] from [news.example.com], with List-Unsubscribe headers.\n- Never send from inside the web request. Save an outbox row in the same transaction and let a worker send it with retries.\n- Transactional mail doesn't need an unsubscribe link, but it must not carry marketing content.\n- In development, all mail goes to Mailpit.\n- Log message id, type and status. Never log full bodies with personal data.\n\nAcceptance checks (run each and show me the result):\n1. Signing up returns quickly even when the email provider is slow or down.\n2. Stopping the worker, signing up, then starting it again delivers the email once.\n3. A newsletter test send shows the bulk subdomain and a List-Unsubscribe header.\n4. Password reset emails still arrive during a newsletter send.\n5. No email is sent for a change that was rolled back.",
+  "acceptance_checks": [
+    "Signing up returns quickly even when the email provider is slow or down.",
+    "Stopping the worker, signing up, then starting it again delivers the email once.",
+    "A newsletter test send shows the bulk subdomain and a List-Unsubscribe header.",
+    "Password reset emails still arrive during a newsletter send.",
+    "No email is sent for a change that was rolled back."
+  ],
+  "if_you_skip_it": "A spike in newsletter complaints sends your password resets to spam, and a slow email API slows down signups.",
+  "how_derek_runs_it": "Custody Journal sends sign-in email through its own database outbox. The outbox row is created in the same transaction as the sign-in token, and the recipient, subject and body are stored encrypted. Onboarding tips and the weekly digest are separate email types, each with its own unsubscribe link, and a code comment notes that trial reminders go through the transactional backend because marketing providers don't own billing mail.",
+  "links": [
+    {
+      "title": "Gmail email sender guidelines",
+      "url": "https://support.google.com/mail/answer/81126"
+    },
+    {
+      "title": "Postmark: message streams",
+      "url": "https://postmarkapp.com/support/article/how-to-create-and-send-through-message-streams"
+    },
+    {
+      "title": "Amazon SES developer guide",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/Welcome.html"
+    },
+    {
+      "title": "Listmonk",
+      "url": "https://listmonk.app/"
+    }
+  ],
+  "page": "e/transactional-vs-bulk-email/index.html",
+  "json": "api/transactional-vs-bulk-email.json",
+  "updated": "2026-10-21"
+}

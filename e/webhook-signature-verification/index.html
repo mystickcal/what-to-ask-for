@@ -31,7 +31,7 @@
 <main id="main">
 
 <article class="entry">
-  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
   <h1>Webhook signature verification</h1>
   <p class="aka">Also called: webhook signing, HMAC signature, signing secret, Stripe-Signature header</p>
   <p class="lead">A webhook is another service calling your URL when something happens. The sender signs each request with a shared secret. Your server recomputes the signature from the raw body and rejects anything that doesn&#x27;t match or is too old.</p>
@@ -74,7 +74,7 @@ Acceptance checks (run each and show me the result):
   <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;Stripe calls my server when someone pays&rdquo;</li><li>&ldquo;how do I know the webhook is really from Stripe&rdquo;</li><li>&ldquo;anyone could POST to my webhook URL&rdquo;</li><li>&ldquo;receive events from GitHub or another service&rdquo;</li></ul></section>
   <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/webhooks/signature">Stripe: verify webhook signatures</a></li><li><a href="https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries">GitHub: validating webhook deliveries</a></li><li><a href="https://github.com/stripe/stripe-cli">Stripe CLI</a></li></ul></section>
   <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/webhook-signature-verification.json">api/webhook-signature-verification.json</a></p>
-  <nav class="pn" aria-label="More entries"><a href="../background-job-queue/index.html">&larr; Background job queue</a><a href="../idempotent-webhooks/index.html">Idempotent webhook handling &rarr;</a></nav>
+  <nav class="pn" aria-label="More entries"><a href="../time-zones/index.html">&larr; Time zone handling</a><a href="../idempotent-webhooks/index.html">Idempotent webhook handling &rarr;</a></nav>
 </article>
 
 </main>

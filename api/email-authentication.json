@@ -1,6 +1,8 @@
 {
   "id": "email-authentication",
   "name": "Email authentication (SPF, DKIM, DMARC)",
+  "category": "email",
+  "category_name": "Email and notifications",
   "aliases": [
     "email deliverability",
     "SPF record",
@@ -71,7 +73,7 @@
   "links": [
     {
       "title": "Gmail email sender guidelines",
-      "url": "https://support.google.com/a/answer/81126"
+      "url": "https://support.google.com/mail/answer/81126"
     },
     {
       "title": "DMARC (RFC 7489)",

@@ -31,7 +31,7 @@
 <main id="main">
 
 <article class="entry">
-  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=background">Background work and scheduling</a></p>
   <h1>Background job queue</h1>
   <p class="aka">Also called: task queue, worker, async job, background worker, job runner</p>
   <p class="lead">The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it.</p>
@@ -74,7 +74,7 @@ Acceptance checks (run each and show me the result):
   <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the AI step takes 40 seconds and the page hangs&rdquo;</li><li>&ldquo;generate a PDF without making the user wait&rdquo;</li><li>&ldquo;my request times out&rdquo;</li><li>&ldquo;process an upload after it finishes&rdquo;</li><li>&ldquo;call a slow API without blocking the page&rdquo;</li></ul></section>
   <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/timgit/pg-boss">pg-boss (Postgres queue for Node)</a></li><li><a href="https://github.com/riverqueue/river">River (Postgres queue for Go)</a></li><li><a href="https://python-rq.org/">RQ (Redis queue for Python)</a></li><li><a href="https://docs.bullmq.io/">BullMQ</a></li><li><a href="https://docs.celeryq.dev/en/stable/">Celery</a></li></ul></section>
   <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/background-job-queue.json">api/background-job-queue.json</a></p>
-  <nav class="pn" aria-label="More entries"><a href="../scheduled-jobs/index.html">&larr; Scheduled job</a><a href="../webhook-signature-verification/index.html">Webhook signature verification &rarr;</a></nav>
+  <nav class="pn" aria-label="More entries"><a href="../scheduled-jobs/index.html">&larr; Scheduled job</a><a href="../retries-and-dead-letter-queue/index.html">Retries with backoff and a dead-letter queue &rarr;</a></nav>
 </article>
 
 </main>

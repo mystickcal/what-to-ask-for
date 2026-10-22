@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magic link sign-in: What To Ask For</title>
+<meta name="description" content="The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Magic link sign-in: What To Ask For">
+<meta property="og:description" content="The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/magic-links/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Magic link sign-in: What To Ask For">
+<meta name="twitter:description" content="The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Magic link sign-in</h1>
+  <p class="aka">Also called: passwordless login, email link login, sign in with email, one-time login link</p>
+  <p class="lead">The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You don&#x27;t want to store passwords, or your users forget them often.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Users sign in many times a day on shared machines, where waiting for an email is painful.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your auth provider <span class="cost">free tiers</span></h3>
+<p>Supabase Auth, Clerk and Auth.js (the Email provider) send and check magic links.</p><p class="trade"><strong>Tradeoff:</strong> Quick. Check how each one handles link scanners and expiry.</p></li>
+<li><h3>A framework package <span class="cost">$0</span></h3>
+<p>django-sesame for Django. Other frameworks have similar packages.</p><p class="trade"><strong>Tradeoff:</strong> Less code. Read its defaults for expiry and single use.</p></li>
+<li><h3>Your own tokens table <span class="cost">$0</span></h3>
+<p>Store a SHA-256 hash of a random token with an expiry and used_at. The link opens a page with a &#x27;Sign in&#x27; button that POSTs the token.</p><p class="trade"><strong>Tradeoff:</strong> You control every rule. You also own the email delivery and rate limits.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add magic link sign-in.
+
+Requirements:
+- The form takes an email and always shows the same message: &#x27;If an account exists, we sent a link. It expires in [15] minutes.&#x27;
+- Rate limit per IP and per email.
+- Token: 32 random bytes from a secure generator. Store only its hash with expires_at and used_at. A new request deletes older unused tokens for that user.
+- The link opens a confirm page (GET changes nothing). The user clicks &#x27;Sign in&#x27;, which POSTs the token with CSRF protection.
+- On POST, in one transaction: lock the token row, check it is unused and unexpired, mark it used, then log the user in.
+- The confirm page sends Cache-Control: no-store and Referrer-Policy: same-origin and loads no analytics.
+- Only allow a &#x27;next&#x27; redirect to our own site.
+
+Acceptance checks (run each and show me the result):
+1. Fetching the link with curl (like a scanner would) doesn&#x27;t use up the token.
+2. Clicking &#x27;Sign in&#x27; works once. A second POST with the same token fails.
+3. A link older than the expiry fails with a friendly message.
+4. Requesting a link for an unknown email looks the same as for a known one.
+5. A next=https://evil.example parameter is ignored.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Links get burned by email scanners, old links stay valid, or a link in a forwarded email signs in a stranger.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s sign-in links expire in 15 minutes. It stores only a SHA-256 hash of each token, and a new request deletes the user&#x27;s older unused links. Opening the link shows a confirm page with no analytics, no caching and a same-origin referrer policy. Only the CSRF-protected POST uses the token, and it marks the token used inside a locked transaction before logging in. Requests are limited to 8 per IP and 3 per email per hour, and the reply is the same whether or not the account exists.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users log in without a password&rdquo;</li><li>&ldquo;email a sign-in link&rdquo;</li><li>&ldquo;the login link was already used when the user clicked it&rdquo;</li><li>&ldquo;Outlook clicks my login links before the user does&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://authjs.dev/getting-started/authentication/email">Auth.js: email (magic link) provider</a></li><li><a href="https://supabase.com/docs/guides/auth/auth-email-passwordless">Supabase: passwordless email logins</a></li><li><a href="https://github.com/aaugustin/django-sesame">django-sesame</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html">OWASP Authentication Cheat Sheet</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/magic-links.json">api/magic-links.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../password-reset/index.html">&larr; Password reset tokens</a><a href="../social-login/index.html">Social login (OAuth and OpenID Connect) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

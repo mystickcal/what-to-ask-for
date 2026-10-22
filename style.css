@@ -21,7 +21,16 @@ h3{font-size:17px;margin:0 0 4px}
 .examples{margin:12px 0 0;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;color:var(--muted);font-size:15px}
 .ex{font:inherit;font-size:14px;background:none;border:1px solid var(--line);border-radius:4px;padding:4px 8px;color:var(--ink);cursor:pointer}
 .ex:hover{border-color:var(--ink)}
-.count{color:var(--muted);font-size:14px;margin:30px 0 6px}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin:26px 0 0}
+.cat{font-size:14px;line-height:1.2;border:1px solid var(--line);border-radius:4px;padding:6px 10px;color:var(--ink);text-decoration:none;background:var(--box)}
+.cat span{color:var(--muted);font:12px var(--mono);margin-left:2px}
+.cat:hover{border-color:var(--ink)}
+.cat[aria-current]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.cat[aria-current] span{color:var(--line)}
+.group-h{font-size:17px;margin:30px 0 4px}
+.group:first-child .group-h{margin-top:8px}
+.group-n{font:500 13px var(--mono);color:var(--muted);margin-left:4px}
+.count{color:var(--muted);font-size:14px;margin:22px 0 6px}
 .results{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .results li{border-bottom:1px solid var(--line)}
 .results a{display:flex;flex-wrap:wrap;gap:2px 16px;align-items:baseline;justify-content:space-between;padding:14px 4px;text-decoration:none;color:var(--ink)}
@@ -60,7 +69,7 @@ pre{background:#1d1f1c;color:#eceae3;font:14px/1.55 var(--mono);padding:16px;bor
 .signup input{flex:1;min-width:0;font:inherit;padding:9px 12px;border:1px solid var(--muted);border-radius:5px;background:var(--box);color:var(--ink)}
 .signup-note{font-size:13px;color:var(--muted);margin:6px 0 0}
 .made{font-size:14px;color:var(--muted)}
-@media (max-width:620px){body{font-size:16px}.when{grid-template-columns:1fr}.lead{font-size:17px}.results a{flex-direction:column}.prompt-head{flex-wrap:wrap}}
+@media (max-width:620px){body{font-size:16px}.when{grid-template-columns:1fr}.lead{font-size:17px}.results a{flex-direction:column}.cat{padding:8px 11px}.prompt-head{flex-wrap:wrap}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .hp{position:absolute!important;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
 .signup-check{display:flex!important;gap:8px;align-items:flex-start;font-weight:400!important;font-size:14px;margin:8px 0 0;max-width:460px}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Input validation: What To Ask For</title>
+<meta name="description" content="Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Input validation: What To Ask For">
+<meta property="og:description" content="Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/input-validation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Input validation: What To Ask For">
+<meta name="twitter:description" content="Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Input validation</h1>
+  <p class="aka">Also called: server-side validation, schema validation, mass assignment, allowlist, SQL injection prevention</p>
+  <p class="lead">Checking every piece of incoming data on the server against what you expect: type, length, format and allowed values. Anything else is rejected before your code uses it. Browser checks only help the user. Anyone can skip them.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Every form, API endpoint, webhook and file import.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never on the server. Even internal endpoints get called with bad data eventually.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A schema at each endpoint <span class="cost">$0</span></h3>
+<p>Zod or Valibot (TypeScript), Pydantic (Python) or JSON Schema. Parse the body into the schema and use only the parsed result.</p><p class="trade"><strong>Tradeoff:</strong> Clear and typed. You need the habit of never reading the raw body after parsing.</p></li>
+<li><h3>Your framework&#x27;s forms or serializers <span class="cost">$0</span></h3>
+<p>Django forms or DRF serializers with explicit field lists, Rails strong parameters, Laravel validation.</p><p class="trade"><strong>Tradeoff:</strong> Built in. &#x27;All fields&#x27; shortcuts bring back mass assignment.</p></li>
+<li><h3>Database constraints as the last line <span class="cost">$0</span></h3>
+<p>NOT NULL, CHECK constraints, foreign keys, unique indexes and column lengths.</p><p class="trade"><strong>Tradeoff:</strong> Catches what code misses. Errors arrive late and are less friendly.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add server-side input validation to [endpoints/forms].
+
+Requirements:
+- Define a schema for each endpoint&#x27;s input: types, required fields, max lengths, allowed values, number ranges.
+- Reject unknown fields. Never copy request data straight onto a model. Set allowed fields one by one (no mass assignment of role, owner_id, is_admin or price).
+- Cap request body size at [1 MB] unless the endpoint needs more.
+- Use parameterized queries or the ORM everywhere. No SQL built from strings.
+- Return 400 with a field-by-field message the UI can show. Don&#x27;t echo raw input back into HTML.
+- Add database constraints for the rules that must never break.
+
+Acceptance checks (run each and show me the result):
+1. Sending is_admin=true or a different owner_id in the body changes nothing.
+2. A 10,000-character name is rejected with a clear message.
+3. A body over the size cap returns 413.
+4. Searching for &#x27; OR 1=1 -- returns a normal empty result.
+5. Every endpoint in the app is listed with its schema.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>People give themselves admin rights, store junk that breaks pages, or crash the server with huge requests.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;users can send any data to my API&rdquo;</li><li>&ldquo;someone made themselves admin by adding a field to the request&rdquo;</li><li>&ldquo;validate form data on the server too&rdquo;</li><li>&ldquo;a huge request crashed my server&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">OWASP Input Validation Cheat Sheet</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html">OWASP Mass Assignment Cheat Sheet</a></li><li><a href="https://zod.dev/">Zod</a></li><li><a href="https://pydantic.dev/docs/">Pydantic</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/input-validation.json">api/input-validation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../ownership-checks/index.html">&larr; Ownership checks (IDOR)</a><a href="../feature-flags/index.html">Feature flag &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

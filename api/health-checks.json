@@ -1,6 +1,8 @@
 {
   "id": "health-checks",
   "name": "Health checks and safe deploys",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
   "aliases": [
     "health endpoint",
     "readiness probe",

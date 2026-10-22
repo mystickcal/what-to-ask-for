@@ -1,0 +1,84 @@
+{
+  "id": "free-trials",
+  "name": "Free trial (with or without a card)",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "trial period",
+    "no card required trial",
+    "card-required trial",
+    "trial_period_days",
+    "trial abuse"
+  ],
+  "needs": [
+    "give new users 7 days free",
+    "free trial without asking for a credit card",
+    "what happens when the trial ends and there's no card",
+    "people keep signing up again for another free trial",
+    "remind users before the trial ends"
+  ],
+  "keywords": [
+    "trial",
+    "free",
+    "days",
+    "card",
+    "credit",
+    "required",
+    "ends",
+    "expire",
+    "reminder",
+    "convert",
+    "stripe",
+    "abuse"
+  ],
+  "summary": "A period of paid features before the first charge. Asking for a card up front means fewer people start, but more of them end up paying. Without a card more people try it, and you must decide what happens at the end: cancel, pause, or ask for a card.",
+  "need_when": [
+    "People need to use the product before they will pay for it."
+  ],
+  "skip_when": [
+    "A free plan already lets people try the core feature."
+  ],
+  "ways": [
+    {
+      "title": "Stripe trial with a card collected",
+      "cost": "Stripe fees",
+      "how": "Checkout in subscription mode with subscription_data.trial_period_days. The first charge happens when the trial ends.",
+      "tradeoff": "More of the people who start end up paying. Fewer start, and you need a reminder before the first charge."
+    },
+    {
+      "title": "Stripe trial with no card",
+      "cost": "Stripe fees",
+      "how": "Add payment_method_collection=if_required and set trial_settings.end_behavior.missing_payment_method to cancel or pause, so a trial without a card ends cleanly.",
+      "tradeoff": "More starts. You need in-app prompts to collect a card before the end."
+    },
+    {
+      "title": "A trial clock in your own database",
+      "cost": "$0",
+      "how": "Store trial_ends_at on the account and grant paid features until then. Only send people to Checkout when they choose to pay.",
+      "tradeoff": "No payment provider involved until they pay. You build the reminders, the expiry and the abuse checks yourself."
+    }
+  ],
+  "prompt": "Add a [7]-day free trial [with / without] a card.\n\nRequirements:\n- One trial per account. Record trial_used_at so canceling and signing up again on the same account doesn't start a new one.\n- [Stripe] Use Checkout with subscription_data.trial_period_days=[7][, payment_method_collection=if_required and trial_settings.end_behavior.missing_payment_method=[cancel/pause]].\n- During the trial, show the days left on every page and a button to add a card.\n- Handle customer.subscription.trial_will_end (sent 3 days before the end by default) and send our own reminder email with the end date and what happens next.\n- When the trial ends without payment, remove paid features and keep the user's data.\n\nAcceptance checks (run each and show me the result):\n1. A new account gets paid features for exactly the trial length.\n2. The same account can't start a second trial after canceling.\n3. With a Stripe test clock, the trial_will_end webhook sends one reminder email.\n4. A no-card trial that ends without a card loses paid features and keeps its data.\n5. A card-required trial makes the first charge on the end date.",
+  "acceptance_checks": [
+    "A new account gets paid features for exactly the trial length.",
+    "The same account can't start a second trial after canceling.",
+    "With a Stripe test clock, the trial_will_end webhook sends one reminder email.",
+    "A no-card trial that ends without a card loses paid features and keeps its data.",
+    "A card-required trial makes the first charge on the end date."
+  ],
+  "if_you_skip_it": "Surprise charges and refund requests, endless repeat trials, or trials that never end.",
+  "how_derek_runs_it": "Custody Journal has a notifications command that sends its own trial-ending emails 3 days and 1 day before the trial ends. Each reminder goes out once per subscription, and it is skipped for users who turned that email off or are in their quiet hours.",
+  "links": [
+    {
+      "title": "Stripe: use trial periods on subscriptions",
+      "url": "https://docs.stripe.com/billing/subscriptions/trials"
+    },
+    {
+      "title": "Stripe Checkout: free trials",
+      "url": "https://docs.stripe.com/payments/checkout/free-trials"
+    }
+  ],
+  "page": "e/free-trials/index.html",
+  "json": "api/free-trials.json",
+  "updated": "2026-10-21"
+}

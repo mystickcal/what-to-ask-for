@@ -1,0 +1,91 @@
+{
+  "id": "failed-payment-recovery",
+  "name": "Failed payment recovery (dunning)",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "dunning",
+    "past due",
+    "smart retries",
+    "card declined",
+    "involuntary churn",
+    "grace period"
+  ],
+  "needs": [
+    "a customer's card expired and the renewal failed",
+    "what happens when a renewal payment fails",
+    "remind users to update their card",
+    "users keep access after their payment fails",
+    "should I cut off access right away when a card declines"
+  ],
+  "keywords": [
+    "dunning",
+    "failed",
+    "declined",
+    "past",
+    "due",
+    "card",
+    "expired",
+    "renewal",
+    "grace",
+    "churn",
+    "invoice",
+    "payment",
+    "stripe",
+    "update"
+  ],
+  "summary": "Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.",
+  "need_when": [
+    "You run subscriptions. Some renewals will fail every month."
+  ],
+  "skip_when": [
+    "One-time payments only, where a decline just means the purchase didn't happen."
+  ],
+  "ways": [
+    {
+      "title": "Stripe's built-in recovery settings",
+      "cost": "part of Stripe Billing",
+      "how": "Turn on Smart Retries and failed payment emails in the Billing settings, and pick what happens after the last retry: cancel the subscription, mark it unpaid, or leave it past due.",
+      "tradeoff": "Almost no code. Your app still has to react to the status changes and show the user what to do."
+    },
+    {
+      "title": "Your own grace period and in-app banner",
+      "cost": "$0",
+      "how": "On invoice.payment_failed, record it and show a 'Fix payment' banner that links to the customer portal. Keep or limit access for [N] days, then downgrade.",
+      "tradeoff": "You choose how forgiving to be. More states to test."
+    },
+    {
+      "title": "A dedicated recovery tool",
+      "cost": "paid",
+      "how": "Services that plug into Stripe and add their own email sequences and in-app prompts.",
+      "tradeoff": "Can recover more revenue at scale. Not worth it until failed payments cost real money."
+    }
+  ],
+  "prompt": "Add failed payment handling for our [Stripe] subscriptions.\n\nRequirements:\n- Handle invoice.payment_failed and customer.subscription.updated. On each, fetch the subscription from the API and store its status.\n- While status is past_due, show a banner on every page: 'Your last payment failed. Update your card to keep [paid features].' It links to the billing portal.\n- Access rule: [keep paid access while past_due for up to N days / limit to read-only], and remove it when the status becomes unpaid or canceled.\n- When invoice.paid arrives, clear the banner and restore access.\n- Send our own email on the first failure only if Stripe's failed payment emails are off. Never send both.\n- A past_due user who opens checkout goes to the portal, not into a new subscription.\n\nAcceptance checks (run each and show me the result):\n1. Stripe test card 4000 0000 0000 0341 (attaches, then fails when charged) puts the account in past_due and shows the banner.\n2. Updating to a working card in the portal and paying the invoice clears the banner and restores access.\n3. After the final retry fails, the account loses paid access according to the rule.\n4. The customer gets exactly one failure email per failed invoice.\n5. Checkout is blocked for a past_due account and sends the user to the portal.",
+  "acceptance_checks": [
+    "Stripe test card 4000 0000 0000 0341 (attaches, then fails when charged) puts the account in past_due and shows the banner.",
+    "Updating to a working card in the portal and paying the invoice clears the banner and restores access.",
+    "After the final retry fails, the account loses paid access according to the rule.",
+    "The customer gets exactly one failure email per failed invoice.",
+    "Checkout is blocked for a past_due account and sends the user to the portal."
+  ],
+  "if_you_skip_it": "Customers lose access with no warning and churn, or keep paid features for months without paying.",
+  "how_derek_runs_it": "Custody Journal re-fetches the subscription from Stripe when invoice.payment_failed arrives. Stripe's past_due, unpaid and incomplete statuses all map to past due in the app, which doesn't grant paid features. The dashboard shows a 'Fix payment' banner for past-due accounts, and checkout sends them to the Stripe portal instead of starting a new subscription.",
+  "links": [
+    {
+      "title": "Stripe: revenue recovery",
+      "url": "https://docs.stripe.com/billing/revenue-recovery"
+    },
+    {
+      "title": "Stripe: Smart Retries",
+      "url": "https://docs.stripe.com/billing/revenue-recovery/smart-retries"
+    },
+    {
+      "title": "Stripe: how subscriptions work",
+      "url": "https://docs.stripe.com/billing/subscriptions/overview"
+    }
+  ],
+  "page": "e/failed-payment-recovery/index.html",
+  "json": "api/failed-payment-recovery.json",
+  "updated": "2026-10-21"
+}

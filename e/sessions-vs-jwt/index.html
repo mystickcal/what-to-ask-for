@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessions vs JWT: What To Ask For</title>
+<meta name="description" content="Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user&#x27;s details itself, so the server doesn&#x27;t look anything up, but it stays valid until it expires unless you add a revocation list.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Sessions vs JWT: What To Ask For">
+<meta property="og:description" content="Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user&#x27;s details itself, so the server doesn&#x27;t look anything up, but it stays valid until it expires unless you add a revocation list.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/sessions-vs-jwt/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sessions vs JWT: What To Ask For">
+<meta name="twitter:description" content="Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user&#x27;s details itself, so the server doesn&#x27;t look anything up, but it stays valid until it expires unless you add a revocation list.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Sessions vs JWT</h1>
+  <p class="aka">Also called: session cookie, JSON Web Token, access token, refresh token, stateless auth, bearer token</p>
+  <p class="lead">Two ways to remember who is logged in. A session is a random id in a cookie that points to data on your server, so you can end it any time. A JWT is a signed token that carries the user&#x27;s details itself, so the server doesn&#x27;t look anything up, but it stays valid until it expires unless you add a revocation list.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Every app with logins makes this choice, often without noticing.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Your auth provider already decides it. Learn which one it uses and how logout works.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Server-side sessions in a cookie <span class="cost">$0</span></h3>
+<p>Your framework&#x27;s sessions, stored in the database or Redis. Cookie flags: HttpOnly, Secure, SameSite=Lax.</p><p class="trade"><strong>Tradeoff:</strong> Simple and easy to revoke. The usual right answer for a web app on one domain.</p></li>
+<li><h3>Short-lived JWT plus a refresh token <span class="cost">$0</span></h3>
+<p>An access token valid for minutes and a refresh token that is rotated on each use and stored server-side so it can be revoked.</p><p class="trade"><strong>Tradeoff:</strong> Fits APIs used by many services. More moving parts, and logout only takes effect when the access token expires.</p></li>
+<li><h3>Opaque tokens stored hashed <span class="cost">$0</span></h3>
+<p>For mobile apps and API keys: a random token sent as a bearer header, stored as a hash, and checked against the database on each request.</p><p class="trade"><strong>Tradeoff:</strong> Revocable like sessions and no cookies needed. One lookup per request.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up login state for this app using [server-side sessions / short-lived JWT plus refresh token].
+
+Requirements:
+- Web: session cookie with HttpOnly, Secure and SameSite=Lax. Don&#x27;t put tokens in localStorage.
+- Sessions expire after [30 minutes idle / 14 days absolute] and on logout.
+- A &#x27;log out of all devices&#x27; button ends every session or refresh token for the user.
+- Changing the password or email ends other sessions.
+- [JWT] Access tokens expire in [10 minutes]. Refresh tokens are random, stored hashed, rotated on every use, and reuse of an old refresh token revokes the whole family.
+- Rotate the session id at login.
+
+Acceptance checks (run each and show me the result):
+1. document.cookie in the browser console doesn&#x27;t show the session cookie.
+2. After &#x27;log out of all devices&#x27;, a second browser that was logged in is logged out on its next request.
+3. A copied session cookie stops working after logout.
+4. [JWT] Using an old refresh token a second time fails and logs out that device.
+5. The session id changes after login.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Logout doesn&#x27;t really log anyone out, and a stolen token works until it expires.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s website uses server-side Django sessions (the cached_db engine), with secure cookies in production, a 30 minute idle timeout by default, and expiry when the browser closes. Its mobile app uses opaque access and refresh tokens that are stored as hashes and can be revoked. There is no JWT signing.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;should I use JWT or sessions&rdquo;</li><li>&ldquo;log a user out everywhere&rdquo;</li><li>&ldquo;where do I store the login token in the browser&rdquo;</li><li>&ldquo;keep users logged in on the mobile app&rdquo;</li><li>&ldquo;a stolen token still works after logout&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html">OWASP Session Management Cheat Sheet</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html">OWASP JSON Web Token Cheat Sheet</a></li><li><a href="https://www.rfc-editor.org/info/rfc7519/">RFC 7519: JSON Web Token</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie">MDN: Set-Cookie</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/sessions-vs-jwt.json">api/sessions-vs-jwt.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../social-login/index.html">&larr; Social login (OAuth and OpenID Connect)</a><a href="../roles-and-permissions/index.html">Roles and permissions &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

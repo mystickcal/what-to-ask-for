@@ -31,7 +31,7 @@
 <main id="main">
 
 <article class="entry">
-  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
   <h1>Idempotent webhook handling</h1>
   <p class="aka">Also called: idempotency key, event dedupe, processed events table, event inbox, exactly-once processing</p>
   <p class="lead">Providers retry webhooks and sometimes deliver the same event more than once or out of order. Idempotent handling means running the same event twice has the same result as running it once. The usual way: save the event id first and skip it if it&#x27;s already done.</p>
@@ -73,7 +73,7 @@ Acceptance checks (run each and show me the result):
   <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;a customer paid once but got upgraded twice&rdquo;</li><li>&ldquo;Stripe sent the same event two times&rdquo;</li><li>&ldquo;webhook retries create duplicate orders&rdquo;</li><li>&ldquo;events arrive out of order&rdquo;</li><li>&ldquo;don&#x27;t double charge when my request retries&rdquo;</li></ul></section>
   <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/idempotency">Stripe: idempotent requests</a></li><li><a href="https://docs.stripe.com/webhooks">Stripe: webhooks (retries and duplicates)</a></li></ul></section>
   <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/idempotent-webhooks.json">api/idempotent-webhooks.json</a></p>
-  <nav class="pn" aria-label="More entries"><a href="../webhook-signature-verification/index.html">&larr; Webhook signature verification</a><a href="../signed-download-links/index.html">Signed download link &rarr;</a></nav>
+  <nav class="pn" aria-label="More entries"><a href="../webhook-signature-verification/index.html">&larr; Webhook signature verification</a><a href="../subscription-billing/index.html">Subscription billing &rarr;</a></nav>
 </article>
 
 </main>

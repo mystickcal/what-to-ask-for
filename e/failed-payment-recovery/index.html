@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Failed payment recovery (dunning): What To Ask For</title>
+<meta name="description" content="Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Failed payment recovery (dunning): What To Ask For">
+<meta property="og:description" content="Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/failed-payment-recovery/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Failed payment recovery (dunning): What To Ask For">
+<meta name="twitter:description" content="Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Failed payment recovery (dunning)</h1>
+  <p class="aka">Also called: dunning, past due, smart retries, card declined, involuntary churn, grace period</p>
+  <p class="lead">Renewal charges fail all the time: expired cards, low balances, bank blocks. Dunning is what happens next: retry the charge on a schedule, email the customer a link to update their card, show a banner in the app, and decide when access ends if it never gets paid.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You run subscriptions. Some renewals will fail every month.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>One-time payments only, where a decline just means the purchase didn&#x27;t happen.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Stripe&#x27;s built-in recovery settings <span class="cost">part of Stripe Billing</span></h3>
+<p>Turn on Smart Retries and failed payment emails in the Billing settings, and pick what happens after the last retry: cancel the subscription, mark it unpaid, or leave it past due.</p><p class="trade"><strong>Tradeoff:</strong> Almost no code. Your app still has to react to the status changes and show the user what to do.</p></li>
+<li><h3>Your own grace period and in-app banner <span class="cost">$0</span></h3>
+<p>On invoice.payment_failed, record it and show a &#x27;Fix payment&#x27; banner that links to the customer portal. Keep or limit access for [N] days, then downgrade.</p><p class="trade"><strong>Tradeoff:</strong> You choose how forgiving to be. More states to test.</p></li>
+<li><h3>A dedicated recovery tool <span class="cost">paid</span></h3>
+<p>Services that plug into Stripe and add their own email sequences and in-app prompts.</p><p class="trade"><strong>Tradeoff:</strong> Can recover more revenue at scale. Not worth it until failed payments cost real money.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add failed payment handling for our [Stripe] subscriptions.
+
+Requirements:
+- Handle invoice.payment_failed and customer.subscription.updated. On each, fetch the subscription from the API and store its status.
+- While status is past_due, show a banner on every page: &#x27;Your last payment failed. Update your card to keep [paid features].&#x27; It links to the billing portal.
+- Access rule: [keep paid access while past_due for up to N days / limit to read-only], and remove it when the status becomes unpaid or canceled.
+- When invoice.paid arrives, clear the banner and restore access.
+- Send our own email on the first failure only if Stripe&#x27;s failed payment emails are off. Never send both.
+- A past_due user who opens checkout goes to the portal, not into a new subscription.
+
+Acceptance checks (run each and show me the result):
+1. Stripe test card 4000 0000 0000 0341 (attaches, then fails when charged) puts the account in past_due and shows the banner.
+2. Updating to a working card in the portal and paying the invoice clears the banner and restores access.
+3. After the final retry fails, the account loses paid access according to the rule.
+4. The customer gets exactly one failure email per failed invoice.
+5. Checkout is blocked for a past_due account and sends the user to the portal.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Customers lose access with no warning and churn, or keep paid features for months without paying.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal re-fetches the subscription from Stripe when invoice.payment_failed arrives. Stripe&#x27;s past_due, unpaid and incomplete statuses all map to past due in the app, which doesn&#x27;t grant paid features. The dashboard shows a &#x27;Fix payment&#x27; banner for past-due accounts, and checkout sends them to the Stripe portal instead of starting a new subscription.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;a customer&#x27;s card expired and the renewal failed&rdquo;</li><li>&ldquo;what happens when a renewal payment fails&rdquo;</li><li>&ldquo;remind users to update their card&rdquo;</li><li>&ldquo;users keep access after their payment fails&rdquo;</li><li>&ldquo;should I cut off access right away when a card declines&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/revenue-recovery">Stripe: revenue recovery</a></li><li><a href="https://docs.stripe.com/billing/revenue-recovery/smart-retries">Stripe: Smart Retries</a></li><li><a href="https://docs.stripe.com/billing/subscriptions/overview">Stripe: how subscriptions work</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/failed-payment-recovery.json">api/failed-payment-recovery.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../subscription-billing/index.html">&larr; Subscription billing</a><a href="../usage-based-billing/index.html">Usage-based billing &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

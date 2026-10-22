@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-tenant data isolation: What To Ask For</title>
+<meta name="description" content="Keeping each customer&#x27;s data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Multi-tenant data isolation: What To Ask For">
+<meta property="og:description" content="Keeping each customer&#x27;s data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/multi-tenant-isolation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Multi-tenant data isolation: What To Ask For">
+<meta name="twitter:description" content="Keeping each customer&#x27;s data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=auth">Auth and accounts</a></p>
+  <h1>Multi-tenant data isolation</h1>
+  <p class="aka">Also called: tenant isolation, workspaces, organizations, row level security, RLS, tenant_id</p>
+  <p class="lead">Keeping each customer&#x27;s data separate when they all share one app and one database. Every row carries a tenant id, every query filters on it, and a database rule such as Postgres row level security can act as a second lock in case code forgets.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Customers are companies or teams, not single people.</li><li>Your frontend talks to the database directly, as with Supabase.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Each user only has their own data and nothing is shared. Ownership checks on each query are enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A tenant_id column and scoped queries <span class="cost">$0</span></h3>
+<p>Add tenant_id to every table, set the current tenant once per request, and use a base query or manager that always filters by it.</p><p class="trade"><strong>Tradeoff:</strong> Simple and cheap. One unscoped query leaks data, so test it.</p></li>
+<li><h3>Postgres row level security <span class="cost">$0</span></h3>
+<p>Turn on RLS for each table and write policies that compare tenant_id to the current user&#x27;s tenant. On Supabase this is required for any table the browser can reach with the anon key.</p><p class="trade"><strong>Tradeoff:</strong> The database enforces it. Table owners skip RLS unless you FORCE it, and roles with BYPASSRLS (like Supabase&#x27;s service_role key) always skip it.</p></li>
+<li><h3>A schema or database per tenant <span class="cost">more ops</span></h3>
+<p>django-tenants (schema per tenant), or a separate database for each big customer.</p><p class="trade"><strong>Tradeoff:</strong> Strong separation. Migrations and reporting across tenants get harder.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add tenant isolation for [organizations/workspaces].
+
+Requirements:
+- Every table with customer data gets a non-null tenant_id with an index.
+- Work out the current tenant once per request from the logged-in user&#x27;s membership, never from a request parameter alone.
+- All reads and writes go through a scoped query helper that filters by tenant_id. Search the codebase and list any query that bypasses it.
+- [Postgres/Supabase] Enable row level security on these tables with policies that limit rows to the user&#x27;s tenant. Never ship the service_role key to the browser.
+- Background jobs carry the tenant id explicitly.
+- Add tests that create two tenants and prove neither can read or change the other&#x27;s rows through any API route.
+
+Acceptance checks (run each and show me the result):
+1. Logged in as tenant A, requesting tenant B&#x27;s record id returns 404.
+2. With the anon key, a direct select on each table returns no other tenant&#x27;s rows.
+3. Exports, search and reports for tenant A contain no tenant B data.
+4. A background job for tenant A can&#x27;t write to tenant B.
+5. The browser bundle contains no service_role or admin key.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>One customer sees another customer&#x27;s data. For a B2B app that can end the business.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;one company can see another company&#x27;s data&rdquo;</li><li>&ldquo;add teams or workspaces to my app&rdquo;</li><li>&ldquo;my Supabase tables are readable by anyone with the anon key&rdquo;</li><li>&ldquo;make sure every query only returns this customer&#x27;s rows&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.postgresql.org/docs/current/ddl-rowsecurity.html">PostgreSQL: row security policies</a></li><li><a href="https://supabase.com/docs/guides/database/postgres/row-level-security">Supabase: row level security</a></li><li><a href="https://django-tenants.readthedocs.io/en/latest/">django-tenants</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/multi-tenant-isolation.json">api/multi-tenant-isolation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../roles-and-permissions/index.html">&larr; Roles and permissions</a><a href="../email-authentication/index.html">Email authentication (SPF, DKIM, DMARC) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

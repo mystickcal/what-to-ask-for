@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time zone handling: What To Ask For</title>
+<meta name="description" content="Store moments in time as UTC, store each user&#x27;s time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Time zone handling: What To Ask For">
+<meta property="og:description" content="Store moments in time as UTC, store each user&#x27;s time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/time-zones/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Time zone handling: What To Ask For">
+<meta name="twitter:description" content="Store moments in time as UTC, store each user&#x27;s time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=background">Background work and scheduling</a></p>
+  <h1>Time zone handling</h1>
+  <p class="aka">Also called: UTC storage, IANA time zone, timestamptz, daylight saving time, DST bug, local time</p>
+  <p class="lead">Store moments in time as UTC, store each user&#x27;s time zone as an IANA name like America/New_York, and convert only when you show a time or schedule one. An offset like -05:00 is not a time zone, because it changes with daylight saving.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users in more than one time zone, or any feature that says &#x27;at 7 PM&#x27; or &#x27;today&#x27;.</li><li>Daily limits, streaks, digests or reports that reset at midnight.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Rarely. Even a one-country app crosses a daylight saving change twice a year.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your language&#x27;s built-in zone support <span class="cost">$0</span></h3>
+<p>Python zoneinfo, JavaScript Intl.DateTimeFormat with a timeZone option, or java.time. Keep aware datetimes in UTC and convert at the edges.</p><p class="trade"><strong>Tradeoff:</strong> No dependency. Date math across daylight saving is easy to get wrong without tests.</p></li>
+<li><h3>A date library <span class="cost">$0</span></h3>
+<p>Luxon, or date-fns with date-fns-tz, in JavaScript. They handle zone-aware arithmetic like &#x27;add one day in this zone&#x27;.</p><p class="trade"><strong>Tradeoff:</strong> Clearer code for zone math. One more dependency in the bundle.</p></li>
+<li><h3>Let the database convert <span class="cost">$0</span></h3>
+<p>Postgres timestamptz columns store an absolute moment. AT TIME ZONE &#x27;America/New_York&#x27; converts in a query, for example to group rows by the user&#x27;s local day.</p><p class="trade"><strong>Tradeoff:</strong> Fast for reports. Spreads time logic across SQL and app code.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Fix time zone handling in this app.
+
+Requirements:
+- Store every timestamp as UTC (timestamptz in Postgres, aware datetimes in code).
+- Add a time_zone field on the user that holds an IANA name like America/New_York. Validate it against the zone list and fall back to [default zone] when it is missing or invalid.
+- Show times in the user&#x27;s zone everywhere in the UI and in emails.
+- For things a user schedules at a local time (like a 7 PM reminder), store the local time and the zone, then compute the next UTC run time from them. Don&#x27;t store a fixed UTC hour.
+- Daily limits, streaks and &#x27;today&#x27; use the user&#x27;s local day, not the server&#x27;s.
+- Add tests that cross the spring and fall daylight saving changes.
+
+Acceptance checks (run each and show me the result):
+1. A reminder set for 7:00 PM in New York fires at 7:00 PM local time on both sides of a daylight saving change.
+2. A user in Tokyo and a user in Los Angeles each see an event at their own correct local time.
+3. An invalid zone name falls back to the default instead of crashing.
+4. A daily limit resets at the user&#x27;s local midnight.
+5. The database holds UTC values. Changing the server&#x27;s time zone setting changes nothing users see.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Reminders drift an hour twice a year, daily limits reset at the wrong time, and dates near midnight show up on the wrong day.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal stores times in UTC and keeps an IANA zone name on each user. A middleware switches to that zone on every request, old names like US/Eastern are mapped to their IANA names, and an invalid zone falls back to the default. The monthly AI allowance is counted by the month in the user&#x27;s own zone.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;reminders show up an hour off after daylight saving&rdquo;</li><li>&ldquo;store dates so users in other countries see their own time&rdquo;</li><li>&ldquo;the daily email goes out at the wrong hour&rdquo;</li><li>&ldquo;dates are off by one day for some users&rdquo;</li><li>&ldquo;let each user pick their time zone&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.python.org/3/library/zoneinfo.html">Python zoneinfo</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat">MDN: Intl.DateTimeFormat</a></li><li><a href="https://www.postgresql.org/docs/current/datatype-datetime.html">PostgreSQL: date and time types</a></li><li><a href="https://moment.github.io/luxon/">Luxon</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/time-zones.json">api/time-zones.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../retries-and-dead-letter-queue/index.html">&larr; Retries with backoff and a dead-letter queue</a><a href="../webhook-signature-verification/index.html">Webhook signature verification &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subscription billing: What To Ask For</title>
+<meta name="description" content="A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer&#x27;s subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Subscription billing: What To Ask For">
+<meta property="og:description" content="A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer&#x27;s subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/subscription-billing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Subscription billing: What To Ask For">
+<meta name="twitter:description" content="A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer&#x27;s subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Subscription billing</h1>
+  <p class="aka">Also called: recurring payments, Stripe Billing, plans and upgrades, proration, customer portal, SaaS billing</p>
+  <p class="lead">A recurring charge tied to a plan. The payment provider runs the billing schedule. Your app keeps a copy of each customer&#x27;s subscription status, updated from webhooks, and grants features from that status. Changing plans mid-period creates a proration: a credit for unused time on the old plan and a charge for the new one.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You charge monthly or yearly for access.</li><li>Users can change plans, pause or cancel.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>One-time purchases. A single Checkout payment and a webhook are enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Stripe Checkout plus the customer portal <span class="cost">Stripe fees</span></h3>
+<p>Checkout in subscription mode creates the subscription. The hosted customer portal handles card updates, plan changes and cancellation. Webhooks keep your copy in sync.</p><p class="trade"><strong>Tradeoff:</strong> Least code and the most common path. Sales tax and VAT are yours to handle unless you add Stripe Tax or similar.</p></li>
+<li><h3>A merchant of record <span class="cost">higher fees</span></h3>
+<p>Paddle or Lemon Squeezy sell to the customer on your behalf and handle sales tax and VAT.</p><p class="trade"><strong>Tradeoff:</strong> Tax is handled for you. Higher fees and less control over checkout and payouts.</p></li>
+<li><h3>Subscriptions API with your own UI <span class="cost">Stripe fees</span></h3>
+<p>Create and update subscriptions from your backend and build your own plan page. Choose proration_behavior on each change: create_prorations (the default), always_invoice to bill the difference now, or none.</p><p class="trade"><strong>Tradeoff:</strong> Full control. Much more code and many more states to test.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add subscription billing with [provider] for plans [plan names and prices].
+
+Requirements:
+- Keep a subscriptions table per account: provider customer id, subscription id, price id, status, period end and cancel_at_period_end.
+- Update it only from verified webhooks (customer.subscription.created, updated and deleted, invoice.paid, invoice.payment_failed). On each event, fetch the latest subscription from the API and copy its state.
+- Grant paid features only for status active or trialing. Treat any other or unknown status as not paid.
+- Plan changes go through [the customer portal / our plan page] with proration_behavior set to [create_prorations / always_invoice].
+- Canceling keeps access until the paid period ends, then removes it.
+- Block a second checkout when the account already has a live subscription. Send that user to the portal instead.
+
+Acceptance checks (run each and show me the result):
+1. Paying in test mode with card 4242 4242 4242 4242 gives access within a few seconds of the webhook.
+2. Canceling in the portal keeps access until the period end, then the subscription.deleted webhook removes it.
+3. Upgrading mid-period shows a proration on the next invoice (or charges at once with always_invoice).
+4. A user with an active subscription who opens checkout again is sent to the portal, not into a second subscription.
+5. Replaying an old subscription.updated event doesn&#x27;t overwrite newer state.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>People keep paid features after canceling, get charged twice for two subscriptions, or lose access while still paying.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses Stripe Checkout and the Stripe billing portal. On each subscription webhook it locks the account&#x27;s subscription row, fetches the subscription from Stripe and copies that state instead of trusting the event body. Only the Stripe statuses active and trialing set a paid tier, and unknown statuses never grant access. A past-due user who tries to check out again is sent to the portal to fix their payment, which closed a double-subscription bug found in an audit.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;charge users every month&rdquo;</li><li>&ldquo;let users upgrade or downgrade their plan&rdquo;</li><li>&ldquo;what happens when someone switches plans mid-month&rdquo;</li><li>&ldquo;users canceled but still have access&rdquo;</li><li>&ldquo;let customers update their card and cancel themselves&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/subscriptions/overview">Stripe: how subscriptions work</a></li><li><a href="https://docs.stripe.com/billing/subscriptions/prorations">Stripe: prorations</a></li><li><a href="https://docs.stripe.com/customer-management">Stripe: customer portal</a></li><li><a href="https://developer.paddle.com/">Paddle developer docs</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/subscription-billing.json">api/subscription-billing.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../idempotent-webhooks/index.html">&larr; Idempotent webhook handling</a><a href="../failed-payment-recovery/index.html">Failed payment recovery (dunning) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

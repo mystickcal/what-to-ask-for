@@ -1,0 +1,97 @@
+{
+  "id": "retries-and-dead-letter-queue",
+  "name": "Retries with backoff and a dead-letter queue",
+  "category": "background",
+  "category_name": "Background work and scheduling",
+  "aliases": [
+    "exponential backoff",
+    "retry policy",
+    "jitter",
+    "dead-letter queue",
+    "DLQ",
+    "failed jobs table",
+    "poison message"
+  ],
+  "needs": [
+    "the email API failed once and the email was never sent",
+    "retry a job if it fails",
+    "my retries hammer the API and make it worse",
+    "where do jobs go when they keep failing",
+    "the third-party API is flaky"
+  ],
+  "keywords": [
+    "retry",
+    "retries",
+    "backoff",
+    "exponential",
+    "jitter",
+    "flaky",
+    "transient",
+    "dead",
+    "letter",
+    "dlq",
+    "failed",
+    "poison",
+    "503",
+    "429"
+  ],
+  "summary": "When a call to another service fails, try again after a wait that grows each time, with a little randomness so clients don't all retry at once. After a set number of attempts, park the job in a dead-letter queue or a failed state where a person can see it and replay it.",
+  "need_when": [
+    "A job or request calls something that can fail briefly: an email API, a payment API, an AI model, a webhook.",
+    "You have a background queue and need to know which jobs never finished."
+  ],
+  "skip_when": [
+    "The error will never fix itself, like a 400 for bad input or a 401 for a wrong key. Retrying those only adds load."
+  ],
+  "ways": [
+    {
+      "title": "Retry settings in the queue you already run",
+      "cost": "$0",
+      "how": "Celery (autoretry_for, retry_backoff, retry_jitter), BullMQ (attempts plus an exponential backoff option) and pg-boss (retryLimit, retryBackoff) all retry for you and keep failed jobs.",
+      "tradeoff": "Least code. Check what each library does after the last attempt. Some just keep the failed job, and nothing alerts you unless you add it."
+    },
+    {
+      "title": "A retry helper around single calls",
+      "cost": "$0",
+      "how": "tenacity (Python) or p-retry (Node) wraps one function: stop after N attempts, wait exponentially with jitter, retry only on chosen exceptions.",
+      "tradeoff": "Good inside one request or job. It doesn't survive a crash, so for important work put the job in a queue."
+    },
+    {
+      "title": "A managed queue with a dead-letter queue",
+      "cost": "free tiers or pay per use",
+      "how": "Amazon SQS redrive policies and Cloudflare Queues dead letter queues move a message aside after it fails a set number of times.",
+      "tradeoff": "The dead-letter part is built in. Another service and account, and you still need an alert on the dead-letter queue."
+    }
+  ],
+  "prompt": "Add retries with backoff and a dead-letter state to [job or call].\n\nRequirements:\n- Retry only errors that can fix themselves: timeouts, connection errors, 429 and 5xx. Fail at once on other 4xx errors.\n- Wait with exponential backoff plus random jitter, starting at [5 seconds] and capped at [10 minutes]. If the response has a Retry-After header, wait at least that long.\n- Stop after [5] attempts. Then mark the job dead with a short error code and the attempt count. No stack traces or user data in that field.\n- Make the work safe to run twice: use an idempotency key or check whether the effect already happened before redoing it.\n- Add an admin view or command that lists dead jobs and replays one by id.\n- Alert me when the number of dead jobs goes up.\n\nAcceptance checks (run each and show me the result):\n1. A fake API that fails twice and then succeeds ends with the job done and 3 attempts recorded.\n2. A fake API that always returns 503 ends with the job marked dead after the max attempts, with growing gaps between attempts.\n3. A 400 response is not retried.\n4. A 429 with Retry-After: 30 waits at least 30 seconds before the next try.\n5. Replaying a dead job by hand runs it once and does not repeat side effects that already happened.",
+  "acceptance_checks": [
+    "A fake API that fails twice and then succeeds ends with the job done and 3 attempts recorded.",
+    "A fake API that always returns 503 ends with the job marked dead after the max attempts, with growing gaps between attempts.",
+    "A 400 response is not retried.",
+    "A 429 with Retry-After: 30 waits at least 30 seconds before the next try.",
+    "Replaying a dead job by hand runs it once and does not repeat side effects that already happened."
+  ],
+  "if_you_skip_it": "One blip at a provider loses the email or the payment update for good, or tight retry loops pile onto a service that is already struggling.",
+  "how_derek_runs_it": "Custody Journal sends sign-in emails from a database outbox. Each email gets at most 5 attempts, with waits of 15 seconds, 45 seconds, 2 minutes, 5 minutes and 10 minutes, and a worker holds a 2 minute lease while it sends. An email stops retrying when it reaches its attempt limit or when the next retry would land after the sign-in link expires.",
+  "links": [
+    {
+      "title": "AWS Builders' Library: timeouts, retries and backoff with jitter",
+      "url": "https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter"
+    },
+    {
+      "title": "tenacity (Python retries)",
+      "url": "https://tenacity.readthedocs.io/en/latest/"
+    },
+    {
+      "title": "BullMQ: retrying failing jobs",
+      "url": "https://docs.bullmq.io/guide/retrying-failing-jobs"
+    },
+    {
+      "title": "Cloudflare Queues: dead letter queues",
+      "url": "https://developers.cloudflare.com/queues/configuration/dead-letter-queues/"
+    }
+  ],
+  "page": "e/retries-and-dead-letter-queue/index.html",
+  "json": "api/retries-and-dead-letter-queue.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Push notifications: What To Ask For</title>
+<meta name="description" content="Messages that appear on a device even when your app isn&#x27;t open. On the web, a service worker receives them through the browser&#x27;s push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Push notifications: What To Ask For">
+<meta property="og:description" content="Messages that appear on a device even when your app isn&#x27;t open. On the web, a service worker receives them through the browser&#x27;s push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/push-notifications/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Push notifications: What To Ask For">
+<meta name="twitter:description" content="Messages that appear on a device even when your app isn&#x27;t open. On the web, a service worker receives them through the browser&#x27;s push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=email">Email and notifications</a></p>
+  <h1>Push notifications</h1>
+  <p class="aka">Also called: web push, browser notifications, service worker push, VAPID, FCM, APNs, mobile push</p>
+  <p class="lead">Messages that appear on a device even when your app isn&#x27;t open. On the web, a service worker receives them through the browser&#x27;s push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Something time-sensitive happens and email is too slow: a message, a reminder, an order update.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The update can wait for the next visit or an email. Unwanted pushes get turned off fast.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Standard web push from your server <span class="cost">$0</span></h3>
+<p>A service worker, the Push API, VAPID keys, and the web-push library (Node) or pywebpush (Python) to send.</p><p class="trade"><strong>Tradeoff:</strong> No third party. On iPhone it only works after the user adds your site to the home screen.</p></li>
+<li><h3>Firebase Cloud Messaging <span class="cost">free</span></h3>
+<p>One API for Android, web and iOS (through APNs). Common for native and hybrid apps.</p><p class="trade"><strong>Tradeoff:</strong> A Google account and SDK in your app. Apple setup is still needed for iOS.</p></li>
+<li><h3>A hosted notification service <span class="cost">free tiers</span></h3>
+<p>OneSignal, or Novu (open source, self-hostable) for push, email and in-app messages from one place.</p><p class="trade"><strong>Tradeoff:</strong> Dashboards and scheduling built in. Another vendor holds your device tokens.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add web push notifications for [event].
+
+Requirements:
+- Ask for permission only after the user clicks &#x27;Turn on notifications&#x27;, never on page load.
+- Generate VAPID keys once and keep the private key in an environment variable.
+- Save each subscription (endpoint and keys) per user and device. Delete it when the push service answers 404 or 410.
+- Send from a background job, not the web request.
+- Notification text says what happened and links to the right page. No sensitive details on the lock screen.
+- A settings page lets users turn push off per type and see their devices.
+
+Acceptance checks (run each and show me the result):
+1. Loading the site doesn&#x27;t show a permission prompt.
+2. After opting in on desktop Chrome, a test event shows a notification with the site closed.
+3. On an iPhone with the site added to the home screen, the same test works.
+4. A subscription that returns 410 is deleted and not retried.
+5. Turning a type off stops those notifications on all devices.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Permission prompts on page load get blocked for good, and dead subscriptions pile up and slow every send.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;notify users even when the site is closed&rdquo;</li><li>&ldquo;send a phone notification from my web app&rdquo;</li><li>&ldquo;do push notifications work on iPhone&rdquo;</li><li>&ldquo;stop sending to people who turned notifications off&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Push_API">MDN: Push API</a></li><li><a href="https://web.dev/articles/push-notifications-overview">web.dev: push notifications overview</a></li><li><a href="https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/">WebKit: web push for web apps on iOS and iPadOS</a></li><li><a href="https://github.com/web-push-libs/web-push">web-push (Node library)</a></li><li><a href="https://firebase.google.com/docs/cloud-messaging">Firebase Cloud Messaging</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/push-notifications.json">api/push-notifications.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../unsubscribe-handling/index.html">&larr; Unsubscribe and suppression list</a><a href="../signed-download-links/index.html">Signed download link &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

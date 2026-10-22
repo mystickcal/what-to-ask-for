@@ -1,0 +1,99 @@
+{
+  "id": "push-notifications",
+  "name": "Push notifications",
+  "category": "email",
+  "category_name": "Email and notifications",
+  "aliases": [
+    "web push",
+    "browser notifications",
+    "service worker push",
+    "VAPID",
+    "FCM",
+    "APNs",
+    "mobile push"
+  ],
+  "needs": [
+    "notify users even when the site is closed",
+    "send a phone notification from my web app",
+    "do push notifications work on iPhone",
+    "stop sending to people who turned notifications off"
+  ],
+  "keywords": [
+    "push",
+    "notification",
+    "notifications",
+    "web",
+    "service",
+    "worker",
+    "vapid",
+    "fcm",
+    "apns",
+    "iphone",
+    "ios",
+    "android",
+    "browser",
+    "pwa"
+  ],
+  "summary": "Messages that appear on a device even when your app isn't open. On the web, a service worker receives them through the browser's push service, signed with your VAPID keys. iPhones support web push only for sites added to the home screen (iOS 16.4 and later). Native apps use APNs (Apple) and FCM (Google).",
+  "need_when": [
+    "Something time-sensitive happens and email is too slow: a message, a reminder, an order update."
+  ],
+  "skip_when": [
+    "The update can wait for the next visit or an email. Unwanted pushes get turned off fast."
+  ],
+  "ways": [
+    {
+      "title": "Standard web push from your server",
+      "cost": "$0",
+      "how": "A service worker, the Push API, VAPID keys, and the web-push library (Node) or pywebpush (Python) to send.",
+      "tradeoff": "No third party. On iPhone it only works after the user adds your site to the home screen."
+    },
+    {
+      "title": "Firebase Cloud Messaging",
+      "cost": "free",
+      "how": "One API for Android, web and iOS (through APNs). Common for native and hybrid apps.",
+      "tradeoff": "A Google account and SDK in your app. Apple setup is still needed for iOS."
+    },
+    {
+      "title": "A hosted notification service",
+      "cost": "free tiers",
+      "how": "OneSignal, or Novu (open source, self-hostable) for push, email and in-app messages from one place.",
+      "tradeoff": "Dashboards and scheduling built in. Another vendor holds your device tokens."
+    }
+  ],
+  "prompt": "Add web push notifications for [event].\n\nRequirements:\n- Ask for permission only after the user clicks 'Turn on notifications', never on page load.\n- Generate VAPID keys once and keep the private key in an environment variable.\n- Save each subscription (endpoint and keys) per user and device. Delete it when the push service answers 404 or 410.\n- Send from a background job, not the web request.\n- Notification text says what happened and links to the right page. No sensitive details on the lock screen.\n- A settings page lets users turn push off per type and see their devices.\n\nAcceptance checks (run each and show me the result):\n1. Loading the site doesn't show a permission prompt.\n2. After opting in on desktop Chrome, a test event shows a notification with the site closed.\n3. On an iPhone with the site added to the home screen, the same test works.\n4. A subscription that returns 410 is deleted and not retried.\n5. Turning a type off stops those notifications on all devices.",
+  "acceptance_checks": [
+    "Loading the site doesn't show a permission prompt.",
+    "After opting in on desktop Chrome, a test event shows a notification with the site closed.",
+    "On an iPhone with the site added to the home screen, the same test works.",
+    "A subscription that returns 410 is deleted and not retried.",
+    "Turning a type off stops those notifications on all devices."
+  ],
+  "if_you_skip_it": "Permission prompts on page load get blocked for good, and dead subscriptions pile up and slow every send.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "MDN: Push API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Push_API"
+    },
+    {
+      "title": "web.dev: push notifications overview",
+      "url": "https://web.dev/articles/push-notifications-overview"
+    },
+    {
+      "title": "WebKit: web push for web apps on iOS and iPadOS",
+      "url": "https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/"
+    },
+    {
+      "title": "web-push (Node library)",
+      "url": "https://github.com/web-push-libs/web-push"
+    },
+    {
+      "title": "Firebase Cloud Messaging",
+      "url": "https://firebase.google.com/docs/cloud-messaging"
+    }
+  ],
+  "page": "e/push-notifications/index.html",
+  "json": "api/push-notifications.json",
+  "updated": "2026-10-21"
+}

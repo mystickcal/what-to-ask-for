@@ -1,0 +1,89 @@
+{
+  "id": "magic-links",
+  "name": "Magic link sign-in",
+  "category": "auth",
+  "category_name": "Auth and accounts",
+  "aliases": [
+    "passwordless login",
+    "email link login",
+    "sign in with email",
+    "one-time login link"
+  ],
+  "needs": [
+    "let users log in without a password",
+    "email a sign-in link",
+    "the login link was already used when the user clicked it",
+    "Outlook clicks my login links before the user does"
+  ],
+  "keywords": [
+    "magic",
+    "link",
+    "passwordless",
+    "email",
+    "login",
+    "sign",
+    "signin",
+    "token",
+    "scanner",
+    "prefetch",
+    "otp"
+  ],
+  "summary": "The user types their email and gets a link that signs them in. The link holds a random one-time token that expires in minutes. Email security scanners often open links before the person does, so a safe design shows a confirm button and only signs in on that click.",
+  "need_when": [
+    "You don't want to store passwords, or your users forget them often."
+  ],
+  "skip_when": [
+    "Users sign in many times a day on shared machines, where waiting for an email is painful."
+  ],
+  "ways": [
+    {
+      "title": "Your auth provider",
+      "cost": "free tiers",
+      "how": "Supabase Auth, Clerk and Auth.js (the Email provider) send and check magic links.",
+      "tradeoff": "Quick. Check how each one handles link scanners and expiry."
+    },
+    {
+      "title": "A framework package",
+      "cost": "$0",
+      "how": "django-sesame for Django. Other frameworks have similar packages.",
+      "tradeoff": "Less code. Read its defaults for expiry and single use."
+    },
+    {
+      "title": "Your own tokens table",
+      "cost": "$0",
+      "how": "Store a SHA-256 hash of a random token with an expiry and used_at. The link opens a page with a 'Sign in' button that POSTs the token.",
+      "tradeoff": "You control every rule. You also own the email delivery and rate limits."
+    }
+  ],
+  "prompt": "Add magic link sign-in.\n\nRequirements:\n- The form takes an email and always shows the same message: 'If an account exists, we sent a link. It expires in [15] minutes.'\n- Rate limit per IP and per email.\n- Token: 32 random bytes from a secure generator. Store only its hash with expires_at and used_at. A new request deletes older unused tokens for that user.\n- The link opens a confirm page (GET changes nothing). The user clicks 'Sign in', which POSTs the token with CSRF protection.\n- On POST, in one transaction: lock the token row, check it is unused and unexpired, mark it used, then log the user in.\n- The confirm page sends Cache-Control: no-store and Referrer-Policy: same-origin and loads no analytics.\n- Only allow a 'next' redirect to our own site.\n\nAcceptance checks (run each and show me the result):\n1. Fetching the link with curl (like a scanner would) doesn't use up the token.\n2. Clicking 'Sign in' works once. A second POST with the same token fails.\n3. A link older than the expiry fails with a friendly message.\n4. Requesting a link for an unknown email looks the same as for a known one.\n5. A next=https://evil.example parameter is ignored.",
+  "acceptance_checks": [
+    "Fetching the link with curl (like a scanner would) doesn't use up the token.",
+    "Clicking 'Sign in' works once. A second POST with the same token fails.",
+    "A link older than the expiry fails with a friendly message.",
+    "Requesting a link for an unknown email looks the same as for a known one.",
+    "A next=https://evil.example parameter is ignored."
+  ],
+  "if_you_skip_it": "Links get burned by email scanners, old links stay valid, or a link in a forwarded email signs in a stranger.",
+  "how_derek_runs_it": "Custody Journal's sign-in links expire in 15 minutes. It stores only a SHA-256 hash of each token, and a new request deletes the user's older unused links. Opening the link shows a confirm page with no analytics, no caching and a same-origin referrer policy. Only the CSRF-protected POST uses the token, and it marks the token used inside a locked transaction before logging in. Requests are limited to 8 per IP and 3 per email per hour, and the reply is the same whether or not the account exists.",
+  "links": [
+    {
+      "title": "Auth.js: email (magic link) provider",
+      "url": "https://authjs.dev/getting-started/authentication/email"
+    },
+    {
+      "title": "Supabase: passwordless email logins",
+      "url": "https://supabase.com/docs/guides/auth/auth-email-passwordless"
+    },
+    {
+      "title": "django-sesame",
+      "url": "https://github.com/aaugustin/django-sesame"
+    },
+    {
+      "title": "OWASP Authentication Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    }
+  ],
+  "page": "e/magic-links/index.html",
+  "json": "api/magic-links.json",
+  "updated": "2026-10-21"
+}
