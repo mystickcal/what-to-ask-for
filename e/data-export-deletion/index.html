@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data export and account deletion: What To Ask For</title>
+<meta name="description" content="Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what&#x27;s kept and why, like backups that expire or legal records.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Data export and account deletion: What To Ask For">
+<meta property="og:description" content="Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what&#x27;s kept and why, like backups that expire or legal records.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/data-export-deletion/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data export and account deletion: What To Ask For">
+<meta name="twitter:description" content="Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what&#x27;s kept and why, like backups that expire or legal records.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=privacy">Analytics and privacy</a></p>
+  <h1>Data export and account deletion</h1>
+  <p class="aka">Also called: delete my account, download my data, GDPR data request, right to erasure, data portability</p>
+  <p class="lead">Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what&#x27;s kept and why, like backups that expire or legal records.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You have users in places with privacy laws (UK, EU, California and others).</li><li>Your iOS app lets people create accounts: Apple requires account deletion inside the app.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Rarely. Even small apps get these requests, and doing them by hand is error-prone.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Self-serve export as a background job <span class="cost">$0</span></h3>
+<p>A job builds a zip with JSON or CSV (and files), stores it privately, and emails a signed link that expires.</p><p class="trade"><strong>Tradeoff:</strong> Handles big accounts without timeouts. You maintain it as models change.</p></li>
+<li><h3>Self-serve deletion with confirmation <span class="cost">$0</span></h3>
+<p>Re-authenticate, type a word to confirm, cancel billing first, then delete records and schedule file cleanup after the transaction commits.</p><p class="trade"><strong>Tradeoff:</strong> No support tickets. Make sure nothing is left in other systems, like email lists or analytics.</p></li>
+<li><h3>A documented manual process <span class="cost">$0</span></h3>
+<p>A request form and a checklist covering every system that holds user data.</p><p class="trade"><strong>Tradeoff:</strong> Fine at low volume. Slow, and easy to forget a system.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add self-serve data export and account deletion.
+
+Requirements:
+- Export: a background job builds a zip of all the user&#x27;s data as JSON and CSV, plus their uploaded files. It&#x27;s stored privately and delivered by an expiring signed link. Exclude other users&#x27; private data and internal fields.
+- Deletion: require the user to re-authenticate and type DELETE. Cancel any subscription first, and stop if billing can&#x27;t be confirmed closed.
+- Delete the user&#x27;s records in one transaction. Schedule file deletion to run after the transaction commits.
+- Remove them from email lists, analytics and any other service that holds their data. List each one.
+- Tell the user what is kept and for how long (backups, invoices, legal records).
+- On iOS, make deletion reachable from inside the app.
+
+Acceptance checks (run each and show me the result):
+1. The export opens and contains every type of record the user created.
+2. After deletion, the user can&#x27;t log in and their records and files are gone.
+3. Their subscription is cancelled in the payment provider.
+4. They&#x27;re removed from the email list.
+5. If billing can&#x27;t be confirmed closed, nothing is deleted and the user sees why.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Privacy complaints, app store rejection, and &#x27;deleted&#x27; users who keep getting billed or emailed.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal exports a full zip with JSON, CSV, a calendar file, vCard contacts and an expenses spreadsheet, plus a separate documents zip. To delete an account, the user types DELETE, and the app refuses to go on unless it can confirm Stripe billing is closed. It then records file cleanup tasks and deletes the user in one transaction, with cleanup running after commit, and tells the user that encrypted backups and limited legal records may remain until their retention ends.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users delete their account and everything in it&rdquo;</li><li>&ldquo;let users download all their data&rdquo;</li><li>&ldquo;Apple requires in-app account deletion&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-erasure/">ICO: right to erasure</a></li><li><a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-data-portability/">ICO: right to data portability</a></li><li><a href="https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion">Apple App Review: 5.1.1 account deletion</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/data-export-deletion.json">api/data-export-deletion.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../cookie-consent/index.html">&larr; Cookie consent and privacy-friendly analytics</a><a href="../scheduled-jobs/index.html">Scheduled job &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

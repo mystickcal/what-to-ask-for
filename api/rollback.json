@@ -1,0 +1,86 @@
+{
+  "id": "rollback",
+  "name": "Rollback plan",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "roll back a deploy",
+    "revert release",
+    "instant rollback",
+    "previous version",
+    "blue-green deploy"
+  ],
+  "needs": [
+    "the new version is broken, put the old one back",
+    "undo a bad deploy quickly",
+    "what happens if a release fails halfway"
+  ],
+  "keywords": [
+    "rollback",
+    "roll",
+    "back",
+    "revert",
+    "undo",
+    "release",
+    "previous",
+    "version",
+    "bad",
+    "broken",
+    "blue",
+    "green",
+    "image"
+  ],
+  "summary": "A tested way to put the last working version back in minutes. Keep the previous build around, know which database changes it can live with, and practice the switch before you need it.",
+  "need_when": [
+    "Anyone uses the app while you deploy."
+  ],
+  "skip_when": [
+    "Never. Even if it's one command, write it down and try it once."
+  ],
+  "ways": [
+    {
+      "title": "Your host's instant rollback",
+      "cost": "$0, included",
+      "how": "Vercel, Netlify, Render, Fly and Railway keep earlier deployments and can switch traffic back to one.",
+      "tradeoff": "Seconds to roll back code. Doesn't undo database migrations."
+    },
+    {
+      "title": "Tagged images and a scripted switch",
+      "cost": "$0",
+      "how": "Tag each Docker image with the commit, record what's live before a release, and have a script restart the app on the previous image and wait for health checks.",
+      "tradeoff": "Works on any server. You maintain the script and must test it."
+    },
+    {
+      "title": "Blue-green or canary deploys",
+      "cost": "$0 + capacity",
+      "how": "Run the new version beside the old one and move traffic over, all at once or a slice at a time, with a quick switch back.",
+      "tradeoff": "Smoothest. Needs a load balancer and double capacity during the switch."
+    }
+  ],
+  "prompt": "Give this app a tested rollback plan for [host/server].\n\nRequirements:\n- Every release is an immutable build (image or deployment) tagged with its commit.\n- Before a release, record what's live: the build id, config and environment.\n- One command or button rolls back to the previous build and waits until health checks pass.\n- Database migrations follow expand and contract, so the previous build still runs on the new schema. Rolling back never reverses a migration automatically.\n- If health checks fail after a release, roll back automatically and alert me.\n- Write a one-page runbook and do a practice rollback on staging.\n\nAcceptance checks (run each and show me the result):\n1. A practice rollback on staging finishes in under [5] minutes with health checks green.\n2. After a rollback, the app runs on the previous build against the current database.\n3. A deliberately broken release triggers the automatic rollback.\n4. The runbook says exactly which command to run and how to confirm it worked.",
+  "acceptance_checks": [
+    "A practice rollback on staging finishes in under [5] minutes with health checks green.",
+    "After a rollback, the app runs on the previous build against the current database.",
+    "A deliberately broken release triggers the automatic rollback.",
+    "The runbook says exactly which command to run and how to confirm it worked."
+  ],
+  "if_you_skip_it": "A bad release stays live while you debug under pressure, or a hurried rollback breaks the database.",
+  "how_derek_runs_it": "Before each release, Custody Journal's release script records the live Compose setup, runtime config and previous image. If anything fails, a trap rolls back automatically: it restarts the six app services on the previous image and waits until they're healthy. The database and Redis containers are left alone, and migrations are never reversed, so a preflight check first proves the previous image runs on the new schema.",
+  "links": [
+    {
+      "title": "Vercel: instant rollback",
+      "url": "https://vercel.com/docs/instant-rollback"
+    },
+    {
+      "title": "Render: rollbacks",
+      "url": "https://render.com/docs/rollbacks"
+    },
+    {
+      "title": "Martin Fowler: blue-green deployment",
+      "url": "https://martinfowler.com/bliki/BlueGreenDeployment.html"
+    }
+  ],
+  "page": "e/rollback/index.html",
+  "json": "api/rollback.json",
+  "updated": "2026-10-21"
+}

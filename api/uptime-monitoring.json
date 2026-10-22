@@ -1,0 +1,88 @@
+{
+  "id": "uptime-monitoring",
+  "name": "Uptime monitoring",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "uptime check",
+    "status page",
+    "downtime alerts",
+    "synthetic monitoring",
+    "heartbeat monitoring"
+  ],
+  "needs": [
+    "tell me when my site is down",
+    "my site was down all weekend and I didn't know",
+    "alert me if the nightly job stops running",
+    "add a status page"
+  ],
+  "keywords": [
+    "uptime",
+    "down",
+    "downtime",
+    "monitor",
+    "monitoring",
+    "alert",
+    "status",
+    "page",
+    "ping",
+    "heartbeat",
+    "kuma",
+    "outage",
+    "weekend"
+  ],
+  "summary": "An outside service that checks your site every minute or so and alerts you when it fails. Heartbeat checks do the reverse for jobs: the job pings the monitor when it finishes, and you're alerted when the ping doesn't arrive.",
+  "need_when": [
+    "Anyone besides you depends on the app being up.",
+    "You have scheduled jobs whose silent failure would hurt."
+  ],
+  "skip_when": [
+    "Never once you have users. It's cheap and quick to set up."
+  ],
+  "ways": [
+    {
+      "title": "Uptime Kuma",
+      "cost": "$0 self-hosted",
+      "how": "Run it on a different server from your app. HTTP, keyword and push (heartbeat) monitors, with alerts to email, Slack, Telegram and more.",
+      "tradeoff": "Free and flexible. If it shares a server with your app, it goes down with it."
+    },
+    {
+      "title": "Hosted uptime service",
+      "cost": "free tiers",
+      "how": "UptimeRobot, Better Stack or similar check from several regions and host a status page.",
+      "tradeoff": "Independent of your servers. Free tiers check less often."
+    },
+    {
+      "title": "Heartbeats for jobs",
+      "cost": "$0, free tiers",
+      "how": "Healthchecks.io (open source, or hosted with a free tier) gives each job a URL to ping when it succeeds.",
+      "tradeoff": "Catches jobs that stop running, which uptime checks can't see."
+    }
+  ],
+  "prompt": "Set up uptime and job monitoring for this app.\n\nRequirements:\n- Monitor [home page URL] and [readiness URL] every [1-5] minutes from outside my infrastructure. The readiness check should fail when the database is unreachable.\n- Use a keyword check on a page so a blank or error page counts as down, not just a 200.\n- Add a heartbeat ping at the end of each scheduled job ([list]), sent only on success, with a grace period that fits each schedule.\n- Alert by [email/Slack/SMS] after [2] failed checks in a row, and alert again when it recovers.\n- Optional: a public status page for the main site.\n- Write down every monitor, what it checks and who gets the alert.\n\nAcceptance checks (run each and show me the result):\n1. Stopping the app triggers an alert within the expected time.\n2. Breaking the database connection makes the readiness monitor fail.\n3. Skipping one run of a scheduled job triggers its heartbeat alert.\n4. The recovery alert arrives when things come back.",
+  "acceptance_checks": [
+    "Stopping the app triggers an alert within the expected time.",
+    "Breaking the database connection makes the readiness monitor fail.",
+    "Skipping one run of a scheduled job triggers its heartbeat alert.",
+    "The recovery alert arrives when things come back."
+  ],
+  "if_you_skip_it": "Outages and dead background jobs that you find out about from angry users, days later.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Uptime Kuma",
+      "url": "https://github.com/louislam/uptime-kuma"
+    },
+    {
+      "title": "Healthchecks.io docs",
+      "url": "https://healthchecks.io/docs/"
+    },
+    {
+      "title": "UptimeRobot",
+      "url": "https://uptimerobot.com/"
+    }
+  ],
+  "page": "e/uptime-monitoring/index.html",
+  "json": "api/uptime-monitoring.json",
+  "updated": "2026-10-21"
+}

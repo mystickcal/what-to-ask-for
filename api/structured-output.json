@@ -1,0 +1,92 @@
+{
+  "id": "structured-output",
+  "name": "Structured output from LLMs",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "JSON mode",
+    "structured outputs",
+    "function calling",
+    "tool use",
+    "JSON schema output"
+  ],
+  "needs": [
+    "the AI returns broken JSON sometimes",
+    "get data my code can use from the model, not prose",
+    "extract fields from a document with AI"
+  ],
+  "keywords": [
+    "json",
+    "structured",
+    "output",
+    "outputs",
+    "schema",
+    "function",
+    "calling",
+    "tool",
+    "extract",
+    "fields",
+    "parse",
+    "broken",
+    "zod",
+    "pydantic",
+    "format"
+  ],
+  "summary": "Getting the model to return data in a fixed shape your code can rely on. Use the provider's schema feature where it exists, then validate the result anyway and decide what happens when it doesn't fit: retry once, fall back, or show an error.",
+  "need_when": [
+    "Your code reads fields out of the model's answer: labels, extracted data, decisions or tool arguments."
+  ],
+  "skip_when": [
+    "The output is only text shown to a person."
+  ],
+  "ways": [
+    {
+      "title": "Provider schema enforcement",
+      "cost": "$0",
+      "how": "OpenAI Structured Outputs with a strict JSON schema, or tool definitions with an input schema (OpenAI function calling, Anthropic tool use), using strict mode where the provider offers it.",
+      "tradeoff": "The provider holds the shape in strict mode. Supported schema features are limited, and the model can still refuse or pick wrong values."
+    },
+    {
+      "title": "JSON mode plus your own validation",
+      "cost": "$0",
+      "how": "Ask for JSON, parse it, and validate with Pydantic or Zod. JSON mode only promises valid JSON, not your schema.",
+      "tradeoff": "Works across more models. You handle mismatches yourself."
+    },
+    {
+      "title": "A library",
+      "cost": "$0",
+      "how": "Instructor (Python) or the Vercel AI SDK's object generation take a Pydantic or Zod schema and handle retries.",
+      "tradeoff": "Less glue code. One more dependency to keep current."
+    }
+  ],
+  "prompt": "Make [AI feature] return structured data.\n\nRequirements:\n- Define the output schema in [Pydantic/Zod]: field types, required fields, enums for fixed choices, max lengths.\n- Use the provider's structured output or tool schema feature with that schema where supported.\n- Validate every response against the schema in our code, even when the provider enforces it. Check enum values against our allowed list.\n- On invalid output or a refusal, retry once, then fall back to [safe default / non-AI path] and log the failure.\n- Never pass model output straight into SQL, shell commands, file paths or HTML.\n- Add tests with real sample inputs, plus a mocked malformed response.\n\nAcceptance checks (run each and show me the result):\n1. 100 sample inputs all produce output that passes validation, or are handled by the fallback.\n2. A mocked response with an unknown enum value is rejected.\n3. A mocked malformed response triggers one retry and then the fallback.\n4. The schema in the code and the one sent to the provider come from one definition.",
+  "acceptance_checks": [
+    "100 sample inputs all produce output that passes validation, or are handled by the fallback.",
+    "A mocked response with an unknown enum value is rejected.",
+    "A mocked malformed response triggers one retry and then the fallback.",
+    "The schema in the code and the one sent to the provider come from one definition."
+  ],
+  "if_you_skip_it": "Features that crash on the one response in fifty that isn't valid JSON, or code that acts on made-up field values.",
+  "how_derek_runs_it": "Custody Journal's tone classifier asks the model for a JSON object, then checks that the label is one of three allowed values and keeps only hits in known categories. Anything that doesn't fit falls back to the keyword classifier.",
+  "links": [
+    {
+      "title": "OpenAI: structured outputs",
+      "url": "https://developers.openai.com/api/docs/guides/structured-outputs"
+    },
+    {
+      "title": "Anthropic: tool use",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    },
+    {
+      "title": "Pydantic",
+      "url": "https://pydantic.dev/docs/"
+    },
+    {
+      "title": "Zod",
+      "url": "https://zod.dev/"
+    }
+  ],
+  "page": "e/structured-output/index.html",
+  "json": "api/structured-output.json",
+  "updated": "2026-10-21"
+}

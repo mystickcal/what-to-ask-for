@@ -1,0 +1,90 @@
+{
+  "id": "semantic-search",
+  "name": "Semantic search and RAG",
+  "category": "search",
+  "category_name": "Search",
+  "aliases": [
+    "vector search",
+    "embeddings",
+    "pgvector",
+    "retrieval augmented generation",
+    "RAG",
+    "chat with your docs"
+  ],
+  "needs": [
+    "find documents by meaning, not exact words",
+    "let users chat with their own documents",
+    "the AI should answer from my help articles"
+  ],
+  "keywords": [
+    "semantic",
+    "vector",
+    "vectors",
+    "embedding",
+    "embeddings",
+    "pgvector",
+    "rag",
+    "retrieval",
+    "meaning",
+    "similar",
+    "chat",
+    "documents",
+    "docs",
+    "knowledge",
+    "chunks"
+  ],
+  "summary": "Turning text into embeddings (lists of numbers that capture meaning) so you can find passages similar to a question even when the words differ. RAG feeds the best passages to a model so it answers from your content instead of guessing.",
+  "need_when": [
+    "Users ask questions in their own words, or an AI feature must answer from your documents."
+  ],
+  "skip_when": [
+    "Users search for names, codes or exact phrases. Full-text search does that better and cheaper."
+  ],
+  "ways": [
+    {
+      "title": "pgvector in Postgres",
+      "cost": "$0",
+      "how": "Store chunk embeddings in a vector column with an HNSW index next to your data, and filter by owner in the same query.",
+      "tradeoff": "One database, normal permissions and backups. Tuning is up to you at large scale."
+    },
+    {
+      "title": "Hybrid search",
+      "cost": "$0",
+      "how": "Run full-text and vector search together and merge the results (for example reciprocal rank fusion). Meilisearch and Typesense support hybrid search too.",
+      "tradeoff": "Catches both exact terms and meaning. A bit more logic to maintain."
+    },
+    {
+      "title": "A managed vector database",
+      "cost": "paid, free tiers",
+      "how": "Pinecone, Qdrant Cloud or Weaviate Cloud, or your AI provider's file search tool.",
+      "tradeoff": "Scales without tuning. Another copy of your data to keep in sync and secure."
+    }
+  ],
+  "prompt": "Add semantic search (and answers from it) over [documents] in this app.\n\nRequirements:\n- Split documents into chunks of about [500] tokens with some overlap, keeping the title and section heading with each chunk.\n- Create embeddings with [embedding model] in a background job on create and update. Store them with pgvector and an HNSW index, plus the owner or tenant id.\n- Every search query filters by the current user's access before ranking.\n- Combine vector and full-text results, and return the top [5] chunks with links to their source.\n- For answers, send only those chunks to the model, tell it to answer only from them and say when it doesn't know, and show the sources.\n- Re-embed when a document changes and delete chunks when it's deleted.\n- Build a test set of 20 questions with known source documents and report how often the right source is in the top 5.\n\nAcceptance checks (run each and show me the result):\n1. A question using different words from the document still finds it.\n2. User B's question never retrieves user A's chunks.\n3. Deleting a document removes it from results and answers.\n4. Answers cite their sources, and a question with no answer in the docs gets 'I don't know'.\n5. The right source is in the top 5 for at least [18 of 20] test questions.",
+  "acceptance_checks": [
+    "A question using different words from the document still finds it.",
+    "User B's question never retrieves user A's chunks.",
+    "Deleting a document removes it from results and answers.",
+    "Answers cite their sources, and a question with no answer in the docs gets 'I don't know'.",
+    "The right source is in the top 5 for at least [18 of 20] test questions."
+  ],
+  "if_you_skip_it": "Answers made up from nowhere, results from other users' documents, and stale answers from deleted files.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "pgvector",
+      "url": "https://github.com/pgvector/pgvector"
+    },
+    {
+      "title": "OpenAI: embeddings",
+      "url": "https://developers.openai.com/api/docs/guides/embeddings"
+    },
+    {
+      "title": "Anthropic: contextual retrieval",
+      "url": "https://www.anthropic.com/research/contextual-retrieval"
+    }
+  ],
+  "page": "e/semantic-search/index.html",
+  "json": "api/semantic-search.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI spend caps and token budgets: What To Ask For</title>
+<meta name="description" content="Putting a ceiling on AI spending at every level: maximum tokens per request, an allowance per user or plan, and an alert or hard stop for the whole account. Record usage for each call so you know which features and users cost what.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="AI spend caps and token budgets: What To Ask For">
+<meta property="og:description" content="Putting a ceiling on AI spending at every level: maximum tokens per request, an allowance per user or plan, and an alert or hard stop for the whole account. Record usage for each call so you know which features and users cost what.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/token-budget/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI spend caps and token budgets: What To Ask For">
+<meta name="twitter:description" content="Putting a ceiling on AI spending at every level: maximum tokens per request, an allowance per user or plan, and an alert or hard stop for the whole account. Record usage for each call so you know which features and users cost what.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>AI spend caps and token budgets</h1>
+  <p class="aka">Also called: AI cost control, token limits, usage quota, max tokens, spend limit, monthly AI allowance</p>
+  <p class="lead">Putting a ceiling on AI spending at every level: maximum tokens per request, an allowance per user or plan, and an alert or hard stop for the whole account. Record usage for each call so you know which features and users cost what.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users can trigger model calls, especially on free plans.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Internal tools with a few trusted users and a provider spend limit set.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Per-request limits and usage logging <span class="cost">$0</span></h3>
+<p>Set max output tokens on every call, trim long inputs, and save the token counts the API returns with each request.</p><p class="trade"><strong>Tradeoff:</strong> Necessary first step. Doesn&#x27;t stop many small calls adding up.</p></li>
+<li><h3>A per-user allowance in your database <span class="cost">$0</span></h3>
+<p>Count requests or tokens per user per month by plan. Reserve before the call inside a locked transaction, and refund if the call never starts.</p><p class="trade"><strong>Tradeoff:</strong> Fair and plan-aware. Needs care so parallel requests can&#x27;t overspend.</p></li>
+<li><h3>Provider and gateway limits <span class="cost">$0, included</span></h3>
+<p>Set budget alerts and project limits in the provider dashboards, or per-key budgets in a gateway like LiteLLM.</p><p class="trade"><strong>Tradeoff:</strong> A safety net for bugs and leaked keys. Too blunt to be the only control.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add AI cost controls to this app.
+
+Requirements:
+- Set max output tokens on every model call, and cap input size (truncate or refuse long inputs with a message).
+- Log every call: user id, feature, model, input and output tokens, and estimated cost.
+- Give each plan a monthly allowance ([Free: 20 requests, Pro: 500]). Reserve one unit before the call inside a transaction with the user&#x27;s row locked, so parallel requests can&#x27;t overspend. Refund the reservation if the call never starts.
+- A client-supplied request id makes retries count once.
+- Show users how much allowance is left and what happens when it runs out.
+- Add an admin view of spend by feature and top users this month.
+- Remind me to set budget alerts and a hard limit in the provider dashboard.
+
+Acceptance checks (run each and show me the result):
+1. 20 parallel requests from a user with 5 left succeed exactly 5 times.
+2. Retrying with the same request id doesn&#x27;t use a second unit.
+3. A user at their limit gets a clear message and no model call is made.
+4. The admin view totals match the provider&#x27;s usage page within a few percent.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>One user or one bug runs up a bill bigger than your revenue, and you can&#x27;t tell which feature did it.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal gives its Protected plan a monthly AI allowance (50 requests unless configured otherwise) and its Advocate plan unlimited use. Each request reserves a slot while the user&#x27;s row is locked, using a client-supplied request id: a retry with the same id isn&#x27;t charged twice, and the same id with different inputs is refused. Reservations that haven&#x27;t started after 5 minutes are refunded, and the month is counted in the user&#x27;s own time zone.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my OpenAI bill exploded overnight&rdquo;</li><li>&ldquo;cap how much AI each plan gets per month&rdquo;</li><li>&ldquo;one user ran up hundreds of dollars of tokens&rdquo;</li><li>&ldquo;know what each AI feature costs me&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.openai.com/api/docs/guides/rate-limits">OpenAI: rate limits and usage tiers</a></li><li><a href="https://platform.claude.com/docs/en/build-with-claude/token-counting">Anthropic: token counting</a></li><li><a href="https://docs.litellm.ai/docs/proxy/users">LiteLLM: budgets and rate limits</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/token-budget.json">api/token-budget.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../llm-retries-fallbacks/index.html">&larr; LLM retries, timeouts and fallbacks</a><a href="../prompt-injection/index.html">Prompt injection defenses &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

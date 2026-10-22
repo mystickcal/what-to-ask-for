@@ -1,0 +1,87 @@
+{
+  "id": "cookie-consent",
+  "name": "Cookie consent and privacy-friendly analytics",
+  "category": "privacy",
+  "category_name": "Analytics and privacy",
+  "aliases": [
+    "cookie banner",
+    "GDPR consent",
+    "consent management",
+    "cookieless analytics",
+    "tracking consent"
+  ],
+  "needs": [
+    "do I need a cookie banner",
+    "load Google Analytics only after people agree",
+    "track visits without cookies"
+  ],
+  "keywords": [
+    "cookie",
+    "cookies",
+    "consent",
+    "banner",
+    "gdpr",
+    "eprivacy",
+    "analytics",
+    "tracking",
+    "pixel",
+    "umami",
+    "plausible",
+    "privacy",
+    "agree",
+    "google"
+  ],
+  "summary": "Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages.",
+  "need_when": [
+    "You have visitors in the UK or EU and use analytics, ad pixels or other non-essential cookies."
+  ],
+  "skip_when": [
+    "You only set cookies strictly needed for the service, like login and CSRF. Check the rules for where your users are."
+  ],
+  "ways": [
+    {
+      "title": "Cookieless analytics",
+      "cost": "$0 self-hosted",
+      "how": "Umami, Plausible or GoatCounter (self-hosted or their cloud) count visits without tracking cookies.",
+      "tradeoff": "Often no banner needed for analytics, but check the rules where your users are. Less detail than ad-tech tools."
+    },
+    {
+      "title": "A small consent banner you build",
+      "cost": "$0",
+      "how": "Store the choice in a first-party cookie and only inject third-party scripts after 'Accept'. Make 'Reject' as easy as 'Accept'.",
+      "tradeoff": "Light and fully controlled. You maintain the list of what each choice loads."
+    },
+    {
+      "title": "A consent management platform",
+      "cost": "free tiers, paid",
+      "how": "A hosted consent tool, or Google's consent mode alongside it if you use Google tags.",
+      "tradeoff": "Handles many vendors and regions. Heavier pages and another vendor."
+    }
+  ],
+  "prompt": "Set up consent-aware analytics for this app.\n\nRequirements:\n- List every cookie and third-party script the app loads, and mark each as strictly necessary or not.\n- Load nothing non-essential (analytics, ad pixels, chat widgets) until the visitor accepts. Reject must be one click and as visible as Accept.\n- Store the choice in a first-party cookie, and add a link in the footer to change it later.\n- Keep third-party trackers off logged-in pages and pages with personal data entirely.\n- If possible, switch analytics to a cookieless tool so the banner covers less.\n- Update the privacy policy to match what's actually loaded.\n\nAcceptance checks (run each and show me the result):\n1. With no choice made, the network tab shows no requests to analytics or ad domains.\n2. After Reject, still none.\n3. After Accept, the chosen scripts load.\n4. Logged-in pages never load ad pixels, whatever the choice.",
+  "acceptance_checks": [
+    "With no choice made, the network tab shows no requests to analytics or ad domains.",
+    "After Reject, still none.",
+    "After Accept, the chosen scripts load.",
+    "Logged-in pages never load ad pixels, whatever the choice."
+  ],
+  "if_you_skip_it": "Complaints and fines under privacy laws, and personal data from inside your app leaking to ad networks.",
+  "how_derek_runs_it": "Custody Journal loads third-party analytics only for signed-out visitors, only on the home, start and pricing pages, and only after the cj_analytics_consent_v1 cookie is set to granted.",
+  "links": [
+    {
+      "title": "ICO: cookies and similar technologies",
+      "url": "https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guide-to-pecr/cookies-and-similar-technologies/"
+    },
+    {
+      "title": "Umami",
+      "url": "https://docs.umami.is/docs"
+    },
+    {
+      "title": "Plausible: data policy",
+      "url": "https://plausible.io/data-policy"
+    }
+  ],
+  "page": "e/cookie-consent/index.html",
+  "json": "api/cookie-consent.json",
+  "updated": "2026-10-21"
+}

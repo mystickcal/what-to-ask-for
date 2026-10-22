@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Error tracking: What To Ask For</title>
+<meta name="description" content="A service that catches unhandled errors in your server and browser code, groups repeats together, and alerts you with the stack trace. You learn about bugs before users report them. It also collects whatever data you let it, so set it up to avoid personal data.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Error tracking: What To Ask For">
+<meta property="og:description" content="A service that catches unhandled errors in your server and browser code, groups repeats together, and alerts you with the stack trace. You learn about bugs before users report them. It also collects whatever data you let it, so set it up to avoid personal data.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/error-tracking/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Error tracking: What To Ask For">
+<meta name="twitter:description" content="A service that catches unhandled errors in your server and browser code, groups repeats together, and alerts you with the stack trace. You learn about bugs before users report them. It also collects whatever data you let it, so set it up to avoid personal data.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>Error tracking</h1>
+  <p class="aka">Also called: Sentry, exception monitoring, crash reporting, error alerts, GlitchTip</p>
+  <p class="lead">A service that catches unhandled errors in your server and browser code, groups repeats together, and alerts you with the stack trace. You learn about bugs before users report them. It also collects whatever data you let it, so set it up to avoid personal data.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Any app with real users. Set it up before launch.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Prototypes nobody else uses yet.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Sentry <span class="cost">free tier</span></h3>
+<p>Install the SDK for your framework and set the DSN from an environment variable. Upload source maps for frontend errors.</p><p class="trade"><strong>Tradeoff:</strong> The common choice, with SDKs for nearly everything. Sends data to a third party unless you self-host.</p></li>
+<li><h3>Self-hosted and Sentry-compatible <span class="cost">$0 + server</span></h3>
+<p>GlitchTip accepts events from the Sentry SDKs and runs as a small Docker stack.</p><p class="trade"><strong>Tradeoff:</strong> Your data stays on your server. Fewer features, and you run it.</p></li>
+<li><h3>Your host&#x27;s or log platform&#x27;s errors <span class="cost">varies</span></h3>
+<p>Error views in your hosting dashboard or log platform, with alerts on error-level log lines.</p><p class="trade"><strong>Tradeoff:</strong> Nothing new to install. Grouping and stack traces are usually weaker.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add error tracking to this app with [Sentry / GlitchTip].
+
+Requirements:
+- Initialize the SDK on the server and in the browser, only when the DSN environment variable is set.
+- Don&#x27;t send personal data: turn off default PII, don&#x27;t send request bodies, cookies or local variables, and scrub emails, tokens and auth headers in a before-send hook.
+- Tag each event with the release version and environment.
+- Upload source maps for the frontend build, and don&#x27;t serve them publicly.
+- Alert me by email when a new kind of error appears or one spikes.
+- Add a test route, available only to admins or in staging, that throws an error so I can confirm it arrives.
+
+Acceptance checks (run each and show me the result):
+1. The test error shows up in the dashboard with a readable stack trace.
+2. The event has no email address, cookie, token or request body in it.
+3. A frontend error shows original file names and lines, not minified code.
+4. Each event shows the release version.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Bugs that silently hit users for weeks, or an error tracker that quietly collects passwords and personal data.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>When a Sentry DSN is set, Custody Journal turns on Sentry with personal data off, no performance tracing, no local variables and no request bodies. A scrubber keeps only an allowlist (the event id, the exception class and in-app module, function and line) and breadcrumbs are dropped.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;I only find out about bugs when users email me&rdquo;</li><li>&ldquo;see the errors users hit in production&rdquo;</li><li>&ldquo;get alerted when the app throws an exception&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.sentry.io/security-legal-pii/scrubbing/">Sentry: data management and scrubbing</a></li><li><a href="https://glitchtip.com/">GlitchTip</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html">OWASP Logging Cheat Sheet</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/error-tracking.json">api/error-tracking.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../health-checks/index.html">&larr; Health checks and safe deploys</a><a href="../structured-logging/index.html">Structured logging &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

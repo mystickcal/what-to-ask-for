@@ -1,0 +1,90 @@
+{
+  "id": "token-budget",
+  "name": "AI spend caps and token budgets",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "AI cost control",
+    "token limits",
+    "usage quota",
+    "max tokens",
+    "spend limit",
+    "monthly AI allowance"
+  ],
+  "needs": [
+    "my OpenAI bill exploded overnight",
+    "cap how much AI each plan gets per month",
+    "one user ran up hundreds of dollars of tokens",
+    "know what each AI feature costs me"
+  ],
+  "keywords": [
+    "tokens",
+    "token",
+    "budget",
+    "spend",
+    "cost",
+    "bill",
+    "quota",
+    "allowance",
+    "cap",
+    "max_tokens",
+    "usage",
+    "openai",
+    "plan",
+    "dollars",
+    "expensive"
+  ],
+  "summary": "Putting a ceiling on AI spending at every level: maximum tokens per request, an allowance per user or plan, and an alert or hard stop for the whole account. Record usage for each call so you know which features and users cost what.",
+  "need_when": [
+    "Users can trigger model calls, especially on free plans."
+  ],
+  "skip_when": [
+    "Internal tools with a few trusted users and a provider spend limit set."
+  ],
+  "ways": [
+    {
+      "title": "Per-request limits and usage logging",
+      "cost": "$0",
+      "how": "Set max output tokens on every call, trim long inputs, and save the token counts the API returns with each request.",
+      "tradeoff": "Necessary first step. Doesn't stop many small calls adding up."
+    },
+    {
+      "title": "A per-user allowance in your database",
+      "cost": "$0",
+      "how": "Count requests or tokens per user per month by plan. Reserve before the call inside a locked transaction, and refund if the call never starts.",
+      "tradeoff": "Fair and plan-aware. Needs care so parallel requests can't overspend."
+    },
+    {
+      "title": "Provider and gateway limits",
+      "cost": "$0, included",
+      "how": "Set budget alerts and project limits in the provider dashboards, or per-key budgets in a gateway like LiteLLM.",
+      "tradeoff": "A safety net for bugs and leaked keys. Too blunt to be the only control."
+    }
+  ],
+  "prompt": "Add AI cost controls to this app.\n\nRequirements:\n- Set max output tokens on every model call, and cap input size (truncate or refuse long inputs with a message).\n- Log every call: user id, feature, model, input and output tokens, and estimated cost.\n- Give each plan a monthly allowance ([Free: 20 requests, Pro: 500]). Reserve one unit before the call inside a transaction with the user's row locked, so parallel requests can't overspend. Refund the reservation if the call never starts.\n- A client-supplied request id makes retries count once.\n- Show users how much allowance is left and what happens when it runs out.\n- Add an admin view of spend by feature and top users this month.\n- Remind me to set budget alerts and a hard limit in the provider dashboard.\n\nAcceptance checks (run each and show me the result):\n1. 20 parallel requests from a user with 5 left succeed exactly 5 times.\n2. Retrying with the same request id doesn't use a second unit.\n3. A user at their limit gets a clear message and no model call is made.\n4. The admin view totals match the provider's usage page within a few percent.",
+  "acceptance_checks": [
+    "20 parallel requests from a user with 5 left succeed exactly 5 times.",
+    "Retrying with the same request id doesn't use a second unit.",
+    "A user at their limit gets a clear message and no model call is made.",
+    "The admin view totals match the provider's usage page within a few percent."
+  ],
+  "if_you_skip_it": "One user or one bug runs up a bill bigger than your revenue, and you can't tell which feature did it.",
+  "how_derek_runs_it": "Custody Journal gives its Protected plan a monthly AI allowance (50 requests unless configured otherwise) and its Advocate plan unlimited use. Each request reserves a slot while the user's row is locked, using a client-supplied request id: a retry with the same id isn't charged twice, and the same id with different inputs is refused. Reservations that haven't started after 5 minutes are refunded, and the month is counted in the user's own time zone.",
+  "links": [
+    {
+      "title": "OpenAI: rate limits and usage tiers",
+      "url": "https://developers.openai.com/api/docs/guides/rate-limits"
+    },
+    {
+      "title": "Anthropic: token counting",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+    },
+    {
+      "title": "LiteLLM: budgets and rate limits",
+      "url": "https://docs.litellm.ai/docs/proxy/users"
+    }
+  ],
+  "page": "e/token-budget/index.html",
+  "json": "api/token-budget.json",
+  "updated": "2026-10-21"
+}

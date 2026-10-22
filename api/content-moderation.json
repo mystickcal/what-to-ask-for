@@ -1,0 +1,85 @@
+{
+  "id": "content-moderation",
+  "name": "Content moderation",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "moderation API",
+    "abuse reporting",
+    "user generated content safety",
+    "NSFW filter",
+    "trust and safety"
+  ],
+  "needs": [
+    "users can post anything on my site",
+    "stop people generating harmful content with my AI feature",
+    "add a report button and a review queue",
+    "filter abusive messages between users"
+  ],
+  "keywords": [
+    "moderation",
+    "moderate",
+    "abuse",
+    "harmful",
+    "nsfw",
+    "report",
+    "flag",
+    "review",
+    "queue",
+    "safety",
+    "toxic",
+    "content",
+    "posts",
+    "comments",
+    "filter"
+  ],
+  "summary": "Checking what users post or generate for abuse, and having a way for people to report it and for you to act. Combine an automatic classifier, user reports, a review queue and clear actions like hide, warn and ban.",
+  "need_when": [
+    "Users can post content others see, or your AI generates content from user prompts."
+  ],
+  "skip_when": [
+    "Private, single-user content nobody else can see. Your AI provider's own policies still apply."
+  ],
+  "ways": [
+    {
+      "title": "A moderation API",
+      "cost": "$0 for OpenAI",
+      "how": "OpenAI's moderation endpoint (omni-moderation-latest) is free to use and checks text and images against categories like harassment, hate, self-harm, sexual content and violence.",
+      "tradeoff": "Quick to add. Thresholds need tuning, and it doesn't know your community's rules."
+    },
+    {
+      "title": "A self-hosted classifier",
+      "cost": "$0 + GPU or CPU",
+      "how": "Open-weight safety models like Llama Guard run on your own hardware or a hosted inference provider.",
+      "tradeoff": "Data stays with you and categories can be customized. You run and update the model."
+    },
+    {
+      "title": "Reports and a review queue",
+      "cost": "$0",
+      "how": "A Report button on every post, a queue in admin with the content and reporter, and actions that are logged.",
+      "tradeoff": "Catches what classifiers miss. Someone has to work the queue."
+    }
+  ],
+  "prompt": "Add content moderation to [feature: posts / comments / AI generations].\n\nRequirements:\n- Check new content (and AI prompts and outputs) with [OpenAI moderation / chosen classifier] before it's shown to others. Block clear violations, hold borderline ones for review, and publish the rest.\n- Make thresholds per category configurable, and log scores without storing more content than needed.\n- Add a Report button with a reason picker. Reports go to an admin review queue.\n- Admin actions: hide, restore, warn user, suspend user. Every action is written to the audit log.\n- Rate-limit posting and reporting.\n- Write a short content policy page and link it from the post form.\n\nAcceptance checks (run each and show me the result):\n1. A known harassment test string is blocked or held.\n2. A normal post publishes with no delay users notice.\n3. Reporting a post puts it in the admin queue with the reason.\n4. Hiding a post removes it for everyone else, and the action appears in the audit log.",
+  "acceptance_checks": [
+    "A known harassment test string is blocked or held.",
+    "A normal post publishes with no delay users notice.",
+    "Reporting a post puts it in the admin queue with the reason.",
+    "Hiding a post removes it for everyone else, and the action appears in the audit log."
+  ],
+  "if_you_skip_it": "Abuse that drives users away, harmful AI output under your brand, and app store or payment provider trouble.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAI: moderation",
+      "url": "https://developers.openai.com/api/docs/guides/moderation"
+    },
+    {
+      "title": "Llama Guard 4 model card",
+      "url": "https://huggingface.co/meta-llama/Llama-Guard-4-12B"
+    }
+  ],
+  "page": "e/content-moderation/index.html",
+  "json": "api/content-moderation.json",
+  "updated": "2026-10-21"
+}

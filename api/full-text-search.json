@@ -1,0 +1,94 @@
+{
+  "id": "full-text-search",
+  "name": "Full-text search",
+  "category": "search",
+  "category_name": "Search",
+  "aliases": [
+    "site search",
+    "search box",
+    "Postgres full-text search",
+    "Meilisearch",
+    "typo-tolerant search"
+  ],
+  "needs": [
+    "add a search box that finds posts by any word in them",
+    "my search uses LIKE and it's slow",
+    "search should handle typos and plurals"
+  ],
+  "keywords": [
+    "search",
+    "full",
+    "text",
+    "fulltext",
+    "like",
+    "ilike",
+    "tsvector",
+    "meilisearch",
+    "typesense",
+    "typo",
+    "words",
+    "find",
+    "box",
+    "query",
+    "trigram",
+    "plurals"
+  ],
+  "summary": "Search that matches words, not exact strings: it handles plurals and word forms, ranks the best matches first, and stays fast as data grows. Postgres can do this well before you need a separate search engine.",
+  "need_when": [
+    "Users need to find records by words in titles or bodies, and LIKE queries are slow or miss obvious matches."
+  ],
+  "skip_when": [
+    "Small lists where filtering in the browser is instant."
+  ],
+  "ways": [
+    {
+      "title": "Postgres full-text search",
+      "cost": "$0",
+      "how": "A generated tsvector column with a GIN index, queried with websearch_to_tsquery and ranked with ts_rank. Add pg_trgm for typo-tolerant name matching.",
+      "tradeoff": "No new service, and results respect your normal permissions. Typo tolerance and instant search-as-you-type take extra work."
+    },
+    {
+      "title": "Meilisearch or Typesense",
+      "cost": "$0 self-hosted, paid cloud",
+      "how": "A search engine you run next to your app. Sync records to it on save, and filter by owner or tenant in every query.",
+      "tradeoff": "Fast, typo-tolerant and good for instant search. Another service to sync and secure."
+    },
+    {
+      "title": "Hosted search",
+      "cost": "paid, free tiers",
+      "how": "Algolia or the cloud editions of Meilisearch and Typesense.",
+      "tradeoff": "Least setup. Your data lives with a vendor, and costs grow with records and searches."
+    }
+  ],
+  "prompt": "Add full-text search to [model] in this app.\n\nRequirements:\n- Use Postgres full-text search: a generated tsvector column over [title (weight A), body (weight B)] with a GIN index.\n- Parse user input with websearch_to_tsquery so quotes and minus signs work and odd input can't cause errors.\n- Rank with ts_rank and show a highlighted snippet with ts_headline.\n- Filter results by the current user's or tenant's access in the same query.\n- Add pg_trgm similarity on [names] for typo tolerance.\n- Paginate results and debounce the search box.\n\nAcceptance checks (run each and show me the result):\n1. Searching 'running' finds a post containing 'runs'.\n2. Searching a misspelled name still finds it.\n3. EXPLAIN shows the GIN index is used.\n4. User B never sees user A's records in results.\n5. Input like ') OR 1=1' returns normal results, not an error.",
+  "acceptance_checks": [
+    "Searching 'running' finds a post containing 'runs'.",
+    "Searching a misspelled name still finds it.",
+    "EXPLAIN shows the GIN index is used.",
+    "User B never sees user A's records in results.",
+    "Input like ') OR 1=1' returns normal results, not an error."
+  ],
+  "if_you_skip_it": "Search that misses obvious matches, slows down as data grows, or shows other users' records.",
+  "how_derek_runs_it": "Most Custody Journal record text is encrypted, so the database can't search it. Its search first limits to the user's own records and filters, then decrypts and scans a bounded window of recent candidates in the app and ranks the matches.",
+  "links": [
+    {
+      "title": "PostgreSQL: full text search",
+      "url": "https://www.postgresql.org/docs/current/textsearch.html"
+    },
+    {
+      "title": "PostgreSQL: pg_trgm",
+      "url": "https://www.postgresql.org/docs/current/pgtrgm.html"
+    },
+    {
+      "title": "Meilisearch",
+      "url": "https://www.meilisearch.com/docs/getting_started/overview"
+    },
+    {
+      "title": "Typesense",
+      "url": "https://typesense.org/docs/"
+    }
+  ],
+  "page": "e/full-text-search/index.html",
+  "json": "api/full-text-search.json",
+  "updated": "2026-10-21"
+}

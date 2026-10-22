@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streaming AI responses: What To Ask For</title>
+<meta name="description" content="Sending the model&#x27;s answer to the browser piece by piece as it&#x27;s generated, usually over server-sent events, so people see text within a second instead of waiting for the whole reply. Your server sits in the middle, keeps the API key private, and saves the finished answer.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Streaming AI responses: What To Ask For">
+<meta property="og:description" content="Sending the model&#x27;s answer to the browser piece by piece as it&#x27;s generated, usually over server-sent events, so people see text within a second instead of waiting for the whole reply. Your server sits in the middle, keeps the API key private, and saves the finished answer.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/streaming-ai-responses/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Streaming AI responses: What To Ask For">
+<meta name="twitter:description" content="Sending the model&#x27;s answer to the browser piece by piece as it&#x27;s generated, usually over server-sent events, so people see text within a second instead of waiting for the whole reply. Your server sits in the middle, keeps the API key private, and saves the finished answer.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>Streaming AI responses</h1>
+  <p class="aka">Also called: token streaming, server-sent events, SSE, typewriter effect, stream the answer</p>
+  <p class="lead">Sending the model&#x27;s answer to the browser piece by piece as it&#x27;s generated, usually over server-sent events, so people see text within a second instead of waiting for the whole reply. Your server sits in the middle, keeps the API key private, and saves the finished answer.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Chat or writing features where answers take more than a couple of seconds.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The output is structured data your code uses, or the work runs in a background job. Stream progress, not tokens, there.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Server-sent events from your backend <span class="cost">$0</span></h3>
+<p>Call the provider with streaming on, and forward each text chunk to the browser as an SSE event. The browser reads it with fetch and a stream reader, or EventSource for GET requests.</p><p class="trade"><strong>Tradeoff:</strong> Works with any backend. Proxies and hosts can buffer the stream unless you turn that off.</p></li>
+<li><h3>An AI SDK <span class="cost">$0</span></h3>
+<p>The Vercel AI SDK or the provider&#x27;s own SDK helpers handle the streaming protocol and the UI state for you.</p><p class="trade"><strong>Tradeoff:</strong> Least code. Ties your frontend to the SDK&#x27;s message format.</p></li>
+<li><h3>Stream progress from a background job <span class="cost">$0</span></h3>
+<p>For long tasks, run the AI call in a job and push status updates over SSE or polling.</p><p class="trade"><strong>Tradeoff:</strong> Survives page reloads and timeouts. Text appears in bigger steps.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Stream AI responses to the browser in [feature].
+
+Requirements:
+- The browser calls our server, never the provider directly. The API key stays on the server.
+- Use the provider&#x27;s streaming mode and forward text chunks as server-sent events (Content-Type: text/event-stream, Cache-Control: no-cache).
+- Turn off response buffering in every proxy in front of the app (for nginx, X-Accel-Buffering: no) and check the host&#x27;s streaming limits and timeouts.
+- If the user closes the page or presses Stop, cancel the upstream request so we stop paying for tokens.
+- Save the full answer and token usage to the database when the stream ends, including partial answers when cancelled.
+- Show a clear message, not a stack trace, if the stream fails halfway.
+
+Acceptance checks (run each and show me the result):
+1. In production, the first words appear within [2] seconds of sending.
+2. Pressing Stop ends the provider request (visible in server logs) within a second.
+3. Reloading the page shows the saved answer.
+4. The API key never appears in browser network requests.
+5. Killing the connection mid-answer shows a friendly error and keeps the partial text.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users think the app froze, streams that work locally arrive in one lump in production, and you pay for answers nobody is reading.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;show the AI answer as it&#x27;s being written&rdquo;</li><li>&ldquo;users stare at a spinner while the model thinks&rdquo;</li><li>&ldquo;my streamed response arrives all at once in production&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.openai.com/api/docs/guides/streaming-responses">OpenAI: streaming API responses</a></li><li><a href="https://platform.claude.com/docs/en/build-with-claude/streaming">Anthropic: streaming messages</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events">MDN: using server-sent events</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/streaming-ai-responses.json">api/streaming-ai-responses.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../rollback/index.html">&larr; Rollback plan</a><a href="../llm-retries-fallbacks/index.html">LLM retries, timeouts and fallbacks &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

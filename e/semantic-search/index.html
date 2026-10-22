@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semantic search and RAG: What To Ask For</title>
+<meta name="description" content="Turning text into embeddings (lists of numbers that capture meaning) so you can find passages similar to a question even when the words differ. RAG feeds the best passages to a model so it answers from your content instead of guessing.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Semantic search and RAG: What To Ask For">
+<meta property="og:description" content="Turning text into embeddings (lists of numbers that capture meaning) so you can find passages similar to a question even when the words differ. RAG feeds the best passages to a model so it answers from your content instead of guessing.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/semantic-search/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Semantic search and RAG: What To Ask For">
+<meta name="twitter:description" content="Turning text into embeddings (lists of numbers that capture meaning) so you can find passages similar to a question even when the words differ. RAG feeds the best passages to a model so it answers from your content instead of guessing.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=search">Search</a></p>
+  <h1>Semantic search and RAG</h1>
+  <p class="aka">Also called: vector search, embeddings, pgvector, retrieval augmented generation, RAG, chat with your docs</p>
+  <p class="lead">Turning text into embeddings (lists of numbers that capture meaning) so you can find passages similar to a question even when the words differ. RAG feeds the best passages to a model so it answers from your content instead of guessing.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users ask questions in their own words, or an AI feature must answer from your documents.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Users search for names, codes or exact phrases. Full-text search does that better and cheaper.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>pgvector in Postgres <span class="cost">$0</span></h3>
+<p>Store chunk embeddings in a vector column with an HNSW index next to your data, and filter by owner in the same query.</p><p class="trade"><strong>Tradeoff:</strong> One database, normal permissions and backups. Tuning is up to you at large scale.</p></li>
+<li><h3>Hybrid search <span class="cost">$0</span></h3>
+<p>Run full-text and vector search together and merge the results (for example reciprocal rank fusion). Meilisearch and Typesense support hybrid search too.</p><p class="trade"><strong>Tradeoff:</strong> Catches both exact terms and meaning. A bit more logic to maintain.</p></li>
+<li><h3>A managed vector database <span class="cost">paid, free tiers</span></h3>
+<p>Pinecone, Qdrant Cloud or Weaviate Cloud, or your AI provider&#x27;s file search tool.</p><p class="trade"><strong>Tradeoff:</strong> Scales without tuning. Another copy of your data to keep in sync and secure.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add semantic search (and answers from it) over [documents] in this app.
+
+Requirements:
+- Split documents into chunks of about [500] tokens with some overlap, keeping the title and section heading with each chunk.
+- Create embeddings with [embedding model] in a background job on create and update. Store them with pgvector and an HNSW index, plus the owner or tenant id.
+- Every search query filters by the current user&#x27;s access before ranking.
+- Combine vector and full-text results, and return the top [5] chunks with links to their source.
+- For answers, send only those chunks to the model, tell it to answer only from them and say when it doesn&#x27;t know, and show the sources.
+- Re-embed when a document changes and delete chunks when it&#x27;s deleted.
+- Build a test set of 20 questions with known source documents and report how often the right source is in the top 5.
+
+Acceptance checks (run each and show me the result):
+1. A question using different words from the document still finds it.
+2. User B&#x27;s question never retrieves user A&#x27;s chunks.
+3. Deleting a document removes it from results and answers.
+4. Answers cite their sources, and a question with no answer in the docs gets &#x27;I don&#x27;t know&#x27;.
+5. The right source is in the top 5 for at least [18 of 20] test questions.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Answers made up from nowhere, results from other users&#x27; documents, and stale answers from deleted files.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;find documents by meaning, not exact words&rdquo;</li><li>&ldquo;let users chat with their own documents&rdquo;</li><li>&ldquo;the AI should answer from my help articles&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/pgvector/pgvector">pgvector</a></li><li><a href="https://developers.openai.com/api/docs/guides/embeddings">OpenAI: embeddings</a></li><li><a href="https://www.anthropic.com/research/contextual-retrieval">Anthropic: contextual retrieval</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/semantic-search.json">api/semantic-search.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../full-text-search/index.html">&larr; Full-text search</a><a href="../cookie-consent/index.html">Cookie consent and privacy-friendly analytics &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

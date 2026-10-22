@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookie consent and privacy-friendly analytics: What To Ask For</title>
+<meta name="description" content="Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Cookie consent and privacy-friendly analytics: What To Ask For">
+<meta property="og:description" content="Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/cookie-consent/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cookie consent and privacy-friendly analytics: What To Ask For">
+<meta name="twitter:description" content="Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=privacy">Analytics and privacy</a></p>
+  <h1>Cookie consent and privacy-friendly analytics</h1>
+  <p class="aka">Also called: cookie banner, GDPR consent, consent management, cookieless analytics, tracking consent</p>
+  <p class="lead">Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You have visitors in the UK or EU and use analytics, ad pixels or other non-essential cookies.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You only set cookies strictly needed for the service, like login and CSRF. Check the rules for where your users are.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Cookieless analytics <span class="cost">$0 self-hosted</span></h3>
+<p>Umami, Plausible or GoatCounter (self-hosted or their cloud) count visits without tracking cookies.</p><p class="trade"><strong>Tradeoff:</strong> Often no banner needed for analytics, but check the rules where your users are. Less detail than ad-tech tools.</p></li>
+<li><h3>A small consent banner you build <span class="cost">$0</span></h3>
+<p>Store the choice in a first-party cookie and only inject third-party scripts after &#x27;Accept&#x27;. Make &#x27;Reject&#x27; as easy as &#x27;Accept&#x27;.</p><p class="trade"><strong>Tradeoff:</strong> Light and fully controlled. You maintain the list of what each choice loads.</p></li>
+<li><h3>A consent management platform <span class="cost">free tiers, paid</span></h3>
+<p>A hosted consent tool, or Google&#x27;s consent mode alongside it if you use Google tags.</p><p class="trade"><strong>Tradeoff:</strong> Handles many vendors and regions. Heavier pages and another vendor.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up consent-aware analytics for this app.
+
+Requirements:
+- List every cookie and third-party script the app loads, and mark each as strictly necessary or not.
+- Load nothing non-essential (analytics, ad pixels, chat widgets) until the visitor accepts. Reject must be one click and as visible as Accept.
+- Store the choice in a first-party cookie, and add a link in the footer to change it later.
+- Keep third-party trackers off logged-in pages and pages with personal data entirely.
+- If possible, switch analytics to a cookieless tool so the banner covers less.
+- Update the privacy policy to match what&#x27;s actually loaded.
+
+Acceptance checks (run each and show me the result):
+1. With no choice made, the network tab shows no requests to analytics or ad domains.
+2. After Reject, still none.
+3. After Accept, the chosen scripts load.
+4. Logged-in pages never load ad pixels, whatever the choice.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Complaints and fines under privacy laws, and personal data from inside your app leaking to ad networks.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal loads third-party analytics only for signed-out visitors, only on the home, start and pricing pages, and only after the cj_analytics_consent_v1 cookie is set to granted.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;do I need a cookie banner&rdquo;</li><li>&ldquo;load Google Analytics only after people agree&rdquo;</li><li>&ldquo;track visits without cookies&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guide-to-pecr/cookies-and-similar-technologies/">ICO: cookies and similar technologies</a></li><li><a href="https://docs.umami.is/docs">Umami</a></li><li><a href="https://plausible.io/data-policy">Plausible: data policy</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/cookie-consent.json">api/cookie-consent.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../semantic-search/index.html">&larr; Semantic search and RAG</a><a href="../data-export-deletion/index.html">Data export and account deletion &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

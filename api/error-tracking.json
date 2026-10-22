@@ -1,0 +1,87 @@
+{
+  "id": "error-tracking",
+  "name": "Error tracking",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "Sentry",
+    "exception monitoring",
+    "crash reporting",
+    "error alerts",
+    "GlitchTip"
+  ],
+  "needs": [
+    "I only find out about bugs when users email me",
+    "see the errors users hit in production",
+    "get alerted when the app throws an exception"
+  ],
+  "keywords": [
+    "error",
+    "errors",
+    "exception",
+    "exceptions",
+    "sentry",
+    "glitchtip",
+    "crash",
+    "bug",
+    "bugs",
+    "stack",
+    "trace",
+    "alert",
+    "production",
+    "monitoring"
+  ],
+  "summary": "A service that catches unhandled errors in your server and browser code, groups repeats together, and alerts you with the stack trace. You learn about bugs before users report them. It also collects whatever data you let it, so set it up to avoid personal data.",
+  "need_when": [
+    "Any app with real users. Set it up before launch."
+  ],
+  "skip_when": [
+    "Prototypes nobody else uses yet."
+  ],
+  "ways": [
+    {
+      "title": "Sentry",
+      "cost": "free tier",
+      "how": "Install the SDK for your framework and set the DSN from an environment variable. Upload source maps for frontend errors.",
+      "tradeoff": "The common choice, with SDKs for nearly everything. Sends data to a third party unless you self-host."
+    },
+    {
+      "title": "Self-hosted and Sentry-compatible",
+      "cost": "$0 + server",
+      "how": "GlitchTip accepts events from the Sentry SDKs and runs as a small Docker stack.",
+      "tradeoff": "Your data stays on your server. Fewer features, and you run it."
+    },
+    {
+      "title": "Your host's or log platform's errors",
+      "cost": "varies",
+      "how": "Error views in your hosting dashboard or log platform, with alerts on error-level log lines.",
+      "tradeoff": "Nothing new to install. Grouping and stack traces are usually weaker."
+    }
+  ],
+  "prompt": "Add error tracking to this app with [Sentry / GlitchTip].\n\nRequirements:\n- Initialize the SDK on the server and in the browser, only when the DSN environment variable is set.\n- Don't send personal data: turn off default PII, don't send request bodies, cookies or local variables, and scrub emails, tokens and auth headers in a before-send hook.\n- Tag each event with the release version and environment.\n- Upload source maps for the frontend build, and don't serve them publicly.\n- Alert me by email when a new kind of error appears or one spikes.\n- Add a test route, available only to admins or in staging, that throws an error so I can confirm it arrives.\n\nAcceptance checks (run each and show me the result):\n1. The test error shows up in the dashboard with a readable stack trace.\n2. The event has no email address, cookie, token or request body in it.\n3. A frontend error shows original file names and lines, not minified code.\n4. Each event shows the release version.",
+  "acceptance_checks": [
+    "The test error shows up in the dashboard with a readable stack trace.",
+    "The event has no email address, cookie, token or request body in it.",
+    "A frontend error shows original file names and lines, not minified code.",
+    "Each event shows the release version."
+  ],
+  "if_you_skip_it": "Bugs that silently hit users for weeks, or an error tracker that quietly collects passwords and personal data.",
+  "how_derek_runs_it": "When a Sentry DSN is set, Custody Journal turns on Sentry with personal data off, no performance tracing, no local variables and no request bodies. A scrubber keeps only an allowlist (the event id, the exception class and in-app module, function and line) and breadcrumbs are dropped.",
+  "links": [
+    {
+      "title": "Sentry: data management and scrubbing",
+      "url": "https://docs.sentry.io/security-legal-pii/scrubbing/"
+    },
+    {
+      "title": "GlitchTip",
+      "url": "https://glitchtip.com/"
+    },
+    {
+      "title": "OWASP Logging Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+    }
+  ],
+  "page": "e/error-tracking/index.html",
+  "json": "api/error-tracking.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,89 @@
+{
+  "id": "data-export-deletion",
+  "name": "Data export and account deletion",
+  "category": "privacy",
+  "category_name": "Analytics and privacy",
+  "aliases": [
+    "delete my account",
+    "download my data",
+    "GDPR data request",
+    "right to erasure",
+    "data portability"
+  ],
+  "needs": [
+    "let users delete their account and everything in it",
+    "let users download all their data",
+    "Apple requires in-app account deletion"
+  ],
+  "keywords": [
+    "delete",
+    "deletion",
+    "account",
+    "export",
+    "download",
+    "data",
+    "gdpr",
+    "erasure",
+    "portability",
+    "privacy",
+    "request",
+    "apple",
+    "remove",
+    "close"
+  ],
+  "summary": "Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what's kept and why, like backups that expire or legal records.",
+  "need_when": [
+    "You have users in places with privacy laws (UK, EU, California and others).",
+    "Your iOS app lets people create accounts: Apple requires account deletion inside the app."
+  ],
+  "skip_when": [
+    "Rarely. Even small apps get these requests, and doing them by hand is error-prone."
+  ],
+  "ways": [
+    {
+      "title": "Self-serve export as a background job",
+      "cost": "$0",
+      "how": "A job builds a zip with JSON or CSV (and files), stores it privately, and emails a signed link that expires.",
+      "tradeoff": "Handles big accounts without timeouts. You maintain it as models change."
+    },
+    {
+      "title": "Self-serve deletion with confirmation",
+      "cost": "$0",
+      "how": "Re-authenticate, type a word to confirm, cancel billing first, then delete records and schedule file cleanup after the transaction commits.",
+      "tradeoff": "No support tickets. Make sure nothing is left in other systems, like email lists or analytics."
+    },
+    {
+      "title": "A documented manual process",
+      "cost": "$0",
+      "how": "A request form and a checklist covering every system that holds user data.",
+      "tradeoff": "Fine at low volume. Slow, and easy to forget a system."
+    }
+  ],
+  "prompt": "Add self-serve data export and account deletion.\n\nRequirements:\n- Export: a background job builds a zip of all the user's data as JSON and CSV, plus their uploaded files. It's stored privately and delivered by an expiring signed link. Exclude other users' private data and internal fields.\n- Deletion: require the user to re-authenticate and type DELETE. Cancel any subscription first, and stop if billing can't be confirmed closed.\n- Delete the user's records in one transaction. Schedule file deletion to run after the transaction commits.\n- Remove them from email lists, analytics and any other service that holds their data. List each one.\n- Tell the user what is kept and for how long (backups, invoices, legal records).\n- On iOS, make deletion reachable from inside the app.\n\nAcceptance checks (run each and show me the result):\n1. The export opens and contains every type of record the user created.\n2. After deletion, the user can't log in and their records and files are gone.\n3. Their subscription is cancelled in the payment provider.\n4. They're removed from the email list.\n5. If billing can't be confirmed closed, nothing is deleted and the user sees why.",
+  "acceptance_checks": [
+    "The export opens and contains every type of record the user created.",
+    "After deletion, the user can't log in and their records and files are gone.",
+    "Their subscription is cancelled in the payment provider.",
+    "They're removed from the email list.",
+    "If billing can't be confirmed closed, nothing is deleted and the user sees why."
+  ],
+  "if_you_skip_it": "Privacy complaints, app store rejection, and 'deleted' users who keep getting billed or emailed.",
+  "how_derek_runs_it": "Custody Journal exports a full zip with JSON, CSV, a calendar file, vCard contacts and an expenses spreadsheet, plus a separate documents zip. To delete an account, the user types DELETE, and the app refuses to go on unless it can confirm Stripe billing is closed. It then records file cleanup tasks and deletes the user in one transaction, with cleanup running after commit, and tells the user that encrypted backups and limited legal records may remain until their retention ends.",
+  "links": [
+    {
+      "title": "ICO: right to erasure",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-erasure/"
+    },
+    {
+      "title": "ICO: right to data portability",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-data-portability/"
+    },
+    {
+      "title": "Apple App Review: 5.1.1 account deletion",
+      "url": "https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion"
+    }
+  ],
+  "page": "e/data-export-deletion/index.html",
+  "json": "api/data-export-deletion.json",
+  "updated": "2026-10-21"
+}

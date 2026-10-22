@@ -1,0 +1,82 @@
+{
+  "id": "prompt-caching",
+  "name": "Prompt caching",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "prompt cache",
+    "cached input tokens",
+    "context caching",
+    "KV cache discount"
+  ],
+  "needs": [
+    "every request sends the same long instructions and I pay for them each time",
+    "my chatbot gets slower and more expensive as the chat grows",
+    "cut the cost of a long system prompt"
+  ],
+  "keywords": [
+    "prompt",
+    "caching",
+    "cache",
+    "cached",
+    "tokens",
+    "input",
+    "prefix",
+    "system",
+    "cost",
+    "cheaper",
+    "latency",
+    "long",
+    "context",
+    "repeated"
+  ],
+  "summary": "A provider feature that reuses the processed start of a prompt when the next request begins with exactly the same text. Repeated instructions, documents and chat history cost less and return faster. Put the parts that never change first and the changing parts last.",
+  "need_when": [
+    "Requests share a long fixed beginning, like a big system prompt, examples, a document or the earlier turns of a chat."
+  ],
+  "skip_when": [
+    "Prompts are short or different every time. Caching only applies above a minimum length."
+  ],
+  "ways": [
+    {
+      "title": "Automatic caching (OpenAI)",
+      "cost": "discount",
+      "how": "On current OpenAI models, prompts of 1,024 tokens or more are cached automatically. Keep the shared prefix identical and check cached_tokens in the usage data.",
+      "tradeoff": "No code change beyond ordering. Any change early in the prompt breaks the cache."
+    },
+    {
+      "title": "Explicit cache breakpoints (Anthropic)",
+      "cost": "discount on reads",
+      "how": "Mark the end of the reusable part with cache_control. Cache writes cost more than normal input (1.25x for the 5 minute cache, 2x for 1 hour) and reads cost about a tenth.",
+      "tradeoff": "You control what's cached and for how long. Pays off only if the prefix is reused before it expires."
+    },
+    {
+      "title": "Cache whole answers yourself",
+      "cost": "$0",
+      "how": "For identical requests, store the final answer under a hash of the model and full input.",
+      "tradeoff": "Free and instant. Only helps exact repeats."
+    }
+  ],
+  "prompt": "Use prompt caching to cut cost and latency in [AI feature] on [provider].\n\nRequirements:\n- Reorder each prompt so fixed content comes first (system instructions, tool definitions, examples, shared documents) and per-request content comes last (user input, dates, ids).\n- Remove anything that changes on every request from the fixed part, such as timestamps or random ids.\n- [Anthropic] Add cache_control at the end of the fixed part. [OpenAI] Make sure the fixed part is at least 1,024 tokens or caching won't apply.\n- Log cached and uncached input tokens from the usage data on every call.\n- Compare cost and time to first token for 50 requests before and after.\n\nAcceptance checks (run each and show me the result):\n1. From the second request on, usage shows cached input tokens.\n2. The fixed part of the prompt is byte-for-byte identical between requests.\n3. Average cost per request drops, shown with the before and after numbers.\n4. Answers are unchanged on the eval set.",
+  "acceptance_checks": [
+    "From the second request on, usage shows cached input tokens.",
+    "The fixed part of the prompt is byte-for-byte identical between requests.",
+    "Average cost per request drops, shown with the before and after numbers.",
+    "Answers are unchanged on the eval set."
+  ],
+  "if_you_skip_it": "Paying full price thousands of times for the same instructions, and slow first tokens on long chats.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAI: prompt caching",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching"
+    },
+    {
+      "title": "Anthropic: prompt caching",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    }
+  ],
+  "page": "e/prompt-caching/index.html",
+  "json": "api/prompt-caching.json",
+  "updated": "2026-10-21"
+}

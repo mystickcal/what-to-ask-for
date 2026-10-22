@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structured output from LLMs: What To Ask For</title>
+<meta name="description" content="Getting the model to return data in a fixed shape your code can rely on. Use the provider&#x27;s schema feature where it exists, then validate the result anyway and decide what happens when it doesn&#x27;t fit: retry once, fall back, or show an error.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Structured output from LLMs: What To Ask For">
+<meta property="og:description" content="Getting the model to return data in a fixed shape your code can rely on. Use the provider&#x27;s schema feature where it exists, then validate the result anyway and decide what happens when it doesn&#x27;t fit: retry once, fall back, or show an error.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/structured-output/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Structured output from LLMs: What To Ask For">
+<meta name="twitter:description" content="Getting the model to return data in a fixed shape your code can rely on. Use the provider&#x27;s schema feature where it exists, then validate the result anyway and decide what happens when it doesn&#x27;t fit: retry once, fall back, or show an error.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>Structured output from LLMs</h1>
+  <p class="aka">Also called: JSON mode, structured outputs, function calling, tool use, JSON schema output</p>
+  <p class="lead">Getting the model to return data in a fixed shape your code can rely on. Use the provider&#x27;s schema feature where it exists, then validate the result anyway and decide what happens when it doesn&#x27;t fit: retry once, fall back, or show an error.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your code reads fields out of the model&#x27;s answer: labels, extracted data, decisions or tool arguments.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The output is only text shown to a person.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Provider schema enforcement <span class="cost">$0</span></h3>
+<p>OpenAI Structured Outputs with a strict JSON schema, or tool definitions with an input schema (OpenAI function calling, Anthropic tool use), using strict mode where the provider offers it.</p><p class="trade"><strong>Tradeoff:</strong> The provider holds the shape in strict mode. Supported schema features are limited, and the model can still refuse or pick wrong values.</p></li>
+<li><h3>JSON mode plus your own validation <span class="cost">$0</span></h3>
+<p>Ask for JSON, parse it, and validate with Pydantic or Zod. JSON mode only promises valid JSON, not your schema.</p><p class="trade"><strong>Tradeoff:</strong> Works across more models. You handle mismatches yourself.</p></li>
+<li><h3>A library <span class="cost">$0</span></h3>
+<p>Instructor (Python) or the Vercel AI SDK&#x27;s object generation take a Pydantic or Zod schema and handle retries.</p><p class="trade"><strong>Tradeoff:</strong> Less glue code. One more dependency to keep current.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Make [AI feature] return structured data.
+
+Requirements:
+- Define the output schema in [Pydantic/Zod]: field types, required fields, enums for fixed choices, max lengths.
+- Use the provider&#x27;s structured output or tool schema feature with that schema where supported.
+- Validate every response against the schema in our code, even when the provider enforces it. Check enum values against our allowed list.
+- On invalid output or a refusal, retry once, then fall back to [safe default / non-AI path] and log the failure.
+- Never pass model output straight into SQL, shell commands, file paths or HTML.
+- Add tests with real sample inputs, plus a mocked malformed response.
+
+Acceptance checks (run each and show me the result):
+1. 100 sample inputs all produce output that passes validation, or are handled by the fallback.
+2. A mocked response with an unknown enum value is rejected.
+3. A mocked malformed response triggers one retry and then the fallback.
+4. The schema in the code and the one sent to the provider come from one definition.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Features that crash on the one response in fifty that isn&#x27;t valid JSON, or code that acts on made-up field values.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s tone classifier asks the model for a JSON object, then checks that the label is one of three allowed values and keeps only hits in known categories. Anything that doesn&#x27;t fit falls back to the keyword classifier.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the AI returns broken JSON sometimes&rdquo;</li><li>&ldquo;get data my code can use from the model, not prose&rdquo;</li><li>&ldquo;extract fields from a document with AI&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.openai.com/api/docs/guides/structured-outputs">OpenAI: structured outputs</a></li><li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview">Anthropic: tool use</a></li><li><a href="https://pydantic.dev/docs/">Pydantic</a></li><li><a href="https://zod.dev/">Zod</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/structured-output.json">api/structured-output.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../prompt-injection/index.html">&larr; Prompt injection defenses</a><a href="../llm-evals/index.html">LLM evals &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -32,17 +32,17 @@
 
 <section class="hero">
   <h1>Say what your app needs. Get the name of the piece, and a prompt for your coding agent.</h1>
-  <p class="lead">For the parts of an app nobody sees: jobs, payments, logins, email, uploads, data. Each entry says when you need it, a few ways to build it, and a prompt with checks for Claude Code, Cursor or Codex.</p>
+  <p class="lead">For the parts of an app nobody sees: jobs, payments, logins, email, uploads, AI calls. Each entry says when you need it, a few ways to build it, and a prompt with checks for Claude Code, Cursor or Codex.</p>
   <form class="search" role="search" onsubmit="return false">
     <label for="q" class="vh">Describe what you need</label>
     <input id="q" type="search" placeholder="e.g. send each user an email at a time they pick" autocomplete="off" spellcheck="false">
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
-<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>44</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>4</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>6</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>6</span></a><a class="cat" href="#c-email" data-c="email">Email <span>4</span></a><a class="cat" href="#c-files" data-c="files">Files <span>4</span></a><a class="cat" href="#c-data" data-c="data">Data <span>7</span></a><a class="cat" href="#c-security" data-c="security">Security <span>8</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>2</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>3</span></a></nav>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>61</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>4</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>6</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>6</span></a><a class="cat" href="#c-email" data-c="email">Email <span>4</span></a><a class="cat" href="#c-files" data-c="files">Files <span>4</span></a><a class="cat" href="#c-data" data-c="data">Data <span>7</span></a><a class="cat" href="#c-security" data-c="security">Security <span>8</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>7</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>8</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>3</span></a><a class="cat" href="#c-search" data-c="search">Search <span>2</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>2</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">44 entries in 9 categories</p>
+  <p class="count" id="count" aria-live="polite">61 entries in 12 categories</p>
   <ol class="results" id="results" hidden></ol>
   <div id="browse">
 <section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">4</span></h3>
@@ -105,16 +105,42 @@
 <li><a href="e/ssrf-protection/index.html"><span class="r-name">SSRF protection</span><span class="r-need">&ldquo;my app fetches a URL the user pastes in&rdquo;</span></a></li>
 <li><a href="e/bot-protection/index.html"><span class="r-name">Bot and spam protection</span><span class="r-need">&ldquo;bots are signing up thousands of fake accounts&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">2</span></h3>
+<section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">7</span></h3>
 <ol class="results">
 <li><a href="e/feature-flags/index.html"><span class="r-name">Feature flag</span><span class="r-need">&ldquo;ship code but keep the feature off&rdquo;</span></a></li>
 <li><a href="e/health-checks/index.html"><span class="r-name">Health checks and safe deploys</span><span class="r-need">&ldquo;the site goes down every time I deploy&rdquo;</span></a></li>
+<li><a href="e/error-tracking/index.html"><span class="r-name">Error tracking</span><span class="r-need">&ldquo;I only find out about bugs when users email me&rdquo;</span></a></li>
+<li><a href="e/structured-logging/index.html"><span class="r-name">Structured logging</span><span class="r-need">&ldquo;I can&#x27;t tell from my logs what happened to one user&#x27;s request&rdquo;</span></a></li>
+<li><a href="e/uptime-monitoring/index.html"><span class="r-name">Uptime monitoring</span><span class="r-need">&ldquo;tell me when my site is down&rdquo;</span></a></li>
+<li><a href="e/staging-environment/index.html"><span class="r-name">Staging environment</span><span class="r-need">&ldquo;test changes somewhere before they hit real users&rdquo;</span></a></li>
+<li><a href="e/rollback/index.html"><span class="r-name">Rollback plan</span><span class="r-need">&ldquo;the new version is broken, put the old one back&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">8</span></h3>
+<ol class="results">
+<li><a href="e/streaming-ai-responses/index.html"><span class="r-name">Streaming AI responses</span><span class="r-need">&ldquo;show the AI answer as it&#x27;s being written&rdquo;</span></a></li>
+<li><a href="e/llm-retries-fallbacks/index.html"><span class="r-name">LLM retries, timeouts and fallbacks</span><span class="r-need">&ldquo;the AI call fails sometimes with 429 or 500&rdquo;</span></a></li>
+<li><a href="e/token-budget/index.html"><span class="r-name">AI spend caps and token budgets</span><span class="r-need">&ldquo;my OpenAI bill exploded overnight&rdquo;</span></a></li>
+<li><a href="e/prompt-injection/index.html"><span class="r-name">Prompt injection defenses</span><span class="r-need">&ldquo;an email told my AI assistant to forward the user&#x27;s data&rdquo;</span></a></li>
+<li><a href="e/structured-output/index.html"><span class="r-name">Structured output from LLMs</span><span class="r-need">&ldquo;the AI returns broken JSON sometimes&rdquo;</span></a></li>
+<li><a href="e/llm-evals/index.html"><span class="r-name">LLM evals</span><span class="r-need">&ldquo;I changed the prompt and something else got worse&rdquo;</span></a></li>
+<li><a href="e/prompt-caching/index.html"><span class="r-name">Prompt caching</span><span class="r-need">&ldquo;every request sends the same long instructions and I pay for them each time&rdquo;</span></a></li>
+<li><a href="e/content-moderation/index.html"><span class="r-name">Content moderation</span><span class="r-need">&ldquo;users can post anything on my site&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">3</span></h3>
 <ol class="results">
 <li><a href="e/caching-invalidation/index.html"><span class="r-name">Caching and invalidation</span><span class="r-need">&ldquo;the same slow query runs on every page load&rdquo;</span></a></li>
 <li><a href="e/cdn/index.html"><span class="r-name">CDN and static asset caching</span><span class="r-need">&ldquo;my site is slow for people in other countries&rdquo;</span></a></li>
 <li><a href="e/database-indexes/index.html"><span class="r-name">Database indexes</span><span class="r-need">&ldquo;my app got slow as the data grew&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-search" data-c="search" aria-labelledby="h-search"><h3 class="group-h" id="h-search">Search <span class="group-n">2</span></h3>
+<ol class="results">
+<li><a href="e/full-text-search/index.html"><span class="r-name">Full-text search</span><span class="r-need">&ldquo;add a search box that finds posts by any word in them&rdquo;</span></a></li>
+<li><a href="e/semantic-search/index.html"><span class="r-name">Semantic search and RAG</span><span class="r-need">&ldquo;find documents by meaning, not exact words&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-privacy" data-c="privacy" aria-labelledby="h-privacy"><h3 class="group-h" id="h-privacy">Analytics and privacy <span class="group-n">2</span></h3>
+<ol class="results">
+<li><a href="e/cookie-consent/index.html"><span class="r-name">Cookie consent and privacy-friendly analytics</span><span class="r-need">&ldquo;do I need a cookie banner&rdquo;</span></a></li>
+<li><a href="e/data-export-deletion/index.html"><span class="r-name">Data export and account deletion</span><span class="r-need">&ldquo;let users delete their account and everything in it&rdquo;</span></a></li>
 </ol></section>
   </div>
   <p class="none" id="none" hidden>No match. Try plainer words, like &ldquo;slow&rdquo;, &ldquo;twice&rdquo; or &ldquo;spam&rdquo;.</p>

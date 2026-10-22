@@ -1,0 +1,85 @@
+{
+  "id": "staging-environment",
+  "name": "Staging environment",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "staging server",
+    "preview deployments",
+    "test environment",
+    "pre-production"
+  ],
+  "needs": [
+    "test changes somewhere before they hit real users",
+    "my agent's change broke production and I never tried it first",
+    "a copy of the app I can break safely"
+  ],
+  "keywords": [
+    "staging",
+    "preview",
+    "test",
+    "environment",
+    "pre",
+    "production",
+    "copy",
+    "sandbox",
+    "before",
+    "try",
+    "safely",
+    "break"
+  ],
+  "summary": "A second copy of your app that runs the same code and setup as production but with its own database, keys and test-mode payments. You deploy there first, click through the change, and then promote the same build to production.",
+  "need_when": [
+    "Real users depend on the app and changes touch payments, auth, data or migrations."
+  ],
+  "skip_when": [
+    "Very early, when preview deploys per pull request cover what you need."
+  ],
+  "ways": [
+    {
+      "title": "Preview deployments",
+      "cost": "$0, included",
+      "how": "Vercel, Netlify, Render and others build each branch or pull request at its own URL. Point them at a separate preview database or a seeded branch database (Neon and Supabase have branching).",
+      "tradeoff": "Almost no setup. Sharing the production database by accident is the main risk."
+    },
+    {
+      "title": "A staging stack on your own server",
+      "cost": "$0 + server",
+      "how": "The same Docker Compose setup in its own directory, with its own Postgres, Redis and secrets, behind basic auth and a noindex header.",
+      "tradeoff": "Matches production closely. Uses server resources and needs its own care."
+    },
+    {
+      "title": "A separate staging project at your host",
+      "cost": "paid, usually",
+      "how": "A second app or project with test-mode Stripe keys, a sandbox email provider and its own domain.",
+      "tradeoff": "Closest to production. Costs another set of resources."
+    }
+  ],
+  "prompt": "Set up a staging environment for this app on [host].\n\nRequirements:\n- Staging runs the same build and config shape as production, with its own database, cache, storage bucket and secrets. Nothing in staging can reach production data.\n- Use Stripe test-mode keys, a sandbox or capture-only email setup, and fake or seeded data. No copies of real user data unless they're anonymized.\n- Protect staging with a password (basic auth or the host's protection) and send X-Robots-Tag: noindex.\n- Deploy to staging only from committed code on [main], then promote that same build to production.\n- Show a visible 'STAGING' banner in the UI.\n- Write the steps for deploying to staging and promoting to production.\n\nAcceptance checks (run each and show me the result):\n1. Staging's database URL, keys and bucket differ from production's.\n2. A test payment in staging uses test mode and never touches live Stripe.\n3. Opening staging without the password is refused.\n4. Search engines get a noindex header from staging.\n5. The promoted production build is the same commit that was tested.",
+  "acceptance_checks": [
+    "Staging's database URL, keys and bucket differ from production's.",
+    "A test payment in staging uses test mode and never touches live Stripe.",
+    "Opening staging without the password is refused.",
+    "Search engines get a noindex header from staging.",
+    "The promoted production build is the same commit that was tested."
+  ],
+  "if_you_skip_it": "Changes get tested on real users, test emails reach customers, or staging writes into the production database.",
+  "how_derek_runs_it": "Custody Journal has a staging stack with its own Postgres and Redis containers, behind basic auth and a noindex header. Its deploy script ships the committed state of origin/main, never the local working tree.",
+  "links": [
+    {
+      "title": "Vercel: preview deployments",
+      "url": "https://vercel.com/docs/deployments/environments"
+    },
+    {
+      "title": "Neon: branching",
+      "url": "https://neon.com/docs/introduction/branching"
+    },
+    {
+      "title": "Stripe: testing",
+      "url": "https://docs.stripe.com/testing"
+    }
+  ],
+  "page": "e/staging-environment/index.html",
+  "json": "api/staging-environment.json",
+  "updated": "2026-10-21"
+}

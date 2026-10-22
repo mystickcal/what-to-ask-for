@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full-text search: What To Ask For</title>
+<meta name="description" content="Search that matches words, not exact strings: it handles plurals and word forms, ranks the best matches first, and stays fast as data grows. Postgres can do this well before you need a separate search engine.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Full-text search: What To Ask For">
+<meta property="og:description" content="Search that matches words, not exact strings: it handles plurals and word forms, ranks the best matches first, and stays fast as data grows. Postgres can do this well before you need a separate search engine.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/full-text-search/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Full-text search: What To Ask For">
+<meta name="twitter:description" content="Search that matches words, not exact strings: it handles plurals and word forms, ranks the best matches first, and stays fast as data grows. Postgres can do this well before you need a separate search engine.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=search">Search</a></p>
+  <h1>Full-text search</h1>
+  <p class="aka">Also called: site search, search box, Postgres full-text search, Meilisearch, typo-tolerant search</p>
+  <p class="lead">Search that matches words, not exact strings: it handles plurals and word forms, ranks the best matches first, and stays fast as data grows. Postgres can do this well before you need a separate search engine.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users need to find records by words in titles or bodies, and LIKE queries are slow or miss obvious matches.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Small lists where filtering in the browser is instant.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Postgres full-text search <span class="cost">$0</span></h3>
+<p>A generated tsvector column with a GIN index, queried with websearch_to_tsquery and ranked with ts_rank. Add pg_trgm for typo-tolerant name matching.</p><p class="trade"><strong>Tradeoff:</strong> No new service, and results respect your normal permissions. Typo tolerance and instant search-as-you-type take extra work.</p></li>
+<li><h3>Meilisearch or Typesense <span class="cost">$0 self-hosted, paid cloud</span></h3>
+<p>A search engine you run next to your app. Sync records to it on save, and filter by owner or tenant in every query.</p><p class="trade"><strong>Tradeoff:</strong> Fast, typo-tolerant and good for instant search. Another service to sync and secure.</p></li>
+<li><h3>Hosted search <span class="cost">paid, free tiers</span></h3>
+<p>Algolia or the cloud editions of Meilisearch and Typesense.</p><p class="trade"><strong>Tradeoff:</strong> Least setup. Your data lives with a vendor, and costs grow with records and searches.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add full-text search to [model] in this app.
+
+Requirements:
+- Use Postgres full-text search: a generated tsvector column over [title (weight A), body (weight B)] with a GIN index.
+- Parse user input with websearch_to_tsquery so quotes and minus signs work and odd input can&#x27;t cause errors.
+- Rank with ts_rank and show a highlighted snippet with ts_headline.
+- Filter results by the current user&#x27;s or tenant&#x27;s access in the same query.
+- Add pg_trgm similarity on [names] for typo tolerance.
+- Paginate results and debounce the search box.
+
+Acceptance checks (run each and show me the result):
+1. Searching &#x27;running&#x27; finds a post containing &#x27;runs&#x27;.
+2. Searching a misspelled name still finds it.
+3. EXPLAIN shows the GIN index is used.
+4. User B never sees user A&#x27;s records in results.
+5. Input like &#x27;) OR 1=1&#x27; returns normal results, not an error.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Search that misses obvious matches, slows down as data grows, or shows other users&#x27; records.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Most Custody Journal record text is encrypted, so the database can&#x27;t search it. Its search first limits to the user&#x27;s own records and filters, then decrypts and scans a bounded window of recent candidates in the app and ranks the matches.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add a search box that finds posts by any word in them&rdquo;</li><li>&ldquo;my search uses LIKE and it&#x27;s slow&rdquo;</li><li>&ldquo;search should handle typos and plurals&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.postgresql.org/docs/current/textsearch.html">PostgreSQL: full text search</a></li><li><a href="https://www.postgresql.org/docs/current/pgtrgm.html">PostgreSQL: pg_trgm</a></li><li><a href="https://www.meilisearch.com/docs/getting_started/overview">Meilisearch</a></li><li><a href="https://typesense.org/docs/">Typesense</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/full-text-search.json">api/full-text-search.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../database-indexes/index.html">&larr; Database indexes</a><a href="../semantic-search/index.html">Semantic search and RAG &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

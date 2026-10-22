@@ -1,0 +1,88 @@
+{
+  "id": "structured-logging",
+  "name": "Structured logging",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "JSON logs",
+    "log aggregation",
+    "request id",
+    "correlation id",
+    "observability"
+  ],
+  "needs": [
+    "I can't tell from my logs what happened to one user's request",
+    "search my logs for one customer",
+    "my logs are a wall of print statements"
+  ],
+  "keywords": [
+    "log",
+    "logs",
+    "logging",
+    "json",
+    "structured",
+    "request",
+    "id",
+    "correlation",
+    "trace",
+    "search",
+    "print",
+    "debug",
+    "observability",
+    "loki"
+  ],
+  "summary": "Writing logs as data, one JSON object per event with fields like event name, user id, request id and duration, instead of free text. Then you can search and count them, and follow one request through every service it touched.",
+  "need_when": [
+    "You debug production problems by reading logs.",
+    "Work for one request spans the web app, a queue and a worker."
+  ],
+  "skip_when": [
+    "A tiny app where error tracking covers what you need."
+  ],
+  "ways": [
+    {
+      "title": "A structured logging library",
+      "cost": "$0",
+      "how": "structlog (Python), pino (Node) or your framework's JSON formatter, writing to stdout.",
+      "tradeoff": "Small change with a big payoff. Agree on field names early."
+    },
+    {
+      "title": "Ship logs somewhere searchable",
+      "cost": "$0 self-hosted, free tiers",
+      "how": "Grafana Loki or OpenSearch self-hosted, or a hosted tier like Better Stack, Axiom or your host's log search.",
+      "tradeoff": "Search across all servers. Watch retention and volume costs."
+    },
+    {
+      "title": "OpenTelemetry",
+      "cost": "$0",
+      "how": "Add trace and span ids to logs and send traces too, to see a request across services.",
+      "tradeoff": "The fullest picture. More setup than most small apps need at first."
+    }
+  ],
+  "prompt": "Switch this app to structured JSON logging.\n\nRequirements:\n- Use [structlog / pino] and write one JSON object per line to stdout.\n- Every line has timestamp (UTC), level, event (a short snake_case name), and request_id. Add user_id where there is one.\n- Generate a request id per incoming request (or accept a trusted X-Request-ID), return it in a response header, and pass it to background jobs.\n- Never log passwords, tokens, API keys, full card numbers or message bodies. Add a filter that drops known sensitive keys.\n- Replace print statements and string-formatted log lines in [modules] with events.\n- Log the duration and status of each request at info level.\n\nAcceptance checks (run each and show me the result):\n1. Every log line parses as JSON.\n2. One request id finds the web request and the background job it started.\n3. Searching for user_id returns only that user's events.\n4. A test that logs in and resets a password produces no secret in the logs.",
+  "acceptance_checks": [
+    "Every log line parses as JSON.",
+    "One request id finds the web request and the background job it started.",
+    "Searching for user_id returns only that user's events.",
+    "A test that logs in and resets a password produces no secret in the logs."
+  ],
+  "if_you_skip_it": "Hours lost grepping text logs, no way to answer what happened to a customer's request, and secrets leaking into log storage.",
+  "how_derek_runs_it": "Custody Journal has a small helper that logs events as JSON with an event name, user id and UTC timestamp, used in billing, reports and core views.",
+  "links": [
+    {
+      "title": "structlog",
+      "url": "https://www.structlog.org/en/stable/"
+    },
+    {
+      "title": "pino",
+      "url": "https://getpino.io/"
+    },
+    {
+      "title": "OpenTelemetry: logs",
+      "url": "https://opentelemetry.io/docs/concepts/signals/logs/"
+    }
+  ],
+  "page": "e/structured-logging/index.html",
+  "json": "api/structured-logging.json",
+  "updated": "2026-10-21"
+}

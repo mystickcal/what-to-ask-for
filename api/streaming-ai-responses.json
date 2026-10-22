@@ -1,0 +1,88 @@
+{
+  "id": "streaming-ai-responses",
+  "name": "Streaming AI responses",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "token streaming",
+    "server-sent events",
+    "SSE",
+    "typewriter effect",
+    "stream the answer"
+  ],
+  "needs": [
+    "show the AI answer as it's being written",
+    "users stare at a spinner while the model thinks",
+    "my streamed response arrives all at once in production"
+  ],
+  "keywords": [
+    "stream",
+    "streaming",
+    "sse",
+    "server",
+    "sent",
+    "events",
+    "tokens",
+    "typewriter",
+    "chat",
+    "spinner",
+    "chunks",
+    "realtime",
+    "buffering",
+    "answer"
+  ],
+  "summary": "Sending the model's answer to the browser piece by piece as it's generated, usually over server-sent events, so people see text within a second instead of waiting for the whole reply. Your server sits in the middle, keeps the API key private, and saves the finished answer.",
+  "need_when": [
+    "Chat or writing features where answers take more than a couple of seconds."
+  ],
+  "skip_when": [
+    "The output is structured data your code uses, or the work runs in a background job. Stream progress, not tokens, there."
+  ],
+  "ways": [
+    {
+      "title": "Server-sent events from your backend",
+      "cost": "$0",
+      "how": "Call the provider with streaming on, and forward each text chunk to the browser as an SSE event. The browser reads it with fetch and a stream reader, or EventSource for GET requests.",
+      "tradeoff": "Works with any backend. Proxies and hosts can buffer the stream unless you turn that off."
+    },
+    {
+      "title": "An AI SDK",
+      "cost": "$0",
+      "how": "The Vercel AI SDK or the provider's own SDK helpers handle the streaming protocol and the UI state for you.",
+      "tradeoff": "Least code. Ties your frontend to the SDK's message format."
+    },
+    {
+      "title": "Stream progress from a background job",
+      "cost": "$0",
+      "how": "For long tasks, run the AI call in a job and push status updates over SSE or polling.",
+      "tradeoff": "Survives page reloads and timeouts. Text appears in bigger steps."
+    }
+  ],
+  "prompt": "Stream AI responses to the browser in [feature].\n\nRequirements:\n- The browser calls our server, never the provider directly. The API key stays on the server.\n- Use the provider's streaming mode and forward text chunks as server-sent events (Content-Type: text/event-stream, Cache-Control: no-cache).\n- Turn off response buffering in every proxy in front of the app (for nginx, X-Accel-Buffering: no) and check the host's streaming limits and timeouts.\n- If the user closes the page or presses Stop, cancel the upstream request so we stop paying for tokens.\n- Save the full answer and token usage to the database when the stream ends, including partial answers when cancelled.\n- Show a clear message, not a stack trace, if the stream fails halfway.\n\nAcceptance checks (run each and show me the result):\n1. In production, the first words appear within [2] seconds of sending.\n2. Pressing Stop ends the provider request (visible in server logs) within a second.\n3. Reloading the page shows the saved answer.\n4. The API key never appears in browser network requests.\n5. Killing the connection mid-answer shows a friendly error and keeps the partial text.",
+  "acceptance_checks": [
+    "In production, the first words appear within [2] seconds of sending.",
+    "Pressing Stop ends the provider request (visible in server logs) within a second.",
+    "Reloading the page shows the saved answer.",
+    "The API key never appears in browser network requests.",
+    "Killing the connection mid-answer shows a friendly error and keeps the partial text."
+  ],
+  "if_you_skip_it": "Users think the app froze, streams that work locally arrive in one lump in production, and you pay for answers nobody is reading.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAI: streaming API responses",
+      "url": "https://developers.openai.com/api/docs/guides/streaming-responses"
+    },
+    {
+      "title": "Anthropic: streaming messages",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    },
+    {
+      "title": "MDN: using server-sent events",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+    }
+  ],
+  "page": "e/streaming-ai-responses/index.html",
+  "json": "api/streaming-ai-responses.json",
+  "updated": "2026-10-21"
+}

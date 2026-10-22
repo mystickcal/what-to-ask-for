@@ -1,0 +1,88 @@
+{
+  "id": "llm-evals",
+  "name": "LLM evals",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "AI evaluation",
+    "prompt regression tests",
+    "golden set",
+    "LLM as a judge",
+    "AI testing"
+  ],
+  "needs": [
+    "I changed the prompt and something else got worse",
+    "test my AI feature before switching models",
+    "how do I know if the AI answers are good"
+  ],
+  "keywords": [
+    "eval",
+    "evals",
+    "evaluation",
+    "test",
+    "tests",
+    "prompt",
+    "regression",
+    "golden",
+    "judge",
+    "quality",
+    "model",
+    "switch",
+    "worse",
+    "promptfoo",
+    "benchmark"
+  ],
+  "summary": "A saved set of real inputs with what a good answer must contain or avoid, run every time you change a prompt, model or setting. It turns 'seems fine' into a score you can compare, so upgrades don't quietly break cases that used to work.",
+  "need_when": [
+    "You change prompts or models, or users depend on the AI output being right."
+  ],
+  "skip_when": [
+    "Throwaway experiments. Start the set as soon as the feature ships."
+  ],
+  "ways": [
+    {
+      "title": "Test cases in your own test suite",
+      "cost": "$0 + API calls",
+      "how": "20 to 100 real inputs with checks in code: required fields, banned phrases, exact labels, length limits. Run in CI or before each prompt change.",
+      "tradeoff": "Simple and fast. Code checks can't judge tone or helpfulness."
+    },
+    {
+      "title": "An eval tool",
+      "cost": "$0 open source",
+      "how": "promptfoo (open source) runs a test set across prompts and models and shows the results side by side.",
+      "tradeoff": "Good comparisons and reports. Another config format to learn."
+    },
+    {
+      "title": "Model-graded checks",
+      "cost": "API calls",
+      "how": "A second model scores answers against a short rubric, or the provider's evals tools. Check a sample by hand to make sure the grader agrees with you.",
+      "tradeoff": "Judges open-ended answers. Graders have biases and cost money."
+    }
+  ],
+  "prompt": "Set up evals for [AI feature].\n\nRequirements:\n- Create a test set of [30] real, anonymized inputs, including hard and adversarial ones, stored in the repo.\n- For each, write checks: code checks first (schema, required facts, forbidden content, length), then an optional rubric graded by a model for quality.\n- One command runs the set against the current prompt and model and prints a pass rate and the failures.\n- Save results so I can compare a change with the last run.\n- Run it before any prompt or model change is merged, and fail if the pass rate drops more than [5] points.\n- Add every bug report about AI output as a new test case.\n\nAcceptance checks (run each and show me the result):\n1. One command runs the whole set and prints the score.\n2. Breaking the prompt on purpose makes the score drop and the check fail.\n3. Running the same set twice gives similar scores.\n4. At least 5 test cases come from real failures.",
+  "acceptance_checks": [
+    "One command runs the whole set and prints the score.",
+    "Breaking the prompt on purpose makes the score drop and the check fail.",
+    "Running the same set twice gives similar scores.",
+    "At least 5 test cases come from real failures."
+  ],
+  "if_you_skip_it": "Each prompt tweak or model upgrade fixes one thing and silently breaks three others, and you only hear about it from users.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAI: evaluation best practices",
+      "url": "https://developers.openai.com/api/docs/guides/evaluation-best-practices"
+    },
+    {
+      "title": "Anthropic: define success criteria and build evaluations",
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    },
+    {
+      "title": "promptfoo",
+      "url": "https://www.promptfoo.dev/docs/intro/"
+    }
+  ],
+  "page": "e/llm-evals/index.html",
+  "json": "api/llm-evals.json",
+  "updated": "2026-10-21"
+}

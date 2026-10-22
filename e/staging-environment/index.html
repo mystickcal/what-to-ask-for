@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staging environment: What To Ask For</title>
+<meta name="description" content="A second copy of your app that runs the same code and setup as production but with its own database, keys and test-mode payments. You deploy there first, click through the change, and then promote the same build to production.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Staging environment: What To Ask For">
+<meta property="og:description" content="A second copy of your app that runs the same code and setup as production but with its own database, keys and test-mode payments. You deploy there first, click through the change, and then promote the same build to production.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/staging-environment/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Staging environment: What To Ask For">
+<meta name="twitter:description" content="A second copy of your app that runs the same code and setup as production but with its own database, keys and test-mode payments. You deploy there first, click through the change, and then promote the same build to production.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>Staging environment</h1>
+  <p class="aka">Also called: staging server, preview deployments, test environment, pre-production</p>
+  <p class="lead">A second copy of your app that runs the same code and setup as production but with its own database, keys and test-mode payments. You deploy there first, click through the change, and then promote the same build to production.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Real users depend on the app and changes touch payments, auth, data or migrations.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Very early, when preview deploys per pull request cover what you need.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Preview deployments <span class="cost">$0, included</span></h3>
+<p>Vercel, Netlify, Render and others build each branch or pull request at its own URL. Point them at a separate preview database or a seeded branch database (Neon and Supabase have branching).</p><p class="trade"><strong>Tradeoff:</strong> Almost no setup. Sharing the production database by accident is the main risk.</p></li>
+<li><h3>A staging stack on your own server <span class="cost">$0 + server</span></h3>
+<p>The same Docker Compose setup in its own directory, with its own Postgres, Redis and secrets, behind basic auth and a noindex header.</p><p class="trade"><strong>Tradeoff:</strong> Matches production closely. Uses server resources and needs its own care.</p></li>
+<li><h3>A separate staging project at your host <span class="cost">paid, usually</span></h3>
+<p>A second app or project with test-mode Stripe keys, a sandbox email provider and its own domain.</p><p class="trade"><strong>Tradeoff:</strong> Closest to production. Costs another set of resources.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up a staging environment for this app on [host].
+
+Requirements:
+- Staging runs the same build and config shape as production, with its own database, cache, storage bucket and secrets. Nothing in staging can reach production data.
+- Use Stripe test-mode keys, a sandbox or capture-only email setup, and fake or seeded data. No copies of real user data unless they&#x27;re anonymized.
+- Protect staging with a password (basic auth or the host&#x27;s protection) and send X-Robots-Tag: noindex.
+- Deploy to staging only from committed code on [main], then promote that same build to production.
+- Show a visible &#x27;STAGING&#x27; banner in the UI.
+- Write the steps for deploying to staging and promoting to production.
+
+Acceptance checks (run each and show me the result):
+1. Staging&#x27;s database URL, keys and bucket differ from production&#x27;s.
+2. A test payment in staging uses test mode and never touches live Stripe.
+3. Opening staging without the password is refused.
+4. Search engines get a noindex header from staging.
+5. The promoted production build is the same commit that was tested.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Changes get tested on real users, test emails reach customers, or staging writes into the production database.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal has a staging stack with its own Postgres and Redis containers, behind basic auth and a noindex header. Its deploy script ships the committed state of origin/main, never the local working tree.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;test changes somewhere before they hit real users&rdquo;</li><li>&ldquo;my agent&#x27;s change broke production and I never tried it first&rdquo;</li><li>&ldquo;a copy of the app I can break safely&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://vercel.com/docs/deployments/environments">Vercel: preview deployments</a></li><li><a href="https://neon.com/docs/introduction/branching">Neon: branching</a></li><li><a href="https://docs.stripe.com/testing">Stripe: testing</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/staging-environment.json">api/staging-environment.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../uptime-monitoring/index.html">&larr; Uptime monitoring</a><a href="../rollback/index.html">Rollback plan &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{
+  "id": "llm-retries-fallbacks",
+  "name": "LLM retries, timeouts and fallbacks",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "AI API errors",
+    "429 rate limit from OpenAI",
+    "overloaded error",
+    "model fallback",
+    "exponential backoff"
+  ],
+  "needs": [
+    "the AI call fails sometimes with 429 or 500",
+    "the model provider was down and my whole app broke",
+    "an AI request hung forever",
+    "switch to a backup model when the main one fails"
+  ],
+  "keywords": [
+    "retry",
+    "retries",
+    "timeout",
+    "fallback",
+    "backoff",
+    "429",
+    "500",
+    "503",
+    "529",
+    "overloaded",
+    "provider",
+    "down",
+    "outage",
+    "openai",
+    "anthropic",
+    "failed",
+    "hung"
+  ],
+  "summary": "Treating the model API like any network service that will sometimes be slow or fail. Set timeouts, retry only the errors worth retrying with backoff, and decide what users see when it's still failing: a cheaper model, a simpler non-AI result, or a clear message.",
+  "need_when": [
+    "Any feature that calls a model API in a user's request or in a job."
+  ],
+  "skip_when": [
+    "Never. Even a demo should have a timeout."
+  ],
+  "ways": [
+    {
+      "title": "SDK settings plus your own rules",
+      "cost": "$0",
+      "how": "Set the SDK's timeout and max_retries explicitly (the OpenAI Python SDK retries 2 times by default). Retry 429, 5xx and overloaded errors with exponential backoff and jitter, and honour any retry-after header.",
+      "tradeoff": "Simple. Retries add waiting time inside a user's request, so keep the total budget small."
+    },
+    {
+      "title": "A retry library",
+      "cost": "$0",
+      "how": "tenacity (Python) or p-retry (Node) around the call, with a stop condition on total time.",
+      "tradeoff": "Clear policy in one place. Make sure the SDK isn't also retrying underneath."
+    },
+    {
+      "title": "Fallbacks through a gateway",
+      "cost": "$0 self-hosted, paid tiers",
+      "how": "LiteLLM (open source) or a hosted gateway like OpenRouter routes to a second model or provider when the first fails.",
+      "tradeoff": "Survives provider outages. Prompts and output can differ between models, so test the fallback."
+    }
+  ],
+  "prompt": "Make the AI calls in [feature] reliable.\n\nRequirements:\n- Set an explicit timeout on every model call ([30] seconds for user requests). Set the SDK's max_retries explicitly so we know how many retries happen.\n- Retry only rate limits (429), server errors (5xx) and overloaded errors, with exponential backoff and jitter, honouring retry-after. Never retry 400-level errors such as invalid requests or auth failures.\n- Cap the total time including retries at [45] seconds for user-facing calls.\n- If retries run out, fall back to [cheaper model / non-AI result / saved result], or show a plain message like 'The AI service is busy, try again in a minute'.\n- Never show raw provider errors to users. Log the error type and request id.\n- Long or batch work runs in a background job with its own retry policy.\n\nAcceptance checks (run each and show me the result):\n1. A mocked 429 is retried and then succeeds.\n2. A mocked 400 is not retried.\n3. A mocked hang is cut off at the timeout with a friendly message.\n4. With the main provider forced to fail, the fallback runs, or users see the clear message.\n5. No user ever sees a raw provider error or stack trace.",
+  "acceptance_checks": [
+    "A mocked 429 is retried and then succeeds.",
+    "A mocked 400 is not retried.",
+    "A mocked hang is cut off at the timeout with a friendly message.",
+    "With the main provider forced to fail, the fallback runs, or users see the clear message.",
+    "No user ever sees a raw provider error or stack trace."
+  ],
+  "if_you_skip_it": "Pages that hang forever, features that die with every provider blip, and retry storms that make rate limits worse.",
+  "how_derek_runs_it": "Custody Journal's assistant calls the provider with a 30 second timeout and no automatic retries, inside a child process with a deadline, and maps timeouts, rate limits and provider errors to plain messages. Its tone classifier uses a 20 second timeout and one retry, and falls back to a keyword classifier on any error.",
+  "links": [
+    {
+      "title": "OpenAI: error codes",
+      "url": "https://developers.openai.com/api/docs/guides/error-codes"
+    },
+    {
+      "title": "Anthropic: errors",
+      "url": "https://platform.claude.com/docs/en/api/errors"
+    },
+    {
+      "title": "tenacity",
+      "url": "https://tenacity.readthedocs.io/en/latest/"
+    },
+    {
+      "title": "LiteLLM",
+      "url": "https://docs.litellm.ai/"
+    }
+  ],
+  "page": "e/llm-retries-fallbacks/index.html",
+  "json": "api/llm-retries-fallbacks.json",
+  "updated": "2026-10-21"
+}

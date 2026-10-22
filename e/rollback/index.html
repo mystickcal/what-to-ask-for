@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rollback plan: What To Ask For</title>
+<meta name="description" content="A tested way to put the last working version back in minutes. Keep the previous build around, know which database changes it can live with, and practice the switch before you need it.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Rollback plan: What To Ask For">
+<meta property="og:description" content="A tested way to put the last working version back in minutes. Keep the previous build around, know which database changes it can live with, and practice the switch before you need it.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/rollback/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rollback plan: What To Ask For">
+<meta name="twitter:description" content="A tested way to put the last working version back in minutes. Keep the previous build around, know which database changes it can live with, and practice the switch before you need it.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>Rollback plan</h1>
+  <p class="aka">Also called: roll back a deploy, revert release, instant rollback, previous version, blue-green deploy</p>
+  <p class="lead">A tested way to put the last working version back in minutes. Keep the previous build around, know which database changes it can live with, and practice the switch before you need it.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Anyone uses the app while you deploy.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never. Even if it&#x27;s one command, write it down and try it once.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your host&#x27;s instant rollback <span class="cost">$0, included</span></h3>
+<p>Vercel, Netlify, Render, Fly and Railway keep earlier deployments and can switch traffic back to one.</p><p class="trade"><strong>Tradeoff:</strong> Seconds to roll back code. Doesn&#x27;t undo database migrations.</p></li>
+<li><h3>Tagged images and a scripted switch <span class="cost">$0</span></h3>
+<p>Tag each Docker image with the commit, record what&#x27;s live before a release, and have a script restart the app on the previous image and wait for health checks.</p><p class="trade"><strong>Tradeoff:</strong> Works on any server. You maintain the script and must test it.</p></li>
+<li><h3>Blue-green or canary deploys <span class="cost">$0 + capacity</span></h3>
+<p>Run the new version beside the old one and move traffic over, all at once or a slice at a time, with a quick switch back.</p><p class="trade"><strong>Tradeoff:</strong> Smoothest. Needs a load balancer and double capacity during the switch.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Give this app a tested rollback plan for [host/server].
+
+Requirements:
+- Every release is an immutable build (image or deployment) tagged with its commit.
+- Before a release, record what&#x27;s live: the build id, config and environment.
+- One command or button rolls back to the previous build and waits until health checks pass.
+- Database migrations follow expand and contract, so the previous build still runs on the new schema. Rolling back never reverses a migration automatically.
+- If health checks fail after a release, roll back automatically and alert me.
+- Write a one-page runbook and do a practice rollback on staging.
+
+Acceptance checks (run each and show me the result):
+1. A practice rollback on staging finishes in under [5] minutes with health checks green.
+2. After a rollback, the app runs on the previous build against the current database.
+3. A deliberately broken release triggers the automatic rollback.
+4. The runbook says exactly which command to run and how to confirm it worked.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A bad release stays live while you debug under pressure, or a hurried rollback breaks the database.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Before each release, Custody Journal&#x27;s release script records the live Compose setup, runtime config and previous image. If anything fails, a trap rolls back automatically: it restarts the six app services on the previous image and waits until they&#x27;re healthy. The database and Redis containers are left alone, and migrations are never reversed, so a preflight check first proves the previous image runs on the new schema.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the new version is broken, put the old one back&rdquo;</li><li>&ldquo;undo a bad deploy quickly&rdquo;</li><li>&ldquo;what happens if a release fails halfway&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://vercel.com/docs/instant-rollback">Vercel: instant rollback</a></li><li><a href="https://render.com/docs/rollbacks">Render: rollbacks</a></li><li><a href="https://martinfowler.com/bliki/BlueGreenDeployment.html">Martin Fowler: blue-green deployment</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/rollback.json">api/rollback.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../staging-environment/index.html">&larr; Staging environment</a><a href="../streaming-ai-responses/index.html">Streaming AI responses &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>
