@@ -17,13 +17,35 @@
     try { document.execCommand("copy"); } catch (e) {}
   }
 
-  // Signup placeholder: not wired anywhere on purpose.
+  // Signup: posts to the self-hosted newsletter gateway (double opt-in), same as SkillCheck.
   var form = document.getElementById("signup");
-  if (form) form.addEventListener("submit", function (ev) {
-    ev.preventDefault();
-    // TODO(Derek): POST to the self-hosted Listmonk gateway once this origin is allowed.
-    document.getElementById("signup-note").textContent = "Thanks. Signup isn't connected yet, so nothing was sent or saved.";
-  });
+  if (form) {
+    var note = document.getElementById("signup-note");
+    var btn = form.querySelector("button[type='submit']");
+    var OK = "Check your inbox to confirm";
+    var ERR = "We could not send that signup. Try again in a moment.";
+    var EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+    var busy = false;
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      if (busy) return;
+      var f = form.elements, email = f.email.value.trim();
+      if (!EMAIL.test(email) || email.length > 254) { note.textContent = "Enter a valid email address."; f.email.focus(); return; }
+      if (!f.consent.checked) { note.textContent = "Tick the box to agree to the weekly email."; f.consent.focus(); return; }
+      busy = true; btn.disabled = true; note.textContent = "Sending";
+      fetch(form.action, {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, brand: form.getAttribute("data-brand"), source: form.getAttribute("data-source"), consent: true, company: f.company.value }),
+        credentials: "omit", cache: "no-store", redirect: "error"
+      }).then(function (r) {
+        if (!r.ok) throw new Error("request_failed");
+        var type = (r.headers.get("content-type") || "").toLowerCase();
+        if (type.indexOf("json") >= 0) return r.json().then(function (p) { if (p && p.error) throw new Error("request_failed"); });
+      }).then(function () { form.reset(); note.textContent = OK; }, function () { note.textContent = ERR; })
+        .then(function () { busy = false; btn.disabled = false; });
+    });
+  }
 
   // Search (home page only)
   var q = document.getElementById("q");
