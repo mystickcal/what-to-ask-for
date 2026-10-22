@@ -1,0 +1,88 @@
+{
+  "id": "chat-history",
+  "name": "AI chat history storage",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "conversation memory",
+    "chat threads",
+    "message history",
+    "context window management",
+    "AI conversations"
+  ],
+  "needs": [
+    "save chatbot conversations so users can come back",
+    "the AI forgets what we talked about",
+    "conversations get too long for the model",
+    "let users delete a chat"
+  ],
+  "keywords": [
+    "chat",
+    "history",
+    "conversation",
+    "conversations",
+    "memory",
+    "thread",
+    "threads",
+    "messages",
+    "context",
+    "window",
+    "forget",
+    "summarize",
+    "tokens"
+  ],
+  "summary": "Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.",
+  "need_when": [
+    "Users have multi-turn chats with your AI and expect them to persist."
+  ],
+  "skip_when": [
+    "Single-shot AI features with no follow-up questions."
+  ],
+  "ways": [
+    {
+      "title": "Conversations and messages tables",
+      "cost": "$0",
+      "how": "conversation (owner, title, created, last message) and message (role, content, tokens, created). Send the last N messages each turn.",
+      "tradeoff": "Simple, private and queryable. You handle trimming and summaries."
+    },
+    {
+      "title": "Your provider's stored conversations",
+      "cost": "token and storage costs",
+      "how": "Some APIs, such as OpenAI's Conversations and Responses APIs, can keep conversation state for you.",
+      "tradeoff": "Less code. Data lives with the provider and retention follows their rules."
+    },
+    {
+      "title": "A memory layer",
+      "cost": "free tiers or open source",
+      "how": "Tools like Mem0 or Zep pull out facts and summaries to recall across chats.",
+      "tradeoff": "Long-term memory. Extra cost and extra privacy questions."
+    }
+  ],
+  "prompt": "Store AI chat history and manage how much of it goes to the model.\n\nRequirements:\n- Tables: conversation (id, owner, title, created, last_message_at, archived) and message (id, conversation, role, content, token count, model, created).\n- Only the owner can read, rename or delete a conversation. Deleting removes its messages.\n- Each turn, send the system prompt, a running summary of older turns if any, and the last [10] messages, kept under [N] tokens.\n- When history passes the limit, summarize the oldest turns into the running summary in a background step.\n- Auto-title new conversations from the first message.\n- Count tokens per message for cost tracking.\n- Respect data retention: [delete or archive after X days], and include chats in data export and account deletion.\n\nAcceptance checks (run each and show me the result):\n1. Refreshing the page shows the full conversation.\n2. A 200-message chat still gets answers without context-length errors.\n3. Another user can't open the conversation URL.\n4. Deleting a chat removes its messages from the database.\n5. Account export includes chats.",
+  "acceptance_checks": [
+    "Refreshing the page shows the full conversation.",
+    "A 200-message chat still gets answers without context-length errors.",
+    "Another user can't open the conversation URL.",
+    "Deleting a chat removes its messages from the database.",
+    "Account export includes chats."
+  ],
+  "if_you_skip_it": "Users lose chats on refresh, long chats crash with context errors, or private conversations leak to other users.",
+  "how_derek_runs_it": "Custody Journal stores AI chats as conversation and message rows with the role, content and tokens used. Messages can link to the journal entries, documents and events they referenced, and each new question sends the last 10 messages as history.",
+  "links": [
+    {
+      "title": "OpenAI: conversation state",
+      "url": "https://developers.openai.com/api/docs/guides/conversation-state"
+    },
+    {
+      "title": "Anthropic: context windows",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    },
+    {
+      "title": "Mem0 (open source)",
+      "url": "https://github.com/mem0ai/mem0"
+    }
+  ],
+  "page": "e/chat-history/index.html",
+  "json": "api/chat-history.json",
+  "updated": "2026-10-21"
+}

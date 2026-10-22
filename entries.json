@@ -1,7 +1,7 @@
 {
   "name": "What To Ask For",
   "updated": "2026-10-21",
-  "count": 81,
+  "count": 100,
   "categories": [
     {
       "id": "background",
@@ -31,7 +31,7 @@
     {
       "id": "data",
       "name": "Data and databases",
-      "count": 7
+      "count": 8
     },
     {
       "id": "api",
@@ -41,32 +41,37 @@
     {
       "id": "security",
       "name": "Security and abuse",
-      "count": 8
+      "count": 12
     },
     {
       "id": "deploys",
       "name": "Deploys, uptime and monitoring",
-      "count": 7
+      "count": 10
     },
     {
       "id": "ai",
       "name": "AI features",
-      "count": 8
+      "count": 10
     },
     {
       "id": "performance",
       "name": "Performance and caching",
-      "count": 3
+      "count": 5
     },
     {
       "id": "search",
       "name": "Search",
-      "count": 2
+      "count": 3
+    },
+    {
+      "id": "features",
+      "name": "Common app features",
+      "count": 5
     },
     {
       "id": "privacy",
       "name": "Analytics and privacy",
-      "count": 2
+      "count": 3
     }
   ],
   "entries": [
@@ -4209,6 +4214,94 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "money-amounts",
+      "name": "Storing money amounts",
+      "category": "data",
+      "category_name": "Data and databases",
+      "aliases": [
+        "currency handling",
+        "integer cents",
+        "decimal money",
+        "rounding money",
+        "multi-currency"
+      ],
+      "needs": [
+        "my totals are off by a cent",
+        "0.1 plus 0.2 doesn't equal 0.3 in my invoice",
+        "store prices in different currencies",
+        "how should I save prices in the database"
+      ],
+      "keywords": [
+        "money",
+        "currency",
+        "cents",
+        "decimal",
+        "float",
+        "rounding",
+        "price",
+        "prices",
+        "total",
+        "invoice",
+        "cent",
+        "minor",
+        "units"
+      ],
+      "summary": "Keeping money exact. Store amounts as whole minor units (cents) in an integer column, or as a fixed DECIMAL, always next to a currency code. Never use floating point for money, and round once, at a defined step.",
+      "need_when": [
+        "Your app shows, adds up or charges any price, fee, balance or split."
+      ],
+      "skip_when": [
+        "Never. Even one price field benefits from getting this right on day one."
+      ],
+      "ways": [
+        {
+          "title": "Integer minor units",
+          "cost": "$0",
+          "how": "amount_cents BIGINT plus currency CHAR(3), the same shape Stripe's API uses. Convert to display format only at the edge.",
+          "tradeoff": "Exact and fast. Currencies with 0 or 3 decimals need a lookup table."
+        },
+        {
+          "title": "DECIMAL columns and decimal types",
+          "cost": "$0",
+          "how": "NUMERIC(12,2) in the database and Python Decimal, Java BigDecimal or a library like dinero.js in code.",
+          "tradeoff": "Readable values. Every language boundary (JSON, JavaScript) must avoid floats."
+        },
+        {
+          "title": "A money library",
+          "cost": "$0",
+          "how": "dinero.js (JavaScript), py-moneyed or django-money (Python), the money gem (Ruby) bundle amount and currency with safe math.",
+          "tradeoff": "Fewer mistakes. One more dependency."
+        }
+      ],
+      "prompt": "Fix how my app stores and calculates money.\n\nRequirements:\n- Find every money field and every place money is calculated.\n- Store amounts as [integer minor units in a BIGINT] with a currency code column (ISO 4217). No float or double anywhere.\n- Do math in integers or a decimal type. Round once, with a named rule ([half up / banker's]), at a defined step such as per line item.\n- When splitting amounts (for example 100 into 3), give the leftover cent to a defined party so parts always add up to the total.\n- Send amounts in APIs as integers with currency, never as floats.\n- Format for display with the user's locale only in the UI.\n- Write a migration that converts existing data exactly, and tests for rounding and splits.\n\nAcceptance checks (run each and show me the result):\n1. Searching the schema and code finds no float columns or float math on money.\n2. Splitting $100.00 three ways gives parts that add to exactly $100.00.\n3. A yen price has no decimals and a dollar price has two.\n4. Totals match the payment provider's to the cent across 1,000 test orders.\n5. JSON responses carry integers, not 19.990000000001.",
+      "acceptance_checks": [
+        "Searching the schema and code finds no float columns or float math on money.",
+        "Splitting $100.00 three ways gives parts that add to exactly $100.00.",
+        "A yen price has no decimals and a dollar price has two.",
+        "Totals match the payment provider's to the cent across 1,000 test orders.",
+        "JSON responses carry integers, not 19.990000000001."
+      ],
+      "if_you_skip_it": "Invoices and payouts drift by cents, reports never reconcile with the payment provider, and support gets \"you overcharged me\" emails.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe: currencies and zero-decimal amounts",
+          "url": "https://docs.stripe.com/currencies"
+        },
+        {
+          "title": "dinero.js",
+          "url": "https://github.com/dinerojs/dinero.js"
+        },
+        {
+          "title": "django-money",
+          "url": "https://github.com/django-money/django-money"
+        }
+      ],
+      "page": "e/money-amounts/index.html",
+      "json": "api/money-amounts.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "outbound-webhooks",
       "name": "Outgoing webhooks",
       "category": "api",
@@ -5370,6 +5463,369 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "security-headers",
+      "name": "Security headers (CSP, HSTS)",
+      "category": "security",
+      "category_name": "Security and abuse",
+      "aliases": [
+        "Content Security Policy",
+        "HSTS",
+        "X-Frame-Options",
+        "clickjacking protection",
+        "HTTP security headers"
+      ],
+      "needs": [
+        "my site got an F on a security headers scan",
+        "stop other sites from putting my app in an iframe",
+        "force HTTPS everywhere",
+        "limit which scripts can run on my pages"
+      ],
+      "keywords": [
+        "headers",
+        "csp",
+        "hsts",
+        "https",
+        "iframe",
+        "clickjacking",
+        "frame",
+        "nosniff",
+        "referrer",
+        "permissions",
+        "policy",
+        "xss",
+        "scan"
+      ],
+      "summary": "Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.",
+      "need_when": [
+        "Any app with logins or private data.",
+        "A customer security review or scanner flags missing headers."
+      ],
+      "skip_when": [
+        "Never fully. Even a static site benefits from HSTS and nosniff."
+      ],
+      "ways": [
+        {
+          "title": "Your framework's security settings",
+          "cost": "$0",
+          "how": "Django SECURE_* settings and a CSP middleware, Helmet for Express, Next.js headers config, Rails content_security_policy.",
+          "tradeoff": "Lives with the code and is tested with it. CSP takes some tuning."
+        },
+        {
+          "title": "Set them at the proxy or CDN",
+          "cost": "$0",
+          "how": "Nginx, Caddy or Traefik headers, Cloudflare Transform Rules, or _headers files on Netlify and Cloudflare Pages.",
+          "tradeoff": "One place for all routes. Easy to forget when the app moves."
+        }
+      ],
+      "prompt": "Add security headers to my app and tune them so nothing breaks.\n\nRequirements:\n- Strict-Transport-Security: max-age=31536000; includeSubDomains (preload only once I'm sure every subdomain is HTTPS).\n- X-Content-Type-Options: nosniff. Referrer-Policy: strict-origin-when-cross-origin.\n- Clickjacking: Content-Security-Policy frame-ancestors 'none' (or 'self') plus X-Frame-Options DENY for older browsers.\n- Permissions-Policy turning off camera, microphone and geolocation unless a page needs them.\n- A Content-Security-Policy with default-src 'self', object-src 'none' and base-uri 'self', listing the outside script, style, font, image and connect sources the app really uses.\n- Start CSP in Report-Only mode for [a week], collect violations, then enforce.\n- Prefer nonces over 'unsafe-inline' for scripts; list any inline scripts that block this.\n- Add a test that checks the headers on the home page, a logged-in page and an API response.\n\nAcceptance checks (run each and show me the result):\n1. securityheaders.com or Mozilla Observatory shows an A or better.\n2. The app can't be loaded in an iframe on another origin.\n3. No CSP violations show in the console on main pages after enforcing.\n4. HTTP requests redirect to HTTPS and repeat visits go straight to HTTPS.\n5. The header test runs in CI.",
+      "acceptance_checks": [
+        "securityheaders.com or Mozilla Observatory shows an A or better.",
+        "The app can't be loaded in an iframe on another origin.",
+        "No CSP violations show in the console on main pages after enforcing.",
+        "HTTP requests redirect to HTTPS and repeat visits go straight to HTTPS.",
+        "The header test runs in CI."
+      ],
+      "if_you_skip_it": "Your app can be framed for clickjacking, injected scripts run freely, and security reviews stall on easy findings.",
+      "how_derek_runs_it": "Custody Journal sets HSTS for a year with includeSubDomains and preload in production, nosniff, and X-Frame-Options DENY. A middleware adds a CSP with frame-ancestors 'none', object-src 'none' and base-uri 'self', plus a Permissions-Policy that turns geolocation off. The CSP is deliberately loose about inline scripts so it can't break the live UI.",
+      "links": [
+        {
+          "title": "MDN: Content Security Policy",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP"
+        },
+        {
+          "title": "OWASP HTTP Headers Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html"
+        },
+        {
+          "title": "Mozilla HTTP Observatory",
+          "url": "https://developer.mozilla.org/en-US/observatory"
+        },
+        {
+          "title": "Helmet (Express)",
+          "url": "https://helmetjs.github.io/"
+        }
+      ],
+      "page": "e/security-headers/index.html",
+      "json": "api/security-headers.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "dependency-updates",
+      "name": "Dependency updates and audits",
+      "category": "security",
+      "category_name": "Security and abuse",
+      "aliases": [
+        "Dependabot",
+        "Renovate",
+        "npm audit",
+        "pip-audit",
+        "vulnerable packages",
+        "supply chain security"
+      ],
+      "needs": [
+        "GitHub says my packages have vulnerabilities",
+        "keep my npm packages up to date",
+        "a library I use has a security hole",
+        "updates keep breaking my app"
+      ],
+      "keywords": [
+        "dependency",
+        "dependencies",
+        "dependabot",
+        "renovate",
+        "audit",
+        "vulnerability",
+        "vulnerabilities",
+        "cve",
+        "npm",
+        "pip",
+        "packages",
+        "outdated",
+        "lockfile",
+        "supply"
+      ],
+      "summary": "A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.",
+      "need_when": [
+        "Your app uses packages from npm, PyPI or any registry, which is nearly every app."
+      ],
+      "skip_when": [
+        "Never. Throwaway prototypes can skip the routine, not the lockfile."
+      ],
+      "ways": [
+        {
+          "title": "Dependabot",
+          "cost": "free on GitHub",
+          "how": "Turn on Dependabot alerts and security updates, and add a dependabot.yml for weekly version updates.",
+          "tradeoff": "Built in. Can open a lot of pull requests unless you group them."
+        },
+        {
+          "title": "Renovate",
+          "cost": "free",
+          "how": "The Renovate app or self-hosted runner opens grouped update pull requests with automerge rules for safe updates.",
+          "tradeoff": "Very configurable. The config takes some learning."
+        },
+        {
+          "title": "Audit commands in CI",
+          "cost": "$0",
+          "how": "npm audit --audit-level=high, pip-audit, osv-scanner or bundler-audit run on every push.",
+          "tradeoff": "Catches known issues before deploy. Doesn't update anything for you."
+        }
+      ],
+      "prompt": "Set up dependency updates and vulnerability audits for this repo.\n\nRequirements:\n- Make sure every dependency is pinned in a committed lockfile.\n- Add [Dependabot / Renovate] config: weekly, grouped minor and patch updates, separate pull requests for majors, security updates right away.\n- Add CI steps: [npm audit --audit-level=high], [pip-audit -r requirements.txt] (or osv-scanner for both). Fail the build on high or critical.\n- Tests must run on update pull requests. Automerge only patch updates that pass.\n- Document how to handle an audit failure with no fix yet (pin, replace, or record an exception with an expiry date).\n- List current high and critical findings and fix or explain each.\n\nAcceptance checks (run each and show me the result):\n1. Adding a package with a known high vulnerability fails CI.\n2. An update pull request appears within a week and runs the tests.\n3. Every dependency file has a lockfile next to it.\n4. Current audit output has no unexplained high or critical findings.\n5. Exceptions have an owner and expiry date.",
+      "acceptance_checks": [
+        "Adding a package with a known high vulnerability fails CI.",
+        "An update pull request appears within a week and runs the tests.",
+        "Every dependency file has a lockfile next to it.",
+        "Current audit output has no unexplained high or critical findings.",
+        "Exceptions have an owner and expiry date."
+      ],
+      "if_you_skip_it": "A known hole in an old package stays in production for months, or a year of skipped updates turns into one painful upgrade.",
+      "how_derek_runs_it": "Custody Journal's release gate runs pip-audit against requirements.txt and npm audit with --audit-level=high on its lockfiles, and the release stops if either fails.",
+      "links": [
+        {
+          "title": "GitHub: secure your supply chain (Dependabot)",
+          "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain"
+        },
+        {
+          "title": "Renovate docs",
+          "url": "https://docs.renovatebot.com/"
+        },
+        {
+          "title": "pip-audit",
+          "url": "https://github.com/pypa/pip-audit"
+        },
+        {
+          "title": "OSV-Scanner",
+          "url": "https://github.com/google/osv-scanner"
+        }
+      ],
+      "page": "e/dependency-updates/index.html",
+      "json": "api/dependency-updates.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "html-sanitizing",
+      "name": "Sanitizing user HTML and markdown (XSS)",
+      "category": "security",
+      "category_name": "Security and abuse",
+      "aliases": [
+        "XSS prevention",
+        "cross-site scripting",
+        "HTML sanitizer",
+        "rich text safety",
+        "output escaping"
+      ],
+      "needs": [
+        "users can post rich text and I'm worried about scripts",
+        "someone put a script tag in their profile",
+        "render user markdown safely",
+        "my rich text editor saves raw HTML"
+      ],
+      "keywords": [
+        "xss",
+        "sanitize",
+        "sanitizer",
+        "html",
+        "markdown",
+        "script",
+        "escape",
+        "escaping",
+        "rich",
+        "text",
+        "editor",
+        "dompurify",
+        "inject"
+      ],
+      "summary": "Making sure text users write can't run as code in other people's browsers. Escape by default everywhere, and when you must allow formatting, run the HTML through an allowlist sanitizer on the server before saving or showing it.",
+      "need_when": [
+        "Users can enter rich text, markdown, comments, bios or anything shown to other users.",
+        "AI output is rendered as HTML or markdown."
+      ],
+      "skip_when": [
+        "Never for escaping. The sanitizer is only needed when you allow markup."
+      ],
+      "ways": [
+        {
+          "title": "Template auto-escaping",
+          "cost": "$0",
+          "how": "React, Django, Jinja, Rails and most templates escape by default. Don't bypass it (dangerouslySetInnerHTML, |safe, html_safe, v-html) with user data.",
+          "tradeoff": "Covers most cases free. Every bypass needs review."
+        },
+        {
+          "title": "An allowlist HTML sanitizer",
+          "cost": "$0",
+          "how": "nh3 or bleach (Python), DOMPurify (browser or Node with jsdom), sanitize-html (Node), Loofah (Ruby). Allow only the tags and attributes your editor makes.",
+          "tradeoff": "Lets formatting through safely. Keep the allowlist small and links limited to http, https and mailto."
+        },
+        {
+          "title": "CSP as a backstop",
+          "cost": "$0",
+          "how": "A Content-Security-Policy without 'unsafe-inline' blocks many injected scripts even if sanitizing misses.",
+          "tradeoff": "Strong extra layer. Needs inline scripts removed first."
+        }
+      ],
+      "prompt": "Audit and fix cross-site scripting risks where users can enter text.\n\nRequirements:\n- List every place user or AI text is shown, and every template or component that bypasses escaping.\n- Remove bypasses where plain text is enough.\n- Where formatting is needed, sanitize on the server with [nh3 / DOMPurify / sanitize-html] using an allowlist that matches the editor's tags. Sanitize on save and again on render if old data exists.\n- Allow only http, https and mailto links. Add rel=\"noopener noreferrer\" to links and drop target.\n- Strip event handler attributes, style, iframe, object, embed and svg unless needed.\n- Render markdown with raw HTML disabled, then sanitize the output.\n- Add tests with common payloads (script tags, img onerror, javascript: links, svg onload).\n\nAcceptance checks (run each and show me the result):\n1. Saving <img src=x onerror=alert(1)> shows the text or a broken image, never an alert.\n2. A javascript: link is removed or made inert.\n3. Bold, lists and links from the editor still render.\n4. Searching templates finds no unreviewed escaping bypasses.\n5. AI-generated markdown with HTML in it is sanitized too.",
+      "acceptance_checks": [
+        "Saving <img src=x onerror=alert(1)> shows the text or a broken image, never an alert.",
+        "A javascript: link is removed or made inert.",
+        "Bold, lists and links from the editor still render.",
+        "Searching templates finds no unreviewed escaping bypasses.",
+        "AI-generated markdown with HTML in it is sanitized too."
+      ],
+      "if_you_skip_it": "One user's profile or comment runs a script in every visitor's browser and can act as them.",
+      "how_derek_runs_it": "Custody Journal cleans journal entry HTML from its rich text editor with nh3, using an allowlist of the editor's tags and allowed link schemes, and stamps rel=\"noopener noreferrer\" on every link.",
+      "links": [
+        {
+          "title": "OWASP Cross Site Scripting Prevention Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+        },
+        {
+          "title": "DOMPurify",
+          "url": "https://github.com/cure53/DOMPurify"
+        },
+        {
+          "title": "nh3 (Python)",
+          "url": "https://github.com/messense/nh3"
+        },
+        {
+          "title": "sanitize-html",
+          "url": "https://github.com/apostrophecms/sanitize-html"
+        }
+      ],
+      "page": "e/html-sanitizing/index.html",
+      "json": "api/html-sanitizing.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "field-encryption",
+      "name": "Field-level encryption",
+      "category": "security",
+      "category_name": "Security and abuse",
+      "aliases": [
+        "encrypt database fields",
+        "application-level encryption",
+        "encryption at rest",
+        "encrypted columns",
+        "key rotation"
+      ],
+      "needs": [
+        "encrypt sensitive fields in my database",
+        "if someone steals a backup they shouldn't read user notes",
+        "store tokens for third-party services safely",
+        "rotate my encryption key"
+      ],
+      "keywords": [
+        "encrypt",
+        "encryption",
+        "field",
+        "column",
+        "sensitive",
+        "fernet",
+        "kms",
+        "key",
+        "rotation",
+        "rotate",
+        "ciphertext",
+        "pii",
+        "backup",
+        "tokens"
+      ],
+      "summary": "Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.",
+      "need_when": [
+        "You store very sensitive text (health, legal, financial notes), government ids, or access tokens for other services."
+      ],
+      "skip_when": [
+        "Your host's disk encryption covers your threat and the data isn't especially sensitive. Fields you must search or sort on are hard to encrypt."
+      ],
+      "ways": [
+        {
+          "title": "An encrypted field type in your framework",
+          "cost": "$0",
+          "how": "Rails Active Record Encryption, Laravel encrypted casts, or a Django field built on Fernet from the cryptography package.",
+          "tradeoff": "Transparent in code. Encrypted fields can't be filtered or sorted in SQL."
+        },
+        {
+          "title": "Envelope encryption with a KMS",
+          "cost": "low, per key and request",
+          "how": "AWS KMS, Google Cloud KMS or Vault wrap per-record data keys. Your app encrypts with the data key.",
+          "tradeoff": "Strong key control and audit. More moving parts and latency."
+        },
+        {
+          "title": "Database-side encryption functions",
+          "cost": "$0",
+          "how": "Postgres pgcrypto encrypts in SQL.",
+          "tradeoff": "Easy to add. The key travels to the database in queries and may show up in logs."
+        }
+      ],
+      "prompt": "Add field-level encryption for sensitive columns.\n\nRequirements:\n- Columns: [list]. Encrypt in the app with [Fernet / AES-GCM] before saving and decrypt on read.\n- The key comes from an environment secret separate from other app secrets, never from the database.\n- Prefix each stored value with a version tag so I can tell encrypted from plain and rotate keys later.\n- Rotation: a new key encrypts, old keys still decrypt, and a background command re-encrypts rows in batches.\n- If a value can't be decrypted, show a placeholder and keep the stored ciphertext untouched on save.\n- Encrypt existing rows with a migration that runs in batches and can resume.\n- For fields I need to look up exactly, store a separate keyed hash (HMAC) for lookups.\n- Keep decrypted values out of logs, error reports and analytics.\n\nAcceptance checks (run each and show me the result):\n1. Reading the table directly shows ciphertext for each listed column.\n2. After rotating, old rows still read and the re-encrypt command upgrades them.\n3. Starting the app with the wrong key shows placeholders, not crashes, and saving doesn't destroy data.\n4. Error reports contain no decrypted values.\n5. A restore from backup is readable only with the key.",
+      "acceptance_checks": [
+        "Reading the table directly shows ciphertext for each listed column.",
+        "After rotating, old rows still read and the re-encrypt command upgrades them.",
+        "Starting the app with the wrong key shows placeholders, not crashes, and saving doesn't destroy data.",
+        "Error reports contain no decrypted values.",
+        "A restore from backup is readable only with the key."
+      ],
+      "if_you_skip_it": "A leaked backup or read-only database breach exposes the most private data you hold.",
+      "how_derek_runs_it": "Custody Journal encrypts sensitive text and JSON columns with Fernet before they reach Postgres, using its own field encryption key setting rather than the main app secret. Stored values carry a version prefix, older keys stay decrypt-only for rotation, and a value that can't be decrypted shows a placeholder while the original ciphertext is kept on save.",
+      "links": [
+        {
+          "title": "OWASP Cryptographic Storage Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+        },
+        {
+          "title": "cryptography: Fernet",
+          "url": "https://cryptography.io/en/latest/fernet/"
+        },
+        {
+          "title": "Rails: Active Record Encryption",
+          "url": "https://guides.rubyonrails.org/active_record_encryption.html"
+        }
+      ],
+      "page": "e/field-encryption/index.html",
+      "json": "api/field-encryption.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "feature-flags",
       "name": "Feature flag",
       "category": "deploys",
@@ -5735,7 +6191,6 @@
       "category_name": "Deploys, uptime and monitoring",
       "aliases": [
         "uptime check",
-        "status page",
         "downtime alerts",
         "synthetic monitoring",
         "heartbeat monitoring"
@@ -5744,7 +6199,7 @@
         "tell me when my site is down",
         "my site was down all weekend and I didn't know",
         "alert me if the nightly job stops running",
-        "add a status page"
+        "know within minutes when the API stops answering"
       ],
       "keywords": [
         "uptime",
@@ -5985,6 +6440,272 @@
       ],
       "page": "e/rollback/index.html",
       "json": "api/rollback.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "status-page",
+      "name": "Status page",
+      "category": "deploys",
+      "category_name": "Deploys, uptime and monitoring",
+      "aliases": [
+        "system status",
+        "incident page",
+        "outage page",
+        "service status",
+        "incident communication"
+      ],
+      "needs": [
+        "tell users the site is down before they email me",
+        "post updates during an outage",
+        "customers want to see our uptime history",
+        "announce planned maintenance"
+      ],
+      "keywords": [
+        "status",
+        "page",
+        "outage",
+        "incident",
+        "down",
+        "maintenance",
+        "uptime",
+        "history",
+        "announce",
+        "statuspage"
+      ],
+      "summary": "A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers \"is it just me?\" without a support email.",
+      "need_when": [
+        "Paying customers rely on your app being up.",
+        "Every outage brings a pile of \"is it down?\" messages."
+      ],
+      "skip_when": [
+        "Very early, with few users. A pinned post or banner may do."
+      ],
+      "ways": [
+        {
+          "title": "A hosted status page with monitoring",
+          "cost": "free tiers, then paid",
+          "how": "Better Stack, Instatus, UptimeRobot and Atlassian Statuspage pair checks with a public page and subscriber emails.",
+          "tradeoff": "Runs when your servers don't. Free tiers limit monitors and branding."
+        },
+        {
+          "title": "Self-hosted",
+          "cost": "$0 plus a small server",
+          "how": "Uptime Kuma or Gatus on a separate machine from your app, with its status page turned on.",
+          "tradeoff": "Free and flexible. If it shares a host or network with your app, it goes down with it."
+        },
+        {
+          "title": "A static page built by scheduled checks",
+          "cost": "$0",
+          "how": "Upptime runs checks with GitHub Actions and publishes a status page on GitHub Pages.",
+          "tradeoff": "No server at all. Checks run every few minutes at best."
+        }
+      ],
+      "prompt": "Set up a public status page for my app with [tool].\n\nRequirements:\n- Host it on a different provider than the app, at [status.mydomain.com].\n- Components: [website, API, background jobs, email]. Each backed by a real check (HTTP health endpoint, job heartbeat).\n- Incidents: an investigating, identified, monitoring, resolved flow with timestamps. Prepare 3 short templates in plain words.\n- Planned maintenance posts with start and end times in UTC and the reader's local time.\n- Let users subscribe by email or RSS.\n- Link it from the app footer, the help page and error pages.\n- Write down who posts updates and how fast (for example within 15 minutes of an alert).\n\nAcceptance checks (run each and show me the result):\n1. Stopping the app server turns the website component red within a few minutes.\n2. The status page stays up while the app is down.\n3. A test incident reaches email subscribers.\n4. The app's error page links to the status page.\n5. Maintenance times show correctly in two timezones.",
+      "acceptance_checks": [
+        "Stopping the app server turns the website component red within a few minutes.",
+        "The status page stays up while the app is down.",
+        "A test incident reaches email subscribers.",
+        "The app's error page links to the status page.",
+        "Maintenance times show correctly in two timezones."
+      ],
+      "if_you_skip_it": "During an outage, users flood support and social media because there's nowhere to check, and trust drops more than the outage deserved.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Uptime Kuma (open source)",
+          "url": "https://github.com/louislam/uptime-kuma"
+        },
+        {
+          "title": "Gatus (open source)",
+          "url": "https://github.com/TwiN/gatus"
+        },
+        {
+          "title": "Upptime",
+          "url": "https://upptime.js.org/"
+        },
+        {
+          "title": "Instatus",
+          "url": "https://instatus.com/"
+        }
+      ],
+      "page": "e/status-page/index.html",
+      "json": "api/status-page.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "ci-pipeline",
+      "name": "CI checks on every push",
+      "category": "deploys",
+      "category_name": "Deploys, uptime and monitoring",
+      "aliases": [
+        "continuous integration",
+        "GitHub Actions",
+        "CI pipeline",
+        "pre-merge checks",
+        "release gate"
+      ],
+      "needs": [
+        "run my tests automatically before I deploy",
+        "stop broken code from reaching main",
+        "my AI agent keeps breaking things that used to work",
+        "set up GitHub Actions for my app"
+      ],
+      "keywords": [
+        "ci",
+        "continuous",
+        "integration",
+        "tests",
+        "actions",
+        "github",
+        "pipeline",
+        "lint",
+        "build",
+        "merge",
+        "gate",
+        "automated",
+        "check"
+      ],
+      "summary": "An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.",
+      "need_when": [
+        "You have any tests, or you ship code written by AI agents and want a safety net."
+      ],
+      "skip_when": [
+        "Never once there's a second contributor, human or AI."
+      ],
+      "ways": [
+        {
+          "title": "GitHub Actions",
+          "cost": "free for public repos, monthly free minutes for private",
+          "how": "A workflow file runs on push and pull_request: install, lint, type check, test, build. Mark it required in branch protection.",
+          "tradeoff": "Built into GitHub. Private repo minutes run out on heavy suites."
+        },
+        {
+          "title": "Your host's or Git provider's CI",
+          "cost": "free tiers",
+          "how": "GitLab CI, Bitbucket Pipelines, CircleCI, or build checks on Vercel, Netlify and Render.",
+          "tradeoff": "Fine choices. Pick the one next to your code."
+        },
+        {
+          "title": "A local release script",
+          "cost": "$0",
+          "how": "One script you (and your agents) run before each deploy that runs every check and refuses to continue on failure.",
+          "tradeoff": "Free and fast on your machine. Only works if it can't be skipped."
+        }
+      ],
+      "prompt": "Set up CI that runs on every push and pull request.\n\nRequirements:\n- Steps in order: install from lockfile, lint, type check, unit tests, migrations check ([no missing migrations]), build, then [a short end-to-end smoke test].\n- Use a real database service of the same version as production for tests, not SQLite if production is Postgres.\n- Cache dependencies. Target under [10] minutes.\n- Add a dependency audit step that fails on high severity.\n- Make the workflow required for merging into main.\n- Fail on warnings that hide real bugs (unawaited promises, unused imports) once the code is clean.\n- Show me how to run the exact same checks locally with one command.\n\nAcceptance checks (run each and show me the result):\n1. A pull request with a failing test can't be merged.\n2. The local command and CI run the same steps.\n3. A model change without a migration fails CI.\n4. CI runs against the same database engine as production.\n5. A typical run finishes in under 10 minutes.",
+      "acceptance_checks": [
+        "A pull request with a failing test can't be merged.",
+        "The local command and CI run the same steps.",
+        "A model change without a migration fails CI.",
+        "CI runs against the same database engine as production.",
+        "A typical run finishes in under 10 minutes."
+      ],
+      "if_you_skip_it": "Bugs that tests would have caught reach production, and nobody knows which change caused them.",
+      "how_derek_runs_it": "Custody Journal uses a free local release gate script rather than hosted CI. It runs ruff, Django checks, a missing-migrations check, a migration cycle test, the full test suite, pip-audit, npm audit, a Postgres concurrency test, a Playwright smoke test and a Docker build, and it fails closed.",
+      "links": [
+        {
+          "title": "GitHub Actions docs",
+          "url": "https://docs.github.com/en/actions"
+        },
+        {
+          "title": "GitHub: about protected branches",
+          "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+        },
+        {
+          "title": "GitHub Actions billing and free minutes",
+          "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+        }
+      ],
+      "page": "e/ci-pipeline/index.html",
+      "json": "api/ci-pipeline.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "customer-custom-domains",
+      "name": "Custom domains for customers",
+      "category": "deploys",
+      "category_name": "Deploys, uptime and monitoring",
+      "aliases": [
+        "white-label domains",
+        "bring your own domain",
+        "custom hostnames",
+        "vanity domains",
+        "SaaS custom domains"
+      ],
+      "needs": [
+        "let customers use their own domain for their page",
+        "SSL for thousands of customer domains",
+        "point a customer's CNAME at my app",
+        "white label my app"
+      ],
+      "keywords": [
+        "domain",
+        "domains",
+        "custom",
+        "cname",
+        "dns",
+        "ssl",
+        "tls",
+        "certificate",
+        "white",
+        "label",
+        "hostname",
+        "vanity",
+        "subdomain"
+      ],
+      "summary": "Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.",
+      "need_when": [
+        "Customers publish pages, stores, docs or portals and want their own brand on the address."
+      ],
+      "skip_when": [
+        "Subdomains of your own domain (theirname.yourapp.com) are enough. Those need only one wildcard certificate."
+      ],
+      "ways": [
+        {
+          "title": "Cloudflare for SaaS",
+          "cost": "a number of hostnames free, then per hostname",
+          "how": "Custom Hostnames on your zone: customers CNAME to you, Cloudflare validates and issues certificates.",
+          "tradeoff": "Handles TLS at the edge with little code. Ties you to Cloudflare."
+        },
+        {
+          "title": "Your host's domains API",
+          "cost": "depends on plan",
+          "how": "Vercel, Netlify, Render and Fly.io let you add customer domains through an API and issue certificates.",
+          "tradeoff": "Simple if you already host there. Limits on domain counts per plan."
+        },
+        {
+          "title": "Caddy on-demand TLS",
+          "cost": "$0 plus your server",
+          "how": "Caddy gets a Let's Encrypt certificate the first time a domain is requested, after asking your app whether that domain is allowed.",
+          "tradeoff": "Self-hosted and free. You run the edge server and must keep the allow check strict."
+        }
+      ],
+      "prompt": "Let customers connect their own domain to their [site/portal] in my app using [provider].\n\nRequirements:\n- Settings page: enter a domain, show the exact DNS record to add (CNAME to [customers.myapp.com], or A records for apex domains), and a \"Verify\" button.\n- Verify ownership with the DNS record or a TXT token before routing anything.\n- Issue HTTPS automatically. Show status: pending DNS, issuing certificate, active, error with reason.\n- Route requests by Host header to the right account. Unknown hosts get a plain 404, never another customer's content.\n- Recheck active domains daily. If DNS moves away, mark it and email the owner.\n- Only allow on-demand certificates for domains that are verified in my database.\n- Set cookies per domain and update CORS and CSP to allow the customer domain where needed.\n\nAcceptance checks (run each and show me the result):\n1. A verified domain serves the right customer's content over HTTPS.\n2. An unverified domain pointed at the app gets 404 and no certificate.\n3. Removing the DNS record flips the status and emails the owner.\n4. Logging in on one customer domain doesn't log the user into another.\n5. The status shows a clear reason when DNS is wrong.",
+      "acceptance_checks": [
+        "A verified domain serves the right customer's content over HTTPS.",
+        "An unverified domain pointed at the app gets 404 and no certificate.",
+        "Removing the DNS record flips the status and emails the owner.",
+        "Logging in on one customer domain doesn't log the user into another.",
+        "The status shows a clear reason when DNS is wrong."
+      ],
+      "if_you_skip_it": "Anyone can point a domain at your app and get a certificate for it, or one customer's domain shows another customer's pages.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Cloudflare for SaaS",
+          "url": "https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/"
+        },
+        {
+          "title": "Caddy: on-demand TLS",
+          "url": "https://caddyserver.com/docs/automatic-https#on-demand-tls"
+        },
+        {
+          "title": "Vercel: domains API for platforms",
+          "url": "https://vercel.com/docs/platforms/multi-tenant-platforms/configuring-domains"
+        }
+      ],
+      "page": "e/customer-custom-domains/index.html",
+      "json": "api/customer-custom-domains.json",
       "updated": "2026-10-21"
     },
     {
@@ -6694,6 +7415,186 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "tool-calling",
+      "name": "LLM tool calling",
+      "category": "ai",
+      "category_name": "AI features",
+      "aliases": [
+        "function calling",
+        "AI tools",
+        "agent actions",
+        "MCP tools",
+        "AI that can take actions"
+      ],
+      "needs": [
+        "let the AI look things up in my database",
+        "the chatbot should be able to create a task",
+        "make the model call my API",
+        "the AI made up an answer instead of checking"
+      ],
+      "keywords": [
+        "tool",
+        "tools",
+        "function",
+        "calling",
+        "agent",
+        "action",
+        "actions",
+        "mcp",
+        "api",
+        "lookup",
+        "database",
+        "chatbot",
+        "assistant"
+      ],
+      "summary": "Giving the model a list of functions it may ask you to run, each with a name, description and input schema. Your code checks permissions, runs the function, and sends back the result. The model never touches your systems directly.",
+      "need_when": [
+        "The AI needs fresh or private data, or should take actions like creating, sending or updating things."
+      ],
+      "skip_when": [
+        "All the context fits in the prompt and the AI only writes text."
+      ],
+      "ways": [
+        {
+          "title": "Your model provider's tool calling",
+          "cost": "token costs",
+          "how": "OpenAI, Anthropic, Google and most others accept tool definitions with JSON Schema and return tool calls for your code to run.",
+          "tradeoff": "Direct and well supported. You write the loop and error handling."
+        },
+        {
+          "title": "An SDK that runs the loop",
+          "cost": "$0 libraries",
+          "how": "Vercel AI SDK, OpenAI Agents SDK, LangChain or PydanticAI define tools as typed functions and handle the call, run, reply loop.",
+          "tradeoff": "Less boilerplate. More abstraction to debug."
+        },
+        {
+          "title": "An MCP server",
+          "cost": "$0",
+          "how": "Expose your tools with the Model Context Protocol so agents like Claude, Cursor and ChatGPT can call them.",
+          "tradeoff": "Works across many AI clients. Auth and permissions need care."
+        }
+      ],
+      "prompt": "Add tool calling to my AI feature so it can [look up X / create Y].\n\nRequirements:\n- Define tools: [list], each with a clear description and a strict JSON Schema for inputs.\n- Run every tool as the signed-in user, with the same permission checks as the normal API. Never trust ids the model supplies without checking ownership.\n- Validate tool inputs against the schema, and return short structured errors the model can recover from.\n- Read-only tools run directly. Tools that change data, spend money or send messages show the user a confirmation first.\n- Cap tool calls per turn at [5] and total time at [30 s].\n- Treat tool results as data. Don't let text inside them change instructions.\n- Log each call: tool, inputs (with personal data trimmed), result status, duration.\n- Tests: the model picks the right tool for 10 sample requests, and a request for another user's data fails.\n\nAcceptance checks (run each and show me the result):\n1. Asking for another user's record through the AI returns nothing.\n2. A destructive action asks the user to confirm first.\n3. Bad tool input gets a clear error the model uses to retry or explain.\n4. A loop of calls stops at the cap.\n5. The log shows every tool call for a conversation.",
+      "acceptance_checks": [
+        "Asking for another user's record through the AI returns nothing.",
+        "A destructive action asks the user to confirm first.",
+        "Bad tool input gets a clear error the model uses to retry or explain.",
+        "A loop of calls stops at the cap.",
+        "The log shows every tool call for a conversation."
+      ],
+      "if_you_skip_it": "The AI either makes things up instead of checking, or becomes a way around your permission checks.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "OpenAI: function calling",
+          "url": "https://developers.openai.com/api/docs/guides/function-calling"
+        },
+        {
+          "title": "Anthropic: tool use",
+          "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+        },
+        {
+          "title": "Model Context Protocol",
+          "url": "https://modelcontextprotocol.io/"
+        },
+        {
+          "title": "Vercel AI SDK: tools",
+          "url": "https://ai-sdk.dev/docs/foundations/tools"
+        }
+      ],
+      "page": "e/tool-calling/index.html",
+      "json": "api/tool-calling.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "chat-history",
+      "name": "AI chat history storage",
+      "category": "ai",
+      "category_name": "AI features",
+      "aliases": [
+        "conversation memory",
+        "chat threads",
+        "message history",
+        "context window management",
+        "AI conversations"
+      ],
+      "needs": [
+        "save chatbot conversations so users can come back",
+        "the AI forgets what we talked about",
+        "conversations get too long for the model",
+        "let users delete a chat"
+      ],
+      "keywords": [
+        "chat",
+        "history",
+        "conversation",
+        "conversations",
+        "memory",
+        "thread",
+        "threads",
+        "messages",
+        "context",
+        "window",
+        "forget",
+        "summarize",
+        "tokens"
+      ],
+      "summary": "Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.",
+      "need_when": [
+        "Users have multi-turn chats with your AI and expect them to persist."
+      ],
+      "skip_when": [
+        "Single-shot AI features with no follow-up questions."
+      ],
+      "ways": [
+        {
+          "title": "Conversations and messages tables",
+          "cost": "$0",
+          "how": "conversation (owner, title, created, last message) and message (role, content, tokens, created). Send the last N messages each turn.",
+          "tradeoff": "Simple, private and queryable. You handle trimming and summaries."
+        },
+        {
+          "title": "Your provider's stored conversations",
+          "cost": "token and storage costs",
+          "how": "Some APIs, such as OpenAI's Conversations and Responses APIs, can keep conversation state for you.",
+          "tradeoff": "Less code. Data lives with the provider and retention follows their rules."
+        },
+        {
+          "title": "A memory layer",
+          "cost": "free tiers or open source",
+          "how": "Tools like Mem0 or Zep pull out facts and summaries to recall across chats.",
+          "tradeoff": "Long-term memory. Extra cost and extra privacy questions."
+        }
+      ],
+      "prompt": "Store AI chat history and manage how much of it goes to the model.\n\nRequirements:\n- Tables: conversation (id, owner, title, created, last_message_at, archived) and message (id, conversation, role, content, token count, model, created).\n- Only the owner can read, rename or delete a conversation. Deleting removes its messages.\n- Each turn, send the system prompt, a running summary of older turns if any, and the last [10] messages, kept under [N] tokens.\n- When history passes the limit, summarize the oldest turns into the running summary in a background step.\n- Auto-title new conversations from the first message.\n- Count tokens per message for cost tracking.\n- Respect data retention: [delete or archive after X days], and include chats in data export and account deletion.\n\nAcceptance checks (run each and show me the result):\n1. Refreshing the page shows the full conversation.\n2. A 200-message chat still gets answers without context-length errors.\n3. Another user can't open the conversation URL.\n4. Deleting a chat removes its messages from the database.\n5. Account export includes chats.",
+      "acceptance_checks": [
+        "Refreshing the page shows the full conversation.",
+        "A 200-message chat still gets answers without context-length errors.",
+        "Another user can't open the conversation URL.",
+        "Deleting a chat removes its messages from the database.",
+        "Account export includes chats."
+      ],
+      "if_you_skip_it": "Users lose chats on refresh, long chats crash with context errors, or private conversations leak to other users.",
+      "how_derek_runs_it": "Custody Journal stores AI chats as conversation and message rows with the role, content and tokens used. Messages can link to the journal entries, documents and events they referenced, and each new question sends the last 10 messages as history.",
+      "links": [
+        {
+          "title": "OpenAI: conversation state",
+          "url": "https://developers.openai.com/api/docs/guides/conversation-state"
+        },
+        {
+          "title": "Anthropic: context windows",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+        },
+        {
+          "title": "Mem0 (open source)",
+          "url": "https://github.com/mem0ai/mem0"
+        }
+      ],
+      "page": "e/chat-history/index.html",
+      "json": "api/chat-history.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "caching-invalidation",
       "name": "Caching and invalidation",
       "category": "performance",
@@ -6970,6 +7871,193 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "load-testing",
+      "name": "Load testing",
+      "category": "performance",
+      "category_name": "Performance and caching",
+      "aliases": [
+        "stress testing",
+        "performance testing",
+        "k6",
+        "Locust",
+        "capacity planning"
+      ],
+      "needs": [
+        "will my app survive a launch on Product Hunt",
+        "how many users can my server handle",
+        "the site slowed down when 200 people signed up at once",
+        "find the bottleneck before going viral"
+      ],
+      "keywords": [
+        "load",
+        "stress",
+        "test",
+        "testing",
+        "k6",
+        "locust",
+        "artillery",
+        "traffic",
+        "spike",
+        "capacity",
+        "concurrent",
+        "launch",
+        "viral",
+        "bottleneck"
+      ],
+      "summary": "Sending realistic fake traffic at a copy of your app to find where it slows down or breaks: requests per second, response times at the 95th percentile, errors, and which part (database, CPU, an outside API) gives out first.",
+      "need_when": [
+        "Before a launch, a big email send or a sale.",
+        "After changing infrastructure or adding a heavy feature."
+      ],
+      "skip_when": [
+        "You have a handful of users and no launch planned. Real traffic will tell you more."
+      ],
+      "ways": [
+        {
+          "title": "k6",
+          "cost": "$0 open source, paid cloud",
+          "how": "Write user journeys in JavaScript, ramp virtual users up, and set pass or fail thresholds for latency and errors.",
+          "tradeoff": "Good scripting and thresholds for CI. Browser-level tests are heavier."
+        },
+        {
+          "title": "Locust",
+          "cost": "$0",
+          "how": "Python classes describe user behavior. A web UI shows live results.",
+          "tradeoff": "Easy for Python teams. Needs more machines for very high loads."
+        },
+        {
+          "title": "Artillery or a simple HTTP tool",
+          "cost": "$0 open source",
+          "how": "Artillery YAML scenarios, or oha and hey for quick single-endpoint blasts.",
+          "tradeoff": "Fast to start. Single-endpoint tests miss real user flows."
+        }
+      ],
+      "prompt": "Load test my app before [launch] with [k6 / Locust].\n\nRequirements:\n- Test a staging copy with production-like data size, never production with real users.\n- Script 3 journeys: [anonymous home page visit], [sign up and first action], [the heaviest logged-in page or API].\n- Ramp from 1 to [expected peak x 3] virtual users over 10 minutes, then hold.\n- Thresholds: 95th percentile under [500 ms], error rate under 1%.\n- Stub or sandbox outside services (payments, email, AI) so the test doesn't hit them or cost money.\n- While it runs, watch CPU, memory, database connections and slow queries. Note what fails first.\n- Report: max users before thresholds broke, the bottleneck, and the top 3 fixes.\n\nAcceptance checks (run each and show me the result):\n1. The test runs against staging, not production.\n2. No real emails, charges or AI calls happened during the test.\n3. The report names the first bottleneck with evidence (graph or slow query).\n4. Thresholds fail the run when crossed.\n5. Rerunning after a fix shows the change.",
+      "acceptance_checks": [
+        "The test runs against staging, not production.",
+        "No real emails, charges or AI calls happened during the test.",
+        "The report names the first bottleneck with evidence (graph or slow query).",
+        "Thresholds fail the run when crossed.",
+        "Rerunning after a fix shows the change."
+      ],
+      "if_you_skip_it": "The launch day traffic you worked for turns into timeouts, and you find the bottleneck live.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Grafana k6 docs",
+          "url": "https://grafana.com/docs/k6/latest/"
+        },
+        {
+          "title": "Locust",
+          "url": "https://locust.io/"
+        },
+        {
+          "title": "Artillery",
+          "url": "https://www.artillery.io/docs"
+        },
+        {
+          "title": "oha",
+          "url": "https://github.com/hatoo/oha"
+        }
+      ],
+      "page": "e/load-testing/index.html",
+      "json": "api/load-testing.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "n-plus-one-queries",
+      "name": "N+1 query fixes",
+      "category": "performance",
+      "category_name": "Performance and caching",
+      "aliases": [
+        "N+1 queries",
+        "eager loading",
+        "select_related",
+        "too many database queries",
+        "query batching"
+      ],
+      "needs": [
+        "my list page runs hundreds of database queries",
+        "the page gets slower as I add more items",
+        "the ORM makes a query for every row",
+        "GraphQL resolvers are slow"
+      ],
+      "keywords": [
+        "n+1",
+        "query",
+        "queries",
+        "orm",
+        "eager",
+        "loading",
+        "select_related",
+        "prefetch_related",
+        "include",
+        "join",
+        "dataloader",
+        "slow",
+        "list",
+        "rows"
+      ],
+      "summary": "A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead.",
+      "need_when": [
+        "List pages, feeds, exports and APIs that show related data for each row."
+      ],
+      "skip_when": [
+        "Pages with a single record and few relations."
+      ],
+      "ways": [
+        {
+          "title": "Eager loading in the ORM",
+          "cost": "$0",
+          "how": "Django select_related and prefetch_related, Rails includes, Prisma include, SQLAlchemy selectinload, Laravel with().",
+          "tradeoff": "Usually a one-line fix per query. Over-eager loading pulls data you don't use."
+        },
+        {
+          "title": "Batching with DataLoader",
+          "cost": "$0",
+          "how": "Collect ids during a request and load them in one query, common with GraphQL resolvers.",
+          "tradeoff": "Fixes it at the resolver level. More code to wire up."
+        },
+        {
+          "title": "Detect it automatically",
+          "cost": "$0",
+          "how": "Bullet (Rails), nplusone or django-debug-toolbar, Prisma query logs, and tests that assert query counts.",
+          "tradeoff": "Catches new N+1s early. Tests need maintenance as pages change."
+        }
+      ],
+      "prompt": "Find and fix N+1 queries in my app.\n\nRequirements:\n- Turn on query logging in development and list the [10] pages and API endpoints with the most queries per request.\n- For each, show the repeated query and fix it with [eager loading / batching].\n- Load only the columns and relations the page uses.\n- Add a test per fixed endpoint that asserts the query count stays flat when the number of items grows (for example 5 items and 50 items give the same count).\n- Add an N+1 detector in development that warns or fails tests.\n- Report before and after query counts and response times.\n\nAcceptance checks (run each and show me the result):\n1. A list with 50 items runs the same number of queries as one with 5.\n2. Query-count tests fail if someone removes the eager loading.\n3. The slowest list page is noticeably faster.\n4. No page loads large related data it doesn't show.\n5. The detector flags a new N+1 in development.",
+      "acceptance_checks": [
+        "A list with 50 items runs the same number of queries as one with 5.",
+        "Query-count tests fail if someone removes the eager loading.",
+        "The slowest list page is noticeably faster.",
+        "No page loads large related data it doesn't show.",
+        "The detector flags a new N+1 in development."
+      ],
+      "if_you_skip_it": "Pages that were fast with test data crawl with real data, and the database gets busy doing tiny repeated queries.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Django: select_related and prefetch_related",
+          "url": "https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-related"
+        },
+        {
+          "title": "Bullet (Rails)",
+          "url": "https://github.com/flyerhzm/bullet"
+        },
+        {
+          "title": "DataLoader",
+          "url": "https://github.com/graphql/dataloader"
+        },
+        {
+          "title": "Prisma: query optimization",
+          "url": "https://www.prisma.io/docs/orm/v7/prisma-client/queries/advanced/query-optimization-performance"
+        }
+      ],
+      "page": "e/n-plus-one-queries/index.html",
+      "json": "api/n-plus-one-queries.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "full-text-search",
       "name": "Full-text search",
       "category": "search",
@@ -7154,6 +8242,564 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "search-index-sync",
+      "name": "Keeping a search index in sync",
+      "category": "search",
+      "category_name": "Search",
+      "aliases": [
+        "search indexing jobs",
+        "reindexing",
+        "Meilisearch sync",
+        "Algolia sync",
+        "index updates"
+      ],
+      "needs": [
+        "search results show things I already deleted",
+        "new items don't show up in search",
+        "rebuild the search index without downtime",
+        "keep Algolia in sync with my database"
+      ],
+      "keywords": [
+        "index",
+        "indexing",
+        "reindex",
+        "sync",
+        "meilisearch",
+        "algolia",
+        "typesense",
+        "elasticsearch",
+        "stale",
+        "deleted",
+        "search",
+        "update",
+        "alias"
+      ],
+      "summary": "The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.",
+      "need_when": [
+        "Search runs on a separate engine (Meilisearch, Typesense, Algolia, Elasticsearch, OpenSearch) or a vector store."
+      ],
+      "skip_when": [
+        "Search runs inside your main database (Postgres full-text), so it's always current."
+      ],
+      "ways": [
+        {
+          "title": "Queue an index job on every change",
+          "cost": "$0",
+          "how": "After commit, enqueue upsert or delete jobs with the record id. The job reads the current row and updates the index.",
+          "tradeoff": "Near real time. Missed jobs leave drift unless you also reconcile."
+        },
+        {
+          "title": "Library-managed sync",
+          "cost": "$0",
+          "how": "Laravel Scout, Rails searchkick or meilisearch-rails, and similar packages hook into model saves.",
+          "tradeoff": "Little code. Bulk updates and raw SQL can skip the hooks."
+        },
+        {
+          "title": "Full rebuild with an alias swap",
+          "cost": "$0",
+          "how": "Build a new index from scratch, then point the alias or swap indexes in one step.",
+          "tradeoff": "Fixes all drift and schema changes with no downtime. Takes time and resources on big data."
+        }
+      ],
+      "prompt": "Keep my [Meilisearch / Typesense / Algolia] index in sync with the database.\n\nRequirements:\n- After a transaction commits, enqueue index jobs for created, updated and deleted records (soft deletes and permission changes count as removals).\n- The job loads the current row and upserts or deletes, so out-of-order jobs end up correct.\n- Batch updates when many records change at once.\n- A rebuild command: create a new index, fill it in batches, then swap it in with no search downtime.\n- A nightly reconcile that compares ids and updated_at between database and index and fixes differences.\n- Only index fields that are safe to show. Filter results by owner or tenant in every search query.\n- Metrics: queue length, failed jobs and drift count.\n\nAcceptance checks (run each and show me the result):\n1. A deleted record disappears from search within a minute.\n2. Editing a title shows the new title in results.\n3. Running the rebuild while searching causes no errors or empty results.\n4. Breaking the worker for an hour, then fixing it, leaves no drift after reconcile.\n5. A user never sees another tenant's records in results.",
+      "acceptance_checks": [
+        "A deleted record disappears from search within a minute.",
+        "Editing a title shows the new title in results.",
+        "Running the rebuild while searching causes no errors or empty results.",
+        "Breaking the worker for an hour, then fixing it, leaves no drift after reconcile.",
+        "A user never sees another tenant's records in results."
+      ],
+      "if_you_skip_it": "Search shows deleted or private items and misses new ones, and users stop trusting it.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Meilisearch: swap indexes",
+          "url": "https://www.meilisearch.com/docs/resources/internals/indexes#swapping-indexes"
+        },
+        {
+          "title": "Typesense: collection aliases",
+          "url": "https://typesense.org/docs/latest/api/collection-alias.html"
+        },
+        {
+          "title": "Laravel Scout",
+          "url": "https://laravel.com/framework/docs/scout"
+        }
+      ],
+      "page": "e/search-index-sync/index.html",
+      "json": "api/search-index-sync.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "i18n",
+      "name": "Translations and localization (i18n)",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "internationalization",
+        "localization",
+        "l10n",
+        "multi-language support",
+        "translate my app"
+      ],
+      "needs": [
+        "translate my app into Spanish",
+        "support multiple languages",
+        "show dates and prices the way each country expects",
+        "let users pick their language"
+      ],
+      "keywords": [
+        "i18n",
+        "l10n",
+        "translate",
+        "translation",
+        "translations",
+        "language",
+        "languages",
+        "locale",
+        "spanish",
+        "plural",
+        "rtl",
+        "localize",
+        "multilingual"
+      ],
+      "summary": "Pulling every user-facing string out of the code into translation files, picking a language per user, and formatting dates, numbers, currencies and plurals with the locale's rules. Done early, it's cheap. Done late, it means touching every screen.",
+      "need_when": [
+        "You have or want users who prefer another language.",
+        "You show dates, numbers or money to people in more than one country."
+      ],
+      "skip_when": [
+        "One market, one language, no plans to change. Still use locale-aware date and number formatting."
+      ],
+      "ways": [
+        {
+          "title": "Your framework's i18n system",
+          "cost": "$0",
+          "how": "Django gettext with .po files, Rails I18n, i18next or next-intl for React, vue-i18n, Flutter intl.",
+          "tradeoff": "Standard and free. You manage translation files and missing keys."
+        },
+        {
+          "title": "A translation management platform",
+          "cost": "free tiers, then paid",
+          "how": "Crowdin, Lokalise, Phrase, or open source Weblate or Tolgee sync files with your repo and give translators an editor.",
+          "tradeoff": "Smooth for many languages and translators. Another tool to run or pay for."
+        },
+        {
+          "title": "Machine translation first, review after",
+          "cost": "API costs",
+          "how": "Translate new strings with an AI or translation API, then have a fluent speaker review key screens.",
+          "tradeoff": "Fast. Legal, billing and safety text needs human review."
+        }
+      ],
+      "prompt": "Add translations to my app, starting with [Spanish].\n\nRequirements:\n- Use [framework i18n tool]. Move every user-facing string (pages, emails, errors, notifications) into translation keys.\n- Whole sentences per key with placeholders, never sentences glued from pieces. Handle plurals with the library's plural rules.\n- Language choice order: user setting, then the browser's Accept-Language, then [English]. Save the choice on the account and use it for emails too.\n- Format dates, numbers and money with the locale (Intl API or framework helpers). Keep storing data in UTC and plain numbers.\n- Set the html lang attribute. Make layouts survive 30 percent longer text.\n- Add a check that fails CI on missing keys in any language file.\n- Don't translate user-generated content.\n\nAcceptance checks (run each and show me the result):\n1. Switching to Spanish changes pages, emails and error messages.\n2. 1 item and 2 items use the right plural forms.\n3. Dates show as 21/10/2026 for es-ES and 10/21/2026 for en-US.\n4. Removing a key from the Spanish file fails CI.\n5. No English strings remain on main screens in Spanish mode.",
+      "acceptance_checks": [
+        "Switching to Spanish changes pages, emails and error messages.",
+        "1 item and 2 items use the right plural forms.",
+        "Dates show as 21/10/2026 for es-ES and 10/21/2026 for en-US.",
+        "Removing a key from the Spanish file fails CI.",
+        "No English strings remain on main screens in Spanish mode."
+      ],
+      "if_you_skip_it": "Half-translated screens, broken grammar from glued strings, and a painful rewrite when the first non-English customer arrives.",
+      "how_derek_runs_it": "Custody Journal has Django's i18n turned on with English and Spanish, the locale middleware, and a Spanish translation catalog in its locale folder.",
+      "links": [
+        {
+          "title": "Django: translation",
+          "url": "https://docs.djangoproject.com/en/5.2/topics/i18n/translation/"
+        },
+        {
+          "title": "i18next",
+          "url": "https://www.i18next.com/"
+        },
+        {
+          "title": "MDN: Intl",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl"
+        },
+        {
+          "title": "Weblate (open source)",
+          "url": "https://weblate.org/"
+        }
+      ],
+      "page": "e/i18n/index.html",
+      "json": "api/i18n.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "calendar-feeds",
+      "name": "Calendar feeds and invites (ICS)",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "iCal feed",
+        "ICS file",
+        "subscribe to calendar",
+        "add to calendar",
+        "webcal link",
+        "recurring events"
+      ],
+      "needs": [
+        "let users see my app's events in Google Calendar",
+        "add an add-to-calendar button",
+        "a calendar subscription link that updates by itself",
+        "recurring events show at the wrong time after daylight saving"
+      ],
+      "keywords": [
+        "calendar",
+        "ical",
+        "ics",
+        "webcal",
+        "subscribe",
+        "google",
+        "outlook",
+        "apple",
+        "event",
+        "events",
+        "recurring",
+        "rrule",
+        "invite",
+        "schedule"
+      ],
+      "summary": "Publishing events in the iCalendar format so Google, Apple and Outlook calendars can show them. A one-off .ics file adds a single event. A private subscription URL lets the user's calendar refresh your events on its own schedule.",
+      "need_when": [
+        "Your app has dates users care about: bookings, deadlines, schedules, classes, shifts."
+      ],
+      "skip_when": [
+        "You need two-way sync (edits in Google flowing back). That needs the calendar APIs and OAuth, not a feed."
+      ],
+      "ways": [
+        {
+          "title": "A private ICS subscription URL",
+          "cost": "$0",
+          "how": "A URL with a long random token returns text/calendar for that user. Calendar apps poll it.",
+          "tradeoff": "Works everywhere with no OAuth. Google can take hours to refresh, and the URL is the password."
+        },
+        {
+          "title": "One-off .ics files and email invites",
+          "cost": "$0",
+          "how": "A download or email attachment with one VEVENT for \"add to calendar\".",
+          "tradeoff": "Simple. Later changes don't reach the calendar unless you send an update."
+        },
+        {
+          "title": "Calendar APIs",
+          "cost": "$0, OAuth review needed",
+          "how": "Google Calendar API, Microsoft Graph or a unified API like Nylas or Cronofy write events into the user's calendar.",
+          "tradeoff": "Instant and two-way. OAuth setup, scopes review and token storage."
+        }
+      ],
+      "prompt": "Add a private calendar subscription feed (ICS) for each user.\n\nRequirements:\n- URL: /calendar/feed/<token>.ics with a random token of at least 32 bytes stored on the user. No session needed. Unknown token returns 404.\n- Settings page shows the link (plus a webcal:// version and Google and Apple instructions) and a \"reset link\" button that issues a new token.\n- Return text/calendar; charset=utf-8. Each event has a stable UID, DTSTAMP, start and end, and SUMMARY. Escape commas, semicolons and newlines, and fold lines at 75 octets.\n- Use the user's timezone with a VTIMEZONE block, or UTC times. All-day events use DATE values with an exclusive end date.\n- Recurring items use RRULE inside a bounded window instead of expanding forever.\n- Limit the feed to a window such as [1 year back, 2 years ahead]. Keep private notes out of the feed.\n- Cache-Control: private. Validate output with an iCalendar validator in a test.\n\nAcceptance checks (run each and show me the result):\n1. Google Calendar, Apple Calendar and Outlook all subscribe and show the events.\n2. A weekly event stays at the same local time across the daylight saving change.\n3. Resetting the link makes the old URL return 404.\n4. Private notes never appear in the feed.\n5. The feed passes an iCalendar validator.",
+      "acceptance_checks": [
+        "Google Calendar, Apple Calendar and Outlook all subscribe and show the events.",
+        "A weekly event stays at the same local time across the daylight saving change.",
+        "Resetting the link makes the old URL return 404.",
+        "Private notes never appear in the feed.",
+        "The feed passes an iCalendar validator."
+      ],
+      "if_you_skip_it": "Events land an hour off twice a year, feeds leak private details to anyone with the link, or old links can't be shut off.",
+      "how_derek_runs_it": "Custody Journal offers a private calendar subscribe URL authenticated by a random token, with a reset button that issues a new one. The feed is served as text/calendar with Cache-Control private, includes VTIMEZONE blocks, uses RRULE for weekly activities inside a window of about 30 days back and a year ahead, and can be limited to one case or child.",
+      "links": [
+        {
+          "title": "RFC 5545: iCalendar",
+          "url": "https://datatracker.ietf.org/doc/html/rfc5545"
+        },
+        {
+          "title": "iCalendar validator",
+          "url": "https://icalendar.org/validator.html"
+        },
+        {
+          "title": "Google Calendar: subscribe to a calendar by URL",
+          "url": "https://support.google.com/calendar/answer/37100"
+        }
+      ],
+      "page": "e/calendar-feeds/index.html",
+      "json": "api/calendar-feeds.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "geolocation",
+      "name": "Location and distance search",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "geolocation",
+        "near me search",
+        "geocoding",
+        "distance search",
+        "PostGIS",
+        "maps"
+      ],
+      "needs": [
+        "show places near the user",
+        "find all stores within 10 miles",
+        "turn an address into coordinates",
+        "sort results by distance"
+      ],
+      "keywords": [
+        "location",
+        "geolocation",
+        "near",
+        "nearby",
+        "distance",
+        "miles",
+        "km",
+        "radius",
+        "map",
+        "maps",
+        "geocode",
+        "geocoding",
+        "postgis",
+        "coordinates",
+        "address",
+        "zip"
+      ],
+      "summary": "Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user's own location comes from the browser with permission, or from a typed address or postcode.",
+      "need_when": [
+        "\"Near me\" search, delivery zones, local listings, check-ins, or maps."
+      ],
+      "skip_when": [
+        "City or region dropdowns are enough. Exact location is sensitive data, so don't collect it without a reason."
+      ],
+      "ways": [
+        {
+          "title": "PostGIS",
+          "cost": "$0",
+          "how": "Add the PostGIS extension, store a geography(Point) column with a GiST index, and query with ST_DWithin and ST_Distance.",
+          "tradeoff": "Accurate and fast at scale. One extension to install (most hosted Postgres offers it)."
+        },
+        {
+          "title": "Your search engine's geo features",
+          "cost": "$0 self-hosted",
+          "how": "Meilisearch, Typesense and Elasticsearch filter and sort by distance from a point.",
+          "tradeoff": "Great when search already lives there. Another index to keep in sync."
+        },
+        {
+          "title": "Geocoding APIs",
+          "cost": "free tiers, then per request",
+          "how": "Google Maps Platform, Mapbox, or open data via Nominatim (with its usage policy) or a self-hosted Photon or Pelias.",
+          "tradeoff": "Needed to turn addresses into points. Check terms: some forbid storing results or using them off their maps."
+        }
+      ],
+      "prompt": "Add location search so users can find [things] near them.\n\nRequirements:\n- Store location as [PostGIS geography(Point, 4326)] with a GiST index.\n- Geocode addresses when records are saved, in a background job, with [provider]. Save the coordinates and the provider's place id if the terms allow storing it.\n- User location: a typed address or postcode first. Offer \"use my location\" with the browser Geolocation API only on click, and handle denial.\n- Query by radius with ST_DWithin and sort by ST_Distance. Paginate.\n- Show distances in miles or km by locale.\n- Don't store the user's precise location unless needed. Round it in logs and analytics.\n- Respect the geocoding provider's rate limits and caching rules.\n\nAcceptance checks (run each and show me the result):\n1. A search 10 miles from a point returns only items inside that radius, nearest first.\n2. The query uses the spatial index (EXPLAIN shows it).\n3. Denying location permission falls back to typing a place.\n4. Logs don't contain precise user coordinates.\n5. Geocoding failures don't block saving a record.",
+      "acceptance_checks": [
+        "A search 10 miles from a point returns only items inside that radius, nearest first.",
+        "The query uses the spatial index (EXPLAIN shows it).",
+        "Denying location permission falls back to typing a place.",
+        "Logs don't contain precise user coordinates.",
+        "Geocoding failures don't block saving a record."
+      ],
+      "if_you_skip_it": "Distance search scans every row and slows down, or you quietly collect precise location you didn't need.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "PostGIS: ST_DWithin",
+          "url": "https://postgis.net/docs/ST_DWithin.html"
+        },
+        {
+          "title": "MDN: Geolocation API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API"
+        },
+        {
+          "title": "Nominatim usage policy",
+          "url": "https://operations.osmfoundation.org/policies/nominatim/"
+        },
+        {
+          "title": "Meilisearch: geosearch",
+          "url": "https://www.meilisearch.com/docs/capabilities/geo_search/getting_started"
+        }
+      ],
+      "page": "e/geolocation/index.html",
+      "json": "api/geolocation.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "realtime-updates",
+      "name": "Live updates (WebSockets, SSE or polling)",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "websockets",
+        "server-sent events",
+        "real-time updates",
+        "live data",
+        "pub/sub",
+        "presence"
+      ],
+      "needs": [
+        "show new messages without refreshing",
+        "update the dashboard live",
+        "should I use websockets or polling",
+        "show who else is viewing the document"
+      ],
+      "keywords": [
+        "realtime",
+        "real",
+        "time",
+        "live",
+        "websocket",
+        "websockets",
+        "sse",
+        "polling",
+        "push",
+        "refresh",
+        "pubsub",
+        "presence",
+        "chat",
+        "instant"
+      ],
+      "summary": "Getting changes to the browser as they happen. Polling asks every few seconds. Server-sent events stream one way from server to browser. WebSockets go both ways. Pick the simplest one that meets the delay users will notice.",
+      "need_when": [
+        "Chat, collaborative editing, live dashboards, notifications, or anything where a stale screen causes mistakes."
+      ],
+      "skip_when": [
+        "Updates every 30 seconds are fine. Polling is enough and much simpler."
+      ],
+      "ways": [
+        {
+          "title": "Polling",
+          "cost": "$0",
+          "how": "Fetch an endpoint every few seconds, ideally with If-Modified-Since or a since cursor.",
+          "tradeoff": "Works everywhere, nothing new to run. Some delay and wasted requests."
+        },
+        {
+          "title": "Server-sent events",
+          "cost": "$0",
+          "how": "A long-lived HTTP response that streams events, with automatic reconnect in the browser's EventSource.",
+          "tradeoff": "Simple for server-to-browser updates. Proxies need buffering off and long timeouts."
+        },
+        {
+          "title": "WebSockets, self-run",
+          "cost": "$0 plus server capacity",
+          "how": "Socket.IO, Django Channels, Phoenix Channels or Rails Action Cable, with Redis for fan-out across servers.",
+          "tradeoff": "Two-way and fast. Sticky connections, scaling and auth are your job."
+        },
+        {
+          "title": "A hosted realtime service",
+          "cost": "free tiers, then paid",
+          "how": "Pusher, Ably, Supabase Realtime, Liveblocks or PartyKit carry the connections. Your server publishes events.",
+          "tradeoff": "No connection servers to run. Per-connection or per-message pricing."
+        }
+      ],
+      "prompt": "Add live updates for [feature] using [polling / SSE / WebSockets / hosted service].\n\nRequirements:\n- Explain the choice in two sentences based on how fresh the data must be and whether the browser sends data back.\n- Authenticate the connection with the user's session or a short-lived token. Subscribe only to channels the user may see, checked on the server.\n- Send small events (type, id, changed fields) and let the client fetch full data if needed.\n- On reconnect, catch up from the last event id or timestamp so nothing is missed.\n- Fall back to polling if the connection fails repeatedly.\n- Configure the proxy for long-lived connections (timeouts, buffering off for SSE).\n- With more than one server, fan out through [Redis pub/sub / the hosted service].\n\nAcceptance checks (run each and show me the result):\n1. A change made in one browser shows up in another within [2] seconds.\n2. A user can't subscribe to another user's channel by changing its name.\n3. Dropping the network for 30 seconds, then reconnecting, shows missed updates.\n4. Two app servers both deliver events to their connected users.\n5. Polling fallback works when WebSockets are blocked.",
+      "acceptance_checks": [
+        "A change made in one browser shows up in another within [2] seconds.",
+        "A user can't subscribe to another user's channel by changing its name.",
+        "Dropping the network for 30 seconds, then reconnecting, shows missed updates.",
+        "Two app servers both deliver events to their connected users.",
+        "Polling fallback works when WebSockets are blocked."
+      ],
+      "if_you_skip_it": "Users see stale data and overwrite each other, or private updates go to the wrong browser.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "MDN: Server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events"
+        },
+        {
+          "title": "MDN: WebSockets API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+        },
+        {
+          "title": "Socket.IO",
+          "url": "https://socket.io/"
+        },
+        {
+          "title": "Ably: WebSockets vs SSE",
+          "url": "https://ably.com/blog/websockets-vs-sse"
+        }
+      ],
+      "page": "e/realtime-updates/index.html",
+      "json": "api/realtime-updates.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "admin-panel",
+      "name": "Internal admin panel",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "admin dashboard",
+        "back office",
+        "internal tools",
+        "staff dashboard",
+        "CRUD admin"
+      ],
+      "needs": [
+        "I need a way to look up and fix customer records",
+        "build an admin dashboard for my app",
+        "stop editing the production database by hand",
+        "give support staff limited access"
+      ],
+      "keywords": [
+        "admin",
+        "dashboard",
+        "backoffice",
+        "internal",
+        "staff",
+        "crud",
+        "panel",
+        "support",
+        "manage",
+        "edit",
+        "lookup",
+        "retool"
+      ],
+      "summary": "A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.",
+      "need_when": [
+        "You or support have started running queries against production to help customers."
+      ],
+      "skip_when": [
+        "Very early with a handful of users. A read-only database client with care may do for now."
+      ],
+      "ways": [
+        {
+          "title": "Your framework's admin",
+          "cost": "$0",
+          "how": "Django admin, Rails ActiveAdmin or Avo, Laravel Filament or Nova, AdminJS for Node.",
+          "tradeoff": "Huge head start. Lock it down and keep it for staff only."
+        },
+        {
+          "title": "An internal tools builder",
+          "cost": "free tiers, then per user",
+          "how": "Retool, Appsmith, Budibase or ToolJet connect to your database or API and build screens by drag and drop.",
+          "tradeoff": "Fast for custom screens. Another service with access to production data."
+        },
+        {
+          "title": "Custom admin pages in your app",
+          "cost": "$0",
+          "how": "A /staff area built with your normal stack, behind staff roles.",
+          "tradeoff": "Fits your workflows exactly. Takes the longest."
+        }
+      ],
+      "prompt": "Add an internal admin panel for staff using [tool].\n\nRequirements:\n- Separate URL path that's not guessable or linked publicly, staff-only, with 2FA required for staff accounts.\n- Roles: [support] can view and do safe actions, [admin] can do everything. Check roles on the server for every action.\n- Screens: find user by email or id, view their account, plan, recent activity and errors.\n- Actions as buttons with confirmation: resend verification, extend trial, refund, disable account. No free-form SQL.\n- Never show tokens or secrets. Hide private notes and other sensitive fields unless the task needs them.\n- Log every view of a user record and every action with staff id, target and reason.\n- Rate limit and alert on unusual admin activity, like bulk exports.\n\nAcceptance checks (run each and show me the result):\n1. A normal user gets 404 on admin URLs.\n2. Support role can't perform admin-only actions through the API.\n3. Every action appears in the audit log with who, what and why.\n4. Secrets and tokens never show in admin screens.\n5. Common support tasks no longer need database access.",
+      "acceptance_checks": [
+        "A normal user gets 404 on admin URLs.",
+        "Support role can't perform admin-only actions through the API.",
+        "Every action appears in the audit log with who, what and why.",
+        "Secrets and tokens never show in admin screens.",
+        "Common support tasks no longer need database access."
+      ],
+      "if_you_skip_it": "Staff fix things by hand in production SQL, mistakes go unrecorded, and one leaked staff login exposes every customer.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Django admin",
+          "url": "https://docs.djangoproject.com/en/5.2/ref/contrib/admin/"
+        },
+        {
+          "title": "Filament (Laravel)",
+          "url": "https://filamentphp.com/"
+        },
+        {
+          "title": "Appsmith (open source)",
+          "url": "https://github.com/appsmithorg/appsmith"
+        },
+        {
+          "title": "AdminJS",
+          "url": "https://adminjs.co/"
+        }
+      ],
+      "page": "e/admin-panel/index.html",
+      "json": "api/admin-panel.json",
+      "updated": "2026-10-21"
+    },
+    {
       "id": "cookie-consent",
       "name": "Cookie consent and privacy-friendly analytics",
       "category": "privacy",
@@ -7327,6 +8973,95 @@
       ],
       "page": "e/data-export-deletion/index.html",
       "json": "api/data-export-deletion.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "data-retention",
+      "name": "Data retention and cleanup",
+      "category": "privacy",
+      "category_name": "Analytics and privacy",
+      "aliases": [
+        "retention policy",
+        "data minimization",
+        "purge old data",
+        "TTL cleanup",
+        "log retention"
+      ],
+      "needs": [
+        "how long should I keep user data",
+        "delete old logs automatically",
+        "my database keeps growing with stuff nobody needs",
+        "a customer asks how long we keep their data"
+      ],
+      "keywords": [
+        "retention",
+        "retain",
+        "purge",
+        "cleanup",
+        "delete",
+        "old",
+        "ttl",
+        "expire",
+        "minimization",
+        "logs",
+        "prune",
+        "policy",
+        "keep"
+      ],
+      "summary": "A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.",
+      "need_when": [
+        "You store personal data, logs or files. Privacy laws such as GDPR expect you not to keep data longer than needed.",
+        "Tables like sessions, events and logs grow forever."
+      ],
+      "skip_when": [
+        "Never. Even a short policy with two cleanup jobs beats none."
+      ],
+      "ways": [
+        {
+          "title": "Scheduled delete jobs",
+          "cost": "$0",
+          "how": "A daily job per data type deletes rows older than the limit, in small batches.",
+          "tradeoff": "Simple and visible. Each new table needs its own rule."
+        },
+        {
+          "title": "Built-in expiry",
+          "cost": "$0",
+          "how": "Redis key TTLs, object storage lifecycle rules (S3, R2), log platform retention settings, and Postgres partition dropping for big time-series tables.",
+          "tradeoff": "Hands-off once set. Easy to forget backups and copies."
+        },
+        {
+          "title": "Anonymize instead of delete",
+          "cost": "$0",
+          "how": "Remove or hash personal fields but keep aggregate rows for reporting.",
+          "tradeoff": "Keeps stats. Make sure it can't be re-identified."
+        }
+      ],
+      "prompt": "Write and apply a data retention policy for my app.\n\nRequirements:\n- List every place data is stored: tables, file storage, logs, backups, analytics, error tracking, email provider, AI provider.\n- For each: what's kept, why, how long ([30 days / 1 year / until account deletion]), and delete or anonymize.\n- Add a scheduled job per rule that deletes in batches with a row limit per run and logs counts.\n- Set TTLs or lifecycle rules where the platform supports them (Redis, object storage, logs).\n- Make sure backups roll off within a stated window, and note it in the privacy policy.\n- When an account is deleted, cover every store in the list.\n- Produce the policy as a short page I can link from the privacy policy.\n\nAcceptance checks (run each and show me the result):\n1. Rows older than each limit are gone after the job runs.\n2. Each cleanup job logs how many rows it removed.\n3. Bucket lifecycle rules show the stated expiry.\n4. The policy page matches what the jobs actually do.\n5. A deleted test account leaves nothing in the listed stores beyond backups, which roll off on schedule.",
+      "acceptance_checks": [
+        "Rows older than each limit are gone after the job runs.",
+        "Each cleanup job logs how many rows it removed.",
+        "Bucket lifecycle rules show the stated expiry.",
+        "The policy page matches what the jobs actually do.",
+        "A deleted test account leaves nothing in the listed stores beyond backups, which roll off on schedule."
+      ],
+      "if_you_skip_it": "You keep years of personal data you don't need, which raises breach damage, storage cost and legal risk.",
+      "how_derek_runs_it": "Custody Journal's scheduler runs daily prune jobs, for example deleting operations heartbeat rows older than 30 days and expired plugin credentials after a 7-day retention window.",
+      "links": [
+        {
+          "title": "ICO: storage limitation principle",
+          "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/"
+        },
+        {
+          "title": "AWS S3: lifecycle rules",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html"
+        },
+        {
+          "title": "Cloudflare R2: object lifecycles",
+          "url": "https://developers.cloudflare.com/r2/buckets/object-lifecycles/"
+        }
+      ],
+      "page": "e/data-retention/index.html",
+      "json": "api/data-retention.json",
       "updated": "2026-10-21"
     }
   ]

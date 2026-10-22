@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keeping a search index in sync: What To Ask For</title>
+<meta name="description" content="The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Keeping a search index in sync: What To Ask For">
+<meta property="og:description" content="The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/search-index-sync/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Keeping a search index in sync: What To Ask For">
+<meta name="twitter:description" content="The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=search">Search</a></p>
+  <h1>Keeping a search index in sync</h1>
+  <p class="aka">Also called: search indexing jobs, reindexing, Meilisearch sync, Algolia sync, index updates</p>
+  <p class="lead">The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Search runs on a separate engine (Meilisearch, Typesense, Algolia, Elasticsearch, OpenSearch) or a vector store.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Search runs inside your main database (Postgres full-text), so it&#x27;s always current.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Queue an index job on every change <span class="cost">$0</span></h3>
+<p>After commit, enqueue upsert or delete jobs with the record id. The job reads the current row and updates the index.</p><p class="trade"><strong>Tradeoff:</strong> Near real time. Missed jobs leave drift unless you also reconcile.</p></li>
+<li><h3>Library-managed sync <span class="cost">$0</span></h3>
+<p>Laravel Scout, Rails searchkick or meilisearch-rails, and similar packages hook into model saves.</p><p class="trade"><strong>Tradeoff:</strong> Little code. Bulk updates and raw SQL can skip the hooks.</p></li>
+<li><h3>Full rebuild with an alias swap <span class="cost">$0</span></h3>
+<p>Build a new index from scratch, then point the alias or swap indexes in one step.</p><p class="trade"><strong>Tradeoff:</strong> Fixes all drift and schema changes with no downtime. Takes time and resources on big data.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Keep my [Meilisearch / Typesense / Algolia] index in sync with the database.
+
+Requirements:
+- After a transaction commits, enqueue index jobs for created, updated and deleted records (soft deletes and permission changes count as removals).
+- The job loads the current row and upserts or deletes, so out-of-order jobs end up correct.
+- Batch updates when many records change at once.
+- A rebuild command: create a new index, fill it in batches, then swap it in with no search downtime.
+- A nightly reconcile that compares ids and updated_at between database and index and fixes differences.
+- Only index fields that are safe to show. Filter results by owner or tenant in every search query.
+- Metrics: queue length, failed jobs and drift count.
+
+Acceptance checks (run each and show me the result):
+1. A deleted record disappears from search within a minute.
+2. Editing a title shows the new title in results.
+3. Running the rebuild while searching causes no errors or empty results.
+4. Breaking the worker for an hour, then fixing it, leaves no drift after reconcile.
+5. A user never sees another tenant&#x27;s records in results.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Search shows deleted or private items and misses new ones, and users stop trusting it.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;search results show things I already deleted&rdquo;</li><li>&ldquo;new items don&#x27;t show up in search&rdquo;</li><li>&ldquo;rebuild the search index without downtime&rdquo;</li><li>&ldquo;keep Algolia in sync with my database&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.meilisearch.com/docs/resources/internals/indexes#swapping-indexes">Meilisearch: swap indexes</a></li><li><a href="https://typesense.org/docs/latest/api/collection-alias.html">Typesense: collection aliases</a></li><li><a href="https://laravel.com/framework/docs/scout">Laravel Scout</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/search-index-sync.json">api/search-index-sync.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../semantic-search/index.html">&larr; Semantic search and RAG</a><a href="../i18n/index.html">Translations and localization (i18n) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+{
+  "id": "data-retention",
+  "name": "Data retention and cleanup",
+  "category": "privacy",
+  "category_name": "Analytics and privacy",
+  "aliases": [
+    "retention policy",
+    "data minimization",
+    "purge old data",
+    "TTL cleanup",
+    "log retention"
+  ],
+  "needs": [
+    "how long should I keep user data",
+    "delete old logs automatically",
+    "my database keeps growing with stuff nobody needs",
+    "a customer asks how long we keep their data"
+  ],
+  "keywords": [
+    "retention",
+    "retain",
+    "purge",
+    "cleanup",
+    "delete",
+    "old",
+    "ttl",
+    "expire",
+    "minimization",
+    "logs",
+    "prune",
+    "policy",
+    "keep"
+  ],
+  "summary": "A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.",
+  "need_when": [
+    "You store personal data, logs or files. Privacy laws such as GDPR expect you not to keep data longer than needed.",
+    "Tables like sessions, events and logs grow forever."
+  ],
+  "skip_when": [
+    "Never. Even a short policy with two cleanup jobs beats none."
+  ],
+  "ways": [
+    {
+      "title": "Scheduled delete jobs",
+      "cost": "$0",
+      "how": "A daily job per data type deletes rows older than the limit, in small batches.",
+      "tradeoff": "Simple and visible. Each new table needs its own rule."
+    },
+    {
+      "title": "Built-in expiry",
+      "cost": "$0",
+      "how": "Redis key TTLs, object storage lifecycle rules (S3, R2), log platform retention settings, and Postgres partition dropping for big time-series tables.",
+      "tradeoff": "Hands-off once set. Easy to forget backups and copies."
+    },
+    {
+      "title": "Anonymize instead of delete",
+      "cost": "$0",
+      "how": "Remove or hash personal fields but keep aggregate rows for reporting.",
+      "tradeoff": "Keeps stats. Make sure it can't be re-identified."
+    }
+  ],
+  "prompt": "Write and apply a data retention policy for my app.\n\nRequirements:\n- List every place data is stored: tables, file storage, logs, backups, analytics, error tracking, email provider, AI provider.\n- For each: what's kept, why, how long ([30 days / 1 year / until account deletion]), and delete or anonymize.\n- Add a scheduled job per rule that deletes in batches with a row limit per run and logs counts.\n- Set TTLs or lifecycle rules where the platform supports them (Redis, object storage, logs).\n- Make sure backups roll off within a stated window, and note it in the privacy policy.\n- When an account is deleted, cover every store in the list.\n- Produce the policy as a short page I can link from the privacy policy.\n\nAcceptance checks (run each and show me the result):\n1. Rows older than each limit are gone after the job runs.\n2. Each cleanup job logs how many rows it removed.\n3. Bucket lifecycle rules show the stated expiry.\n4. The policy page matches what the jobs actually do.\n5. A deleted test account leaves nothing in the listed stores beyond backups, which roll off on schedule.",
+  "acceptance_checks": [
+    "Rows older than each limit are gone after the job runs.",
+    "Each cleanup job logs how many rows it removed.",
+    "Bucket lifecycle rules show the stated expiry.",
+    "The policy page matches what the jobs actually do.",
+    "A deleted test account leaves nothing in the listed stores beyond backups, which roll off on schedule."
+  ],
+  "if_you_skip_it": "You keep years of personal data you don't need, which raises breach damage, storage cost and legal risk.",
+  "how_derek_runs_it": "Custody Journal's scheduler runs daily prune jobs, for example deleting operations heartbeat rows older than 30 days and expired plugin credentials after a 7-day retention window.",
+  "links": [
+    {
+      "title": "ICO: storage limitation principle",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/"
+    },
+    {
+      "title": "AWS S3: lifecycle rules",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html"
+    },
+    {
+      "title": "Cloudflare R2: object lifecycles",
+      "url": "https://developers.cloudflare.com/r2/buckets/object-lifecycles/"
+    }
+  ],
+  "page": "e/data-retention/index.html",
+  "json": "api/data-retention.json",
+  "updated": "2026-10-21"
+}

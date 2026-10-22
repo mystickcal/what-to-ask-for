@@ -1,0 +1,88 @@
+{
+  "id": "money-amounts",
+  "name": "Storing money amounts",
+  "category": "data",
+  "category_name": "Data and databases",
+  "aliases": [
+    "currency handling",
+    "integer cents",
+    "decimal money",
+    "rounding money",
+    "multi-currency"
+  ],
+  "needs": [
+    "my totals are off by a cent",
+    "0.1 plus 0.2 doesn't equal 0.3 in my invoice",
+    "store prices in different currencies",
+    "how should I save prices in the database"
+  ],
+  "keywords": [
+    "money",
+    "currency",
+    "cents",
+    "decimal",
+    "float",
+    "rounding",
+    "price",
+    "prices",
+    "total",
+    "invoice",
+    "cent",
+    "minor",
+    "units"
+  ],
+  "summary": "Keeping money exact. Store amounts as whole minor units (cents) in an integer column, or as a fixed DECIMAL, always next to a currency code. Never use floating point for money, and round once, at a defined step.",
+  "need_when": [
+    "Your app shows, adds up or charges any price, fee, balance or split."
+  ],
+  "skip_when": [
+    "Never. Even one price field benefits from getting this right on day one."
+  ],
+  "ways": [
+    {
+      "title": "Integer minor units",
+      "cost": "$0",
+      "how": "amount_cents BIGINT plus currency CHAR(3), the same shape Stripe's API uses. Convert to display format only at the edge.",
+      "tradeoff": "Exact and fast. Currencies with 0 or 3 decimals need a lookup table."
+    },
+    {
+      "title": "DECIMAL columns and decimal types",
+      "cost": "$0",
+      "how": "NUMERIC(12,2) in the database and Python Decimal, Java BigDecimal or a library like dinero.js in code.",
+      "tradeoff": "Readable values. Every language boundary (JSON, JavaScript) must avoid floats."
+    },
+    {
+      "title": "A money library",
+      "cost": "$0",
+      "how": "dinero.js (JavaScript), py-moneyed or django-money (Python), the money gem (Ruby) bundle amount and currency with safe math.",
+      "tradeoff": "Fewer mistakes. One more dependency."
+    }
+  ],
+  "prompt": "Fix how my app stores and calculates money.\n\nRequirements:\n- Find every money field and every place money is calculated.\n- Store amounts as [integer minor units in a BIGINT] with a currency code column (ISO 4217). No float or double anywhere.\n- Do math in integers or a decimal type. Round once, with a named rule ([half up / banker's]), at a defined step such as per line item.\n- When splitting amounts (for example 100 into 3), give the leftover cent to a defined party so parts always add up to the total.\n- Send amounts in APIs as integers with currency, never as floats.\n- Format for display with the user's locale only in the UI.\n- Write a migration that converts existing data exactly, and tests for rounding and splits.\n\nAcceptance checks (run each and show me the result):\n1. Searching the schema and code finds no float columns or float math on money.\n2. Splitting $100.00 three ways gives parts that add to exactly $100.00.\n3. A yen price has no decimals and a dollar price has two.\n4. Totals match the payment provider's to the cent across 1,000 test orders.\n5. JSON responses carry integers, not 19.990000000001.",
+  "acceptance_checks": [
+    "Searching the schema and code finds no float columns or float math on money.",
+    "Splitting $100.00 three ways gives parts that add to exactly $100.00.",
+    "A yen price has no decimals and a dollar price has two.",
+    "Totals match the payment provider's to the cent across 1,000 test orders.",
+    "JSON responses carry integers, not 19.990000000001."
+  ],
+  "if_you_skip_it": "Invoices and payouts drift by cents, reports never reconcile with the payment provider, and support gets \"you overcharged me\" emails.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: currencies and zero-decimal amounts",
+      "url": "https://docs.stripe.com/currencies"
+    },
+    {
+      "title": "dinero.js",
+      "url": "https://github.com/dinerojs/dinero.js"
+    },
+    {
+      "title": "django-money",
+      "url": "https://github.com/django-money/django-money"
+    }
+  ],
+  "page": "e/money-amounts/index.html",
+  "json": "api/money-amounts.json",
+  "updated": "2026-10-21"
+}

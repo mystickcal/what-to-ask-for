@@ -1,0 +1,94 @@
+{
+  "id": "dependency-updates",
+  "name": "Dependency updates and audits",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "Dependabot",
+    "Renovate",
+    "npm audit",
+    "pip-audit",
+    "vulnerable packages",
+    "supply chain security"
+  ],
+  "needs": [
+    "GitHub says my packages have vulnerabilities",
+    "keep my npm packages up to date",
+    "a library I use has a security hole",
+    "updates keep breaking my app"
+  ],
+  "keywords": [
+    "dependency",
+    "dependencies",
+    "dependabot",
+    "renovate",
+    "audit",
+    "vulnerability",
+    "vulnerabilities",
+    "cve",
+    "npm",
+    "pip",
+    "packages",
+    "outdated",
+    "lockfile",
+    "supply"
+  ],
+  "summary": "A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.",
+  "need_when": [
+    "Your app uses packages from npm, PyPI or any registry, which is nearly every app."
+  ],
+  "skip_when": [
+    "Never. Throwaway prototypes can skip the routine, not the lockfile."
+  ],
+  "ways": [
+    {
+      "title": "Dependabot",
+      "cost": "free on GitHub",
+      "how": "Turn on Dependabot alerts and security updates, and add a dependabot.yml for weekly version updates.",
+      "tradeoff": "Built in. Can open a lot of pull requests unless you group them."
+    },
+    {
+      "title": "Renovate",
+      "cost": "free",
+      "how": "The Renovate app or self-hosted runner opens grouped update pull requests with automerge rules for safe updates.",
+      "tradeoff": "Very configurable. The config takes some learning."
+    },
+    {
+      "title": "Audit commands in CI",
+      "cost": "$0",
+      "how": "npm audit --audit-level=high, pip-audit, osv-scanner or bundler-audit run on every push.",
+      "tradeoff": "Catches known issues before deploy. Doesn't update anything for you."
+    }
+  ],
+  "prompt": "Set up dependency updates and vulnerability audits for this repo.\n\nRequirements:\n- Make sure every dependency is pinned in a committed lockfile.\n- Add [Dependabot / Renovate] config: weekly, grouped minor and patch updates, separate pull requests for majors, security updates right away.\n- Add CI steps: [npm audit --audit-level=high], [pip-audit -r requirements.txt] (or osv-scanner for both). Fail the build on high or critical.\n- Tests must run on update pull requests. Automerge only patch updates that pass.\n- Document how to handle an audit failure with no fix yet (pin, replace, or record an exception with an expiry date).\n- List current high and critical findings and fix or explain each.\n\nAcceptance checks (run each and show me the result):\n1. Adding a package with a known high vulnerability fails CI.\n2. An update pull request appears within a week and runs the tests.\n3. Every dependency file has a lockfile next to it.\n4. Current audit output has no unexplained high or critical findings.\n5. Exceptions have an owner and expiry date.",
+  "acceptance_checks": [
+    "Adding a package with a known high vulnerability fails CI.",
+    "An update pull request appears within a week and runs the tests.",
+    "Every dependency file has a lockfile next to it.",
+    "Current audit output has no unexplained high or critical findings.",
+    "Exceptions have an owner and expiry date."
+  ],
+  "if_you_skip_it": "A known hole in an old package stays in production for months, or a year of skipped updates turns into one painful upgrade.",
+  "how_derek_runs_it": "Custody Journal's release gate runs pip-audit against requirements.txt and npm audit with --audit-level=high on its lockfiles, and the release stops if either fails.",
+  "links": [
+    {
+      "title": "GitHub: secure your supply chain (Dependabot)",
+      "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain"
+    },
+    {
+      "title": "Renovate docs",
+      "url": "https://docs.renovatebot.com/"
+    },
+    {
+      "title": "pip-audit",
+      "url": "https://github.com/pypa/pip-audit"
+    },
+    {
+      "title": "OSV-Scanner",
+      "url": "https://github.com/google/osv-scanner"
+    }
+  ],
+  "page": "e/dependency-updates/index.html",
+  "json": "api/dependency-updates.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,93 @@
+{
+  "id": "html-sanitizing",
+  "name": "Sanitizing user HTML and markdown (XSS)",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "XSS prevention",
+    "cross-site scripting",
+    "HTML sanitizer",
+    "rich text safety",
+    "output escaping"
+  ],
+  "needs": [
+    "users can post rich text and I'm worried about scripts",
+    "someone put a script tag in their profile",
+    "render user markdown safely",
+    "my rich text editor saves raw HTML"
+  ],
+  "keywords": [
+    "xss",
+    "sanitize",
+    "sanitizer",
+    "html",
+    "markdown",
+    "script",
+    "escape",
+    "escaping",
+    "rich",
+    "text",
+    "editor",
+    "dompurify",
+    "inject"
+  ],
+  "summary": "Making sure text users write can't run as code in other people's browsers. Escape by default everywhere, and when you must allow formatting, run the HTML through an allowlist sanitizer on the server before saving or showing it.",
+  "need_when": [
+    "Users can enter rich text, markdown, comments, bios or anything shown to other users.",
+    "AI output is rendered as HTML or markdown."
+  ],
+  "skip_when": [
+    "Never for escaping. The sanitizer is only needed when you allow markup."
+  ],
+  "ways": [
+    {
+      "title": "Template auto-escaping",
+      "cost": "$0",
+      "how": "React, Django, Jinja, Rails and most templates escape by default. Don't bypass it (dangerouslySetInnerHTML, |safe, html_safe, v-html) with user data.",
+      "tradeoff": "Covers most cases free. Every bypass needs review."
+    },
+    {
+      "title": "An allowlist HTML sanitizer",
+      "cost": "$0",
+      "how": "nh3 or bleach (Python), DOMPurify (browser or Node with jsdom), sanitize-html (Node), Loofah (Ruby). Allow only the tags and attributes your editor makes.",
+      "tradeoff": "Lets formatting through safely. Keep the allowlist small and links limited to http, https and mailto."
+    },
+    {
+      "title": "CSP as a backstop",
+      "cost": "$0",
+      "how": "A Content-Security-Policy without 'unsafe-inline' blocks many injected scripts even if sanitizing misses.",
+      "tradeoff": "Strong extra layer. Needs inline scripts removed first."
+    }
+  ],
+  "prompt": "Audit and fix cross-site scripting risks where users can enter text.\n\nRequirements:\n- List every place user or AI text is shown, and every template or component that bypasses escaping.\n- Remove bypasses where plain text is enough.\n- Where formatting is needed, sanitize on the server with [nh3 / DOMPurify / sanitize-html] using an allowlist that matches the editor's tags. Sanitize on save and again on render if old data exists.\n- Allow only http, https and mailto links. Add rel=\"noopener noreferrer\" to links and drop target.\n- Strip event handler attributes, style, iframe, object, embed and svg unless needed.\n- Render markdown with raw HTML disabled, then sanitize the output.\n- Add tests with common payloads (script tags, img onerror, javascript: links, svg onload).\n\nAcceptance checks (run each and show me the result):\n1. Saving <img src=x onerror=alert(1)> shows the text or a broken image, never an alert.\n2. A javascript: link is removed or made inert.\n3. Bold, lists and links from the editor still render.\n4. Searching templates finds no unreviewed escaping bypasses.\n5. AI-generated markdown with HTML in it is sanitized too.",
+  "acceptance_checks": [
+    "Saving <img src=x onerror=alert(1)> shows the text or a broken image, never an alert.",
+    "A javascript: link is removed or made inert.",
+    "Bold, lists and links from the editor still render.",
+    "Searching templates finds no unreviewed escaping bypasses.",
+    "AI-generated markdown with HTML in it is sanitized too."
+  ],
+  "if_you_skip_it": "One user's profile or comment runs a script in every visitor's browser and can act as them.",
+  "how_derek_runs_it": "Custody Journal cleans journal entry HTML from its rich text editor with nh3, using an allowlist of the editor's tags and allowed link schemes, and stamps rel=\"noopener noreferrer\" on every link.",
+  "links": [
+    {
+      "title": "OWASP Cross Site Scripting Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    },
+    {
+      "title": "DOMPurify",
+      "url": "https://github.com/cure53/DOMPurify"
+    },
+    {
+      "title": "nh3 (Python)",
+      "url": "https://github.com/messense/nh3"
+    },
+    {
+      "title": "sanitize-html",
+      "url": "https://github.com/apostrophecms/sanitize-html"
+    }
+  ],
+  "page": "e/html-sanitizing/index.html",
+  "json": "api/html-sanitizing.json",
+  "updated": "2026-10-21"
+}

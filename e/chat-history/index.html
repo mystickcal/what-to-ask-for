@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI chat history storage: What To Ask For</title>
+<meta name="description" content="Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="AI chat history storage: What To Ask For">
+<meta property="og:description" content="Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/chat-history/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI chat history storage: What To Ask For">
+<meta name="twitter:description" content="Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>AI chat history storage</h1>
+  <p class="aka">Also called: conversation memory, chat threads, message history, context window management, AI conversations</p>
+  <p class="lead">Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users have multi-turn chats with your AI and expect them to persist.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Single-shot AI features with no follow-up questions.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Conversations and messages tables <span class="cost">$0</span></h3>
+<p>conversation (owner, title, created, last message) and message (role, content, tokens, created). Send the last N messages each turn.</p><p class="trade"><strong>Tradeoff:</strong> Simple, private and queryable. You handle trimming and summaries.</p></li>
+<li><h3>Your provider&#x27;s stored conversations <span class="cost">token and storage costs</span></h3>
+<p>Some APIs, such as OpenAI&#x27;s Conversations and Responses APIs, can keep conversation state for you.</p><p class="trade"><strong>Tradeoff:</strong> Less code. Data lives with the provider and retention follows their rules.</p></li>
+<li><h3>A memory layer <span class="cost">free tiers or open source</span></h3>
+<p>Tools like Mem0 or Zep pull out facts and summaries to recall across chats.</p><p class="trade"><strong>Tradeoff:</strong> Long-term memory. Extra cost and extra privacy questions.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Store AI chat history and manage how much of it goes to the model.
+
+Requirements:
+- Tables: conversation (id, owner, title, created, last_message_at, archived) and message (id, conversation, role, content, token count, model, created).
+- Only the owner can read, rename or delete a conversation. Deleting removes its messages.
+- Each turn, send the system prompt, a running summary of older turns if any, and the last [10] messages, kept under [N] tokens.
+- When history passes the limit, summarize the oldest turns into the running summary in a background step.
+- Auto-title new conversations from the first message.
+- Count tokens per message for cost tracking.
+- Respect data retention: [delete or archive after X days], and include chats in data export and account deletion.
+
+Acceptance checks (run each and show me the result):
+1. Refreshing the page shows the full conversation.
+2. A 200-message chat still gets answers without context-length errors.
+3. Another user can&#x27;t open the conversation URL.
+4. Deleting a chat removes its messages from the database.
+5. Account export includes chats.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users lose chats on refresh, long chats crash with context errors, or private conversations leak to other users.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal stores AI chats as conversation and message rows with the role, content and tokens used. Messages can link to the journal entries, documents and events they referenced, and each new question sends the last 10 messages as history.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;save chatbot conversations so users can come back&rdquo;</li><li>&ldquo;the AI forgets what we talked about&rdquo;</li><li>&ldquo;conversations get too long for the model&rdquo;</li><li>&ldquo;let users delete a chat&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.openai.com/api/docs/guides/conversation-state">OpenAI: conversation state</a></li><li><a href="https://platform.claude.com/docs/en/build-with-claude/context-windows">Anthropic: context windows</a></li><li><a href="https://github.com/mem0ai/mem0">Mem0 (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/chat-history.json">api/chat-history.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../tool-calling/index.html">&larr; LLM tool calling</a><a href="../caching-invalidation/index.html">Caching and invalidation &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

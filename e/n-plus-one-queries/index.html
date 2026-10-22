@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N+1 query fixes: What To Ask For</title>
+<meta name="description" content="A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="N+1 query fixes: What To Ask For">
+<meta property="og:description" content="A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/n-plus-one-queries/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="N+1 query fixes: What To Ask For">
+<meta name="twitter:description" content="A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=performance">Performance and caching</a></p>
+  <h1>N+1 query fixes</h1>
+  <p class="aka">Also called: N+1 queries, eager loading, select_related, too many database queries, query batching</p>
+  <p class="lead">A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>List pages, feeds, exports and APIs that show related data for each row.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Pages with a single record and few relations.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Eager loading in the ORM <span class="cost">$0</span></h3>
+<p>Django select_related and prefetch_related, Rails includes, Prisma include, SQLAlchemy selectinload, Laravel with().</p><p class="trade"><strong>Tradeoff:</strong> Usually a one-line fix per query. Over-eager loading pulls data you don&#x27;t use.</p></li>
+<li><h3>Batching with DataLoader <span class="cost">$0</span></h3>
+<p>Collect ids during a request and load them in one query, common with GraphQL resolvers.</p><p class="trade"><strong>Tradeoff:</strong> Fixes it at the resolver level. More code to wire up.</p></li>
+<li><h3>Detect it automatically <span class="cost">$0</span></h3>
+<p>Bullet (Rails), nplusone or django-debug-toolbar, Prisma query logs, and tests that assert query counts.</p><p class="trade"><strong>Tradeoff:</strong> Catches new N+1s early. Tests need maintenance as pages change.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Find and fix N+1 queries in my app.
+
+Requirements:
+- Turn on query logging in development and list the [10] pages and API endpoints with the most queries per request.
+- For each, show the repeated query and fix it with [eager loading / batching].
+- Load only the columns and relations the page uses.
+- Add a test per fixed endpoint that asserts the query count stays flat when the number of items grows (for example 5 items and 50 items give the same count).
+- Add an N+1 detector in development that warns or fails tests.
+- Report before and after query counts and response times.
+
+Acceptance checks (run each and show me the result):
+1. A list with 50 items runs the same number of queries as one with 5.
+2. Query-count tests fail if someone removes the eager loading.
+3. The slowest list page is noticeably faster.
+4. No page loads large related data it doesn&#x27;t show.
+5. The detector flags a new N+1 in development.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Pages that were fast with test data crawl with real data, and the database gets busy doing tiny repeated queries.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my list page runs hundreds of database queries&rdquo;</li><li>&ldquo;the page gets slower as I add more items&rdquo;</li><li>&ldquo;the ORM makes a query for every row&rdquo;</li><li>&ldquo;GraphQL resolvers are slow&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-related">Django: select_related and prefetch_related</a></li><li><a href="https://github.com/flyerhzm/bullet">Bullet (Rails)</a></li><li><a href="https://github.com/graphql/dataloader">DataLoader</a></li><li><a href="https://www.prisma.io/docs/orm/v7/prisma-client/queries/advanced/query-optimization-performance">Prisma: query optimization</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/n-plus-one-queries.json">api/n-plus-one-queries.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../load-testing/index.html">&larr; Load testing</a><a href="../full-text-search/index.html">Full-text search &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

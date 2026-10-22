@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data retention and cleanup: What To Ask For</title>
+<meta name="description" content="A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Data retention and cleanup: What To Ask For">
+<meta property="og:description" content="A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/data-retention/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data retention and cleanup: What To Ask For">
+<meta name="twitter:description" content="A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=privacy">Analytics and privacy</a></p>
+  <h1>Data retention and cleanup</h1>
+  <p class="aka">Also called: retention policy, data minimization, purge old data, TTL cleanup, log retention</p>
+  <p class="lead">A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You store personal data, logs or files. Privacy laws such as GDPR expect you not to keep data longer than needed.</li><li>Tables like sessions, events and logs grow forever.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never. Even a short policy with two cleanup jobs beats none.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Scheduled delete jobs <span class="cost">$0</span></h3>
+<p>A daily job per data type deletes rows older than the limit, in small batches.</p><p class="trade"><strong>Tradeoff:</strong> Simple and visible. Each new table needs its own rule.</p></li>
+<li><h3>Built-in expiry <span class="cost">$0</span></h3>
+<p>Redis key TTLs, object storage lifecycle rules (S3, R2), log platform retention settings, and Postgres partition dropping for big time-series tables.</p><p class="trade"><strong>Tradeoff:</strong> Hands-off once set. Easy to forget backups and copies.</p></li>
+<li><h3>Anonymize instead of delete <span class="cost">$0</span></h3>
+<p>Remove or hash personal fields but keep aggregate rows for reporting.</p><p class="trade"><strong>Tradeoff:</strong> Keeps stats. Make sure it can&#x27;t be re-identified.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Write and apply a data retention policy for my app.
+
+Requirements:
+- List every place data is stored: tables, file storage, logs, backups, analytics, error tracking, email provider, AI provider.
+- For each: what&#x27;s kept, why, how long ([30 days / 1 year / until account deletion]), and delete or anonymize.
+- Add a scheduled job per rule that deletes in batches with a row limit per run and logs counts.
+- Set TTLs or lifecycle rules where the platform supports them (Redis, object storage, logs).
+- Make sure backups roll off within a stated window, and note it in the privacy policy.
+- When an account is deleted, cover every store in the list.
+- Produce the policy as a short page I can link from the privacy policy.
+
+Acceptance checks (run each and show me the result):
+1. Rows older than each limit are gone after the job runs.
+2. Each cleanup job logs how many rows it removed.
+3. Bucket lifecycle rules show the stated expiry.
+4. The policy page matches what the jobs actually do.
+5. A deleted test account leaves nothing in the listed stores beyond backups, which roll off on schedule.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>You keep years of personal data you don&#x27;t need, which raises breach damage, storage cost and legal risk.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s scheduler runs daily prune jobs, for example deleting operations heartbeat rows older than 30 days and expired plugin credentials after a 7-day retention window.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;how long should I keep user data&rdquo;</li><li>&ldquo;delete old logs automatically&rdquo;</li><li>&ldquo;my database keeps growing with stuff nobody needs&rdquo;</li><li>&ldquo;a customer asks how long we keep their data&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/">ICO: storage limitation principle</a></li><li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">AWS S3: lifecycle rules</a></li><li><a href="https://developers.cloudflare.com/r2/buckets/object-lifecycles/">Cloudflare R2: object lifecycles</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/data-retention.json">api/data-retention.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../data-export-deletion/index.html">&larr; Data export and account deletion</a><a href="../scheduled-jobs/index.html">Scheduled job &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

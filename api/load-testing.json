@@ -1,0 +1,94 @@
+{
+  "id": "load-testing",
+  "name": "Load testing",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "stress testing",
+    "performance testing",
+    "k6",
+    "Locust",
+    "capacity planning"
+  ],
+  "needs": [
+    "will my app survive a launch on Product Hunt",
+    "how many users can my server handle",
+    "the site slowed down when 200 people signed up at once",
+    "find the bottleneck before going viral"
+  ],
+  "keywords": [
+    "load",
+    "stress",
+    "test",
+    "testing",
+    "k6",
+    "locust",
+    "artillery",
+    "traffic",
+    "spike",
+    "capacity",
+    "concurrent",
+    "launch",
+    "viral",
+    "bottleneck"
+  ],
+  "summary": "Sending realistic fake traffic at a copy of your app to find where it slows down or breaks: requests per second, response times at the 95th percentile, errors, and which part (database, CPU, an outside API) gives out first.",
+  "need_when": [
+    "Before a launch, a big email send or a sale.",
+    "After changing infrastructure or adding a heavy feature."
+  ],
+  "skip_when": [
+    "You have a handful of users and no launch planned. Real traffic will tell you more."
+  ],
+  "ways": [
+    {
+      "title": "k6",
+      "cost": "$0 open source, paid cloud",
+      "how": "Write user journeys in JavaScript, ramp virtual users up, and set pass or fail thresholds for latency and errors.",
+      "tradeoff": "Good scripting and thresholds for CI. Browser-level tests are heavier."
+    },
+    {
+      "title": "Locust",
+      "cost": "$0",
+      "how": "Python classes describe user behavior. A web UI shows live results.",
+      "tradeoff": "Easy for Python teams. Needs more machines for very high loads."
+    },
+    {
+      "title": "Artillery or a simple HTTP tool",
+      "cost": "$0 open source",
+      "how": "Artillery YAML scenarios, or oha and hey for quick single-endpoint blasts.",
+      "tradeoff": "Fast to start. Single-endpoint tests miss real user flows."
+    }
+  ],
+  "prompt": "Load test my app before [launch] with [k6 / Locust].\n\nRequirements:\n- Test a staging copy with production-like data size, never production with real users.\n- Script 3 journeys: [anonymous home page visit], [sign up and first action], [the heaviest logged-in page or API].\n- Ramp from 1 to [expected peak x 3] virtual users over 10 minutes, then hold.\n- Thresholds: 95th percentile under [500 ms], error rate under 1%.\n- Stub or sandbox outside services (payments, email, AI) so the test doesn't hit them or cost money.\n- While it runs, watch CPU, memory, database connections and slow queries. Note what fails first.\n- Report: max users before thresholds broke, the bottleneck, and the top 3 fixes.\n\nAcceptance checks (run each and show me the result):\n1. The test runs against staging, not production.\n2. No real emails, charges or AI calls happened during the test.\n3. The report names the first bottleneck with evidence (graph or slow query).\n4. Thresholds fail the run when crossed.\n5. Rerunning after a fix shows the change.",
+  "acceptance_checks": [
+    "The test runs against staging, not production.",
+    "No real emails, charges or AI calls happened during the test.",
+    "The report names the first bottleneck with evidence (graph or slow query).",
+    "Thresholds fail the run when crossed.",
+    "Rerunning after a fix shows the change."
+  ],
+  "if_you_skip_it": "The launch day traffic you worked for turns into timeouts, and you find the bottleneck live.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Grafana k6 docs",
+      "url": "https://grafana.com/docs/k6/latest/"
+    },
+    {
+      "title": "Locust",
+      "url": "https://locust.io/"
+    },
+    {
+      "title": "Artillery",
+      "url": "https://www.artillery.io/docs"
+    },
+    {
+      "title": "oha",
+      "url": "https://github.com/hatoo/oha"
+    }
+  ],
+  "page": "e/load-testing/index.html",
+  "json": "api/load-testing.json",
+  "updated": "2026-10-21"
+}

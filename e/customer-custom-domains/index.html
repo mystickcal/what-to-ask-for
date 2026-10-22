@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom domains for customers: What To Ask For</title>
+<meta name="description" content="Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Custom domains for customers: What To Ask For">
+<meta property="og:description" content="Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/customer-custom-domains/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Custom domains for customers: What To Ask For">
+<meta name="twitter:description" content="Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>Custom domains for customers</h1>
+  <p class="aka">Also called: white-label domains, bring your own domain, custom hostnames, vanity domains, SaaS custom domains</p>
+  <p class="lead">Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Customers publish pages, stores, docs or portals and want their own brand on the address.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Subdomains of your own domain (theirname.yourapp.com) are enough. Those need only one wildcard certificate.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Cloudflare for SaaS <span class="cost">a number of hostnames free, then per hostname</span></h3>
+<p>Custom Hostnames on your zone: customers CNAME to you, Cloudflare validates and issues certificates.</p><p class="trade"><strong>Tradeoff:</strong> Handles TLS at the edge with little code. Ties you to Cloudflare.</p></li>
+<li><h3>Your host&#x27;s domains API <span class="cost">depends on plan</span></h3>
+<p>Vercel, Netlify, Render and Fly.io let you add customer domains through an API and issue certificates.</p><p class="trade"><strong>Tradeoff:</strong> Simple if you already host there. Limits on domain counts per plan.</p></li>
+<li><h3>Caddy on-demand TLS <span class="cost">$0 plus your server</span></h3>
+<p>Caddy gets a Let&#x27;s Encrypt certificate the first time a domain is requested, after asking your app whether that domain is allowed.</p><p class="trade"><strong>Tradeoff:</strong> Self-hosted and free. You run the edge server and must keep the allow check strict.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Let customers connect their own domain to their [site/portal] in my app using [provider].
+
+Requirements:
+- Settings page: enter a domain, show the exact DNS record to add (CNAME to [customers.myapp.com], or A records for apex domains), and a &quot;Verify&quot; button.
+- Verify ownership with the DNS record or a TXT token before routing anything.
+- Issue HTTPS automatically. Show status: pending DNS, issuing certificate, active, error with reason.
+- Route requests by Host header to the right account. Unknown hosts get a plain 404, never another customer&#x27;s content.
+- Recheck active domains daily. If DNS moves away, mark it and email the owner.
+- Only allow on-demand certificates for domains that are verified in my database.
+- Set cookies per domain and update CORS and CSP to allow the customer domain where needed.
+
+Acceptance checks (run each and show me the result):
+1. A verified domain serves the right customer&#x27;s content over HTTPS.
+2. An unverified domain pointed at the app gets 404 and no certificate.
+3. Removing the DNS record flips the status and emails the owner.
+4. Logging in on one customer domain doesn&#x27;t log the user into another.
+5. The status shows a clear reason when DNS is wrong.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Anyone can point a domain at your app and get a certificate for it, or one customer&#x27;s domain shows another customer&#x27;s pages.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let customers use their own domain for their page&rdquo;</li><li>&ldquo;SSL for thousands of customer domains&rdquo;</li><li>&ldquo;point a customer&#x27;s CNAME at my app&rdquo;</li><li>&ldquo;white label my app&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/">Cloudflare for SaaS</a></li><li><a href="https://caddyserver.com/docs/automatic-https#on-demand-tls">Caddy: on-demand TLS</a></li><li><a href="https://vercel.com/docs/platforms/multi-tenant-platforms/configuring-domains">Vercel: domains API for platforms</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/customer-custom-domains.json">api/customer-custom-domains.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../ci-pipeline/index.html">&larr; CI checks on every push</a><a href="../streaming-ai-responses/index.html">Streaming AI responses &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{
+  "id": "tool-calling",
+  "name": "LLM tool calling",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "function calling",
+    "AI tools",
+    "agent actions",
+    "MCP tools",
+    "AI that can take actions"
+  ],
+  "needs": [
+    "let the AI look things up in my database",
+    "the chatbot should be able to create a task",
+    "make the model call my API",
+    "the AI made up an answer instead of checking"
+  ],
+  "keywords": [
+    "tool",
+    "tools",
+    "function",
+    "calling",
+    "agent",
+    "action",
+    "actions",
+    "mcp",
+    "api",
+    "lookup",
+    "database",
+    "chatbot",
+    "assistant"
+  ],
+  "summary": "Giving the model a list of functions it may ask you to run, each with a name, description and input schema. Your code checks permissions, runs the function, and sends back the result. The model never touches your systems directly.",
+  "need_when": [
+    "The AI needs fresh or private data, or should take actions like creating, sending or updating things."
+  ],
+  "skip_when": [
+    "All the context fits in the prompt and the AI only writes text."
+  ],
+  "ways": [
+    {
+      "title": "Your model provider's tool calling",
+      "cost": "token costs",
+      "how": "OpenAI, Anthropic, Google and most others accept tool definitions with JSON Schema and return tool calls for your code to run.",
+      "tradeoff": "Direct and well supported. You write the loop and error handling."
+    },
+    {
+      "title": "An SDK that runs the loop",
+      "cost": "$0 libraries",
+      "how": "Vercel AI SDK, OpenAI Agents SDK, LangChain or PydanticAI define tools as typed functions and handle the call, run, reply loop.",
+      "tradeoff": "Less boilerplate. More abstraction to debug."
+    },
+    {
+      "title": "An MCP server",
+      "cost": "$0",
+      "how": "Expose your tools with the Model Context Protocol so agents like Claude, Cursor and ChatGPT can call them.",
+      "tradeoff": "Works across many AI clients. Auth and permissions need care."
+    }
+  ],
+  "prompt": "Add tool calling to my AI feature so it can [look up X / create Y].\n\nRequirements:\n- Define tools: [list], each with a clear description and a strict JSON Schema for inputs.\n- Run every tool as the signed-in user, with the same permission checks as the normal API. Never trust ids the model supplies without checking ownership.\n- Validate tool inputs against the schema, and return short structured errors the model can recover from.\n- Read-only tools run directly. Tools that change data, spend money or send messages show the user a confirmation first.\n- Cap tool calls per turn at [5] and total time at [30 s].\n- Treat tool results as data. Don't let text inside them change instructions.\n- Log each call: tool, inputs (with personal data trimmed), result status, duration.\n- Tests: the model picks the right tool for 10 sample requests, and a request for another user's data fails.\n\nAcceptance checks (run each and show me the result):\n1. Asking for another user's record through the AI returns nothing.\n2. A destructive action asks the user to confirm first.\n3. Bad tool input gets a clear error the model uses to retry or explain.\n4. A loop of calls stops at the cap.\n5. The log shows every tool call for a conversation.",
+  "acceptance_checks": [
+    "Asking for another user's record through the AI returns nothing.",
+    "A destructive action asks the user to confirm first.",
+    "Bad tool input gets a clear error the model uses to retry or explain.",
+    "A loop of calls stops at the cap.",
+    "The log shows every tool call for a conversation."
+  ],
+  "if_you_skip_it": "The AI either makes things up instead of checking, or becomes a way around your permission checks.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "OpenAI: function calling",
+      "url": "https://developers.openai.com/api/docs/guides/function-calling"
+    },
+    {
+      "title": "Anthropic: tool use",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    },
+    {
+      "title": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/"
+    },
+    {
+      "title": "Vercel AI SDK: tools",
+      "url": "https://ai-sdk.dev/docs/foundations/tools"
+    }
+  ],
+  "page": "e/tool-calling/index.html",
+  "json": "api/tool-calling.json",
+  "updated": "2026-10-21"
+}

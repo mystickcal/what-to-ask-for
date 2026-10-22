@@ -1,0 +1,90 @@
+{
+  "id": "status-page",
+  "name": "Status page",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "system status",
+    "incident page",
+    "outage page",
+    "service status",
+    "incident communication"
+  ],
+  "needs": [
+    "tell users the site is down before they email me",
+    "post updates during an outage",
+    "customers want to see our uptime history",
+    "announce planned maintenance"
+  ],
+  "keywords": [
+    "status",
+    "page",
+    "outage",
+    "incident",
+    "down",
+    "maintenance",
+    "uptime",
+    "history",
+    "announce",
+    "statuspage"
+  ],
+  "summary": "A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers \"is it just me?\" without a support email.",
+  "need_when": [
+    "Paying customers rely on your app being up.",
+    "Every outage brings a pile of \"is it down?\" messages."
+  ],
+  "skip_when": [
+    "Very early, with few users. A pinned post or banner may do."
+  ],
+  "ways": [
+    {
+      "title": "A hosted status page with monitoring",
+      "cost": "free tiers, then paid",
+      "how": "Better Stack, Instatus, UptimeRobot and Atlassian Statuspage pair checks with a public page and subscriber emails.",
+      "tradeoff": "Runs when your servers don't. Free tiers limit monitors and branding."
+    },
+    {
+      "title": "Self-hosted",
+      "cost": "$0 plus a small server",
+      "how": "Uptime Kuma or Gatus on a separate machine from your app, with its status page turned on.",
+      "tradeoff": "Free and flexible. If it shares a host or network with your app, it goes down with it."
+    },
+    {
+      "title": "A static page built by scheduled checks",
+      "cost": "$0",
+      "how": "Upptime runs checks with GitHub Actions and publishes a status page on GitHub Pages.",
+      "tradeoff": "No server at all. Checks run every few minutes at best."
+    }
+  ],
+  "prompt": "Set up a public status page for my app with [tool].\n\nRequirements:\n- Host it on a different provider than the app, at [status.mydomain.com].\n- Components: [website, API, background jobs, email]. Each backed by a real check (HTTP health endpoint, job heartbeat).\n- Incidents: an investigating, identified, monitoring, resolved flow with timestamps. Prepare 3 short templates in plain words.\n- Planned maintenance posts with start and end times in UTC and the reader's local time.\n- Let users subscribe by email or RSS.\n- Link it from the app footer, the help page and error pages.\n- Write down who posts updates and how fast (for example within 15 minutes of an alert).\n\nAcceptance checks (run each and show me the result):\n1. Stopping the app server turns the website component red within a few minutes.\n2. The status page stays up while the app is down.\n3. A test incident reaches email subscribers.\n4. The app's error page links to the status page.\n5. Maintenance times show correctly in two timezones.",
+  "acceptance_checks": [
+    "Stopping the app server turns the website component red within a few minutes.",
+    "The status page stays up while the app is down.",
+    "A test incident reaches email subscribers.",
+    "The app's error page links to the status page.",
+    "Maintenance times show correctly in two timezones."
+  ],
+  "if_you_skip_it": "During an outage, users flood support and social media because there's nowhere to check, and trust drops more than the outage deserved.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Uptime Kuma (open source)",
+      "url": "https://github.com/louislam/uptime-kuma"
+    },
+    {
+      "title": "Gatus (open source)",
+      "url": "https://github.com/TwiN/gatus"
+    },
+    {
+      "title": "Upptime",
+      "url": "https://upptime.js.org/"
+    },
+    {
+      "title": "Instatus",
+      "url": "https://instatus.com/"
+    }
+  ],
+  "page": "e/status-page/index.html",
+  "json": "api/status-page.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,88 @@
+{
+  "id": "search-index-sync",
+  "name": "Keeping a search index in sync",
+  "category": "search",
+  "category_name": "Search",
+  "aliases": [
+    "search indexing jobs",
+    "reindexing",
+    "Meilisearch sync",
+    "Algolia sync",
+    "index updates"
+  ],
+  "needs": [
+    "search results show things I already deleted",
+    "new items don't show up in search",
+    "rebuild the search index without downtime",
+    "keep Algolia in sync with my database"
+  ],
+  "keywords": [
+    "index",
+    "indexing",
+    "reindex",
+    "sync",
+    "meilisearch",
+    "algolia",
+    "typesense",
+    "elasticsearch",
+    "stale",
+    "deleted",
+    "search",
+    "update",
+    "alias"
+  ],
+  "summary": "The jobs that copy changes from your database into a separate search engine. Every create, update and delete queues an index update, a full rebuild can run into a fresh index and swap over, and a check catches drift.",
+  "need_when": [
+    "Search runs on a separate engine (Meilisearch, Typesense, Algolia, Elasticsearch, OpenSearch) or a vector store."
+  ],
+  "skip_when": [
+    "Search runs inside your main database (Postgres full-text), so it's always current."
+  ],
+  "ways": [
+    {
+      "title": "Queue an index job on every change",
+      "cost": "$0",
+      "how": "After commit, enqueue upsert or delete jobs with the record id. The job reads the current row and updates the index.",
+      "tradeoff": "Near real time. Missed jobs leave drift unless you also reconcile."
+    },
+    {
+      "title": "Library-managed sync",
+      "cost": "$0",
+      "how": "Laravel Scout, Rails searchkick or meilisearch-rails, and similar packages hook into model saves.",
+      "tradeoff": "Little code. Bulk updates and raw SQL can skip the hooks."
+    },
+    {
+      "title": "Full rebuild with an alias swap",
+      "cost": "$0",
+      "how": "Build a new index from scratch, then point the alias or swap indexes in one step.",
+      "tradeoff": "Fixes all drift and schema changes with no downtime. Takes time and resources on big data."
+    }
+  ],
+  "prompt": "Keep my [Meilisearch / Typesense / Algolia] index in sync with the database.\n\nRequirements:\n- After a transaction commits, enqueue index jobs for created, updated and deleted records (soft deletes and permission changes count as removals).\n- The job loads the current row and upserts or deletes, so out-of-order jobs end up correct.\n- Batch updates when many records change at once.\n- A rebuild command: create a new index, fill it in batches, then swap it in with no search downtime.\n- A nightly reconcile that compares ids and updated_at between database and index and fixes differences.\n- Only index fields that are safe to show. Filter results by owner or tenant in every search query.\n- Metrics: queue length, failed jobs and drift count.\n\nAcceptance checks (run each and show me the result):\n1. A deleted record disappears from search within a minute.\n2. Editing a title shows the new title in results.\n3. Running the rebuild while searching causes no errors or empty results.\n4. Breaking the worker for an hour, then fixing it, leaves no drift after reconcile.\n5. A user never sees another tenant's records in results.",
+  "acceptance_checks": [
+    "A deleted record disappears from search within a minute.",
+    "Editing a title shows the new title in results.",
+    "Running the rebuild while searching causes no errors or empty results.",
+    "Breaking the worker for an hour, then fixing it, leaves no drift after reconcile.",
+    "A user never sees another tenant's records in results."
+  ],
+  "if_you_skip_it": "Search shows deleted or private items and misses new ones, and users stop trusting it.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Meilisearch: swap indexes",
+      "url": "https://www.meilisearch.com/docs/resources/internals/indexes#swapping-indexes"
+    },
+    {
+      "title": "Typesense: collection aliases",
+      "url": "https://typesense.org/docs/latest/api/collection-alias.html"
+    },
+    {
+      "title": "Laravel Scout",
+      "url": "https://laravel.com/framework/docs/scout"
+    }
+  ],
+  "page": "e/search-index-sync/index.html",
+  "json": "api/search-index-sync.json",
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI checks on every push: What To Ask For</title>
+<meta name="description" content="An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="CI checks on every push: What To Ask For">
+<meta property="og:description" content="An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/ci-pipeline/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CI checks on every push: What To Ask For">
+<meta name="twitter:description" content="An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>CI checks on every push</h1>
+  <p class="aka">Also called: continuous integration, GitHub Actions, CI pipeline, pre-merge checks, release gate</p>
+  <p class="lead">An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You have any tests, or you ship code written by AI agents and want a safety net.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never once there&#x27;s a second contributor, human or AI.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>GitHub Actions <span class="cost">free for public repos, monthly free minutes for private</span></h3>
+<p>A workflow file runs on push and pull_request: install, lint, type check, test, build. Mark it required in branch protection.</p><p class="trade"><strong>Tradeoff:</strong> Built into GitHub. Private repo minutes run out on heavy suites.</p></li>
+<li><h3>Your host&#x27;s or Git provider&#x27;s CI <span class="cost">free tiers</span></h3>
+<p>GitLab CI, Bitbucket Pipelines, CircleCI, or build checks on Vercel, Netlify and Render.</p><p class="trade"><strong>Tradeoff:</strong> Fine choices. Pick the one next to your code.</p></li>
+<li><h3>A local release script <span class="cost">$0</span></h3>
+<p>One script you (and your agents) run before each deploy that runs every check and refuses to continue on failure.</p><p class="trade"><strong>Tradeoff:</strong> Free and fast on your machine. Only works if it can&#x27;t be skipped.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up CI that runs on every push and pull request.
+
+Requirements:
+- Steps in order: install from lockfile, lint, type check, unit tests, migrations check ([no missing migrations]), build, then [a short end-to-end smoke test].
+- Use a real database service of the same version as production for tests, not SQLite if production is Postgres.
+- Cache dependencies. Target under [10] minutes.
+- Add a dependency audit step that fails on high severity.
+- Make the workflow required for merging into main.
+- Fail on warnings that hide real bugs (unawaited promises, unused imports) once the code is clean.
+- Show me how to run the exact same checks locally with one command.
+
+Acceptance checks (run each and show me the result):
+1. A pull request with a failing test can&#x27;t be merged.
+2. The local command and CI run the same steps.
+3. A model change without a migration fails CI.
+4. CI runs against the same database engine as production.
+5. A typical run finishes in under 10 minutes.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Bugs that tests would have caught reach production, and nobody knows which change caused them.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses a free local release gate script rather than hosted CI. It runs ruff, Django checks, a missing-migrations check, a migration cycle test, the full test suite, pip-audit, npm audit, a Postgres concurrency test, a Playwright smoke test and a Docker build, and it fails closed.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;run my tests automatically before I deploy&rdquo;</li><li>&ldquo;stop broken code from reaching main&rdquo;</li><li>&ldquo;my AI agent keeps breaking things that used to work&rdquo;</li><li>&ldquo;set up GitHub Actions for my app&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.github.com/en/actions">GitHub Actions docs</a></li><li><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches">GitHub: about protected branches</a></li><li><a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions">GitHub Actions billing and free minutes</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/ci-pipeline.json">api/ci-pipeline.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../status-page/index.html">&larr; Status page</a><a href="../customer-custom-domains/index.html">Custom domains for customers &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

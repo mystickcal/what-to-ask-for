@@ -1,0 +1,91 @@
+{
+  "id": "admin-panel",
+  "name": "Internal admin panel",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "admin dashboard",
+    "back office",
+    "internal tools",
+    "staff dashboard",
+    "CRUD admin"
+  ],
+  "needs": [
+    "I need a way to look up and fix customer records",
+    "build an admin dashboard for my app",
+    "stop editing the production database by hand",
+    "give support staff limited access"
+  ],
+  "keywords": [
+    "admin",
+    "dashboard",
+    "backoffice",
+    "internal",
+    "staff",
+    "crud",
+    "panel",
+    "support",
+    "manage",
+    "edit",
+    "lookup",
+    "retool"
+  ],
+  "summary": "A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.",
+  "need_when": [
+    "You or support have started running queries against production to help customers."
+  ],
+  "skip_when": [
+    "Very early with a handful of users. A read-only database client with care may do for now."
+  ],
+  "ways": [
+    {
+      "title": "Your framework's admin",
+      "cost": "$0",
+      "how": "Django admin, Rails ActiveAdmin or Avo, Laravel Filament or Nova, AdminJS for Node.",
+      "tradeoff": "Huge head start. Lock it down and keep it for staff only."
+    },
+    {
+      "title": "An internal tools builder",
+      "cost": "free tiers, then per user",
+      "how": "Retool, Appsmith, Budibase or ToolJet connect to your database or API and build screens by drag and drop.",
+      "tradeoff": "Fast for custom screens. Another service with access to production data."
+    },
+    {
+      "title": "Custom admin pages in your app",
+      "cost": "$0",
+      "how": "A /staff area built with your normal stack, behind staff roles.",
+      "tradeoff": "Fits your workflows exactly. Takes the longest."
+    }
+  ],
+  "prompt": "Add an internal admin panel for staff using [tool].\n\nRequirements:\n- Separate URL path that's not guessable or linked publicly, staff-only, with 2FA required for staff accounts.\n- Roles: [support] can view and do safe actions, [admin] can do everything. Check roles on the server for every action.\n- Screens: find user by email or id, view their account, plan, recent activity and errors.\n- Actions as buttons with confirmation: resend verification, extend trial, refund, disable account. No free-form SQL.\n- Never show tokens or secrets. Hide private notes and other sensitive fields unless the task needs them.\n- Log every view of a user record and every action with staff id, target and reason.\n- Rate limit and alert on unusual admin activity, like bulk exports.\n\nAcceptance checks (run each and show me the result):\n1. A normal user gets 404 on admin URLs.\n2. Support role can't perform admin-only actions through the API.\n3. Every action appears in the audit log with who, what and why.\n4. Secrets and tokens never show in admin screens.\n5. Common support tasks no longer need database access.",
+  "acceptance_checks": [
+    "A normal user gets 404 on admin URLs.",
+    "Support role can't perform admin-only actions through the API.",
+    "Every action appears in the audit log with who, what and why.",
+    "Secrets and tokens never show in admin screens.",
+    "Common support tasks no longer need database access."
+  ],
+  "if_you_skip_it": "Staff fix things by hand in production SQL, mistakes go unrecorded, and one leaked staff login exposes every customer.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Django admin",
+      "url": "https://docs.djangoproject.com/en/5.2/ref/contrib/admin/"
+    },
+    {
+      "title": "Filament (Laravel)",
+      "url": "https://filamentphp.com/"
+    },
+    {
+      "title": "Appsmith (open source)",
+      "url": "https://github.com/appsmithorg/appsmith"
+    },
+    {
+      "title": "AdminJS",
+      "url": "https://adminjs.co/"
+    }
+  ],
+  "page": "e/admin-panel/index.html",
+  "json": "api/admin-panel.json",
+  "updated": "2026-10-21"
+}

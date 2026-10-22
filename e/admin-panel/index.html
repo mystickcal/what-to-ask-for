@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internal admin panel: What To Ask For</title>
+<meta name="description" content="A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Internal admin panel: What To Ask For">
+<meta property="og:description" content="A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/admin-panel/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Internal admin panel: What To Ask For">
+<meta name="twitter:description" content="A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Internal admin panel</h1>
+  <p class="aka">Also called: admin dashboard, back office, internal tools, staff dashboard, CRUD admin</p>
+  <p class="lead">A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You or support have started running queries against production to help customers.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Very early with a handful of users. A read-only database client with care may do for now.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s admin <span class="cost">$0</span></h3>
+<p>Django admin, Rails ActiveAdmin or Avo, Laravel Filament or Nova, AdminJS for Node.</p><p class="trade"><strong>Tradeoff:</strong> Huge head start. Lock it down and keep it for staff only.</p></li>
+<li><h3>An internal tools builder <span class="cost">free tiers, then per user</span></h3>
+<p>Retool, Appsmith, Budibase or ToolJet connect to your database or API and build screens by drag and drop.</p><p class="trade"><strong>Tradeoff:</strong> Fast for custom screens. Another service with access to production data.</p></li>
+<li><h3>Custom admin pages in your app <span class="cost">$0</span></h3>
+<p>A /staff area built with your normal stack, behind staff roles.</p><p class="trade"><strong>Tradeoff:</strong> Fits your workflows exactly. Takes the longest.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add an internal admin panel for staff using [tool].
+
+Requirements:
+- Separate URL path that&#x27;s not guessable or linked publicly, staff-only, with 2FA required for staff accounts.
+- Roles: [support] can view and do safe actions, [admin] can do everything. Check roles on the server for every action.
+- Screens: find user by email or id, view their account, plan, recent activity and errors.
+- Actions as buttons with confirmation: resend verification, extend trial, refund, disable account. No free-form SQL.
+- Never show tokens or secrets. Hide private notes and other sensitive fields unless the task needs them.
+- Log every view of a user record and every action with staff id, target and reason.
+- Rate limit and alert on unusual admin activity, like bulk exports.
+
+Acceptance checks (run each and show me the result):
+1. A normal user gets 404 on admin URLs.
+2. Support role can&#x27;t perform admin-only actions through the API.
+3. Every action appears in the audit log with who, what and why.
+4. Secrets and tokens never show in admin screens.
+5. Common support tasks no longer need database access.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Staff fix things by hand in production SQL, mistakes go unrecorded, and one leaked staff login exposes every customer.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;I need a way to look up and fix customer records&rdquo;</li><li>&ldquo;build an admin dashboard for my app&rdquo;</li><li>&ldquo;stop editing the production database by hand&rdquo;</li><li>&ldquo;give support staff limited access&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/">Django admin</a></li><li><a href="https://filamentphp.com/">Filament (Laravel)</a></li><li><a href="https://github.com/appsmithorg/appsmith">Appsmith (open source)</a></li><li><a href="https://adminjs.co/">AdminJS</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/admin-panel.json">api/admin-panel.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../realtime-updates/index.html">&larr; Live updates (WebSockets, SSE or polling)</a><a href="../cookie-consent/index.html">Cookie consent and privacy-friendly analytics &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

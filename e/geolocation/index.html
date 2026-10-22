@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Location and distance search: What To Ask For</title>
+<meta name="description" content="Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user&#x27;s own location comes from the browser with permission, or from a typed address or postcode.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Location and distance search: What To Ask For">
+<meta property="og:description" content="Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user&#x27;s own location comes from the browser with permission, or from a typed address or postcode.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/geolocation/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Location and distance search: What To Ask For">
+<meta name="twitter:description" content="Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user&#x27;s own location comes from the browser with permission, or from a typed address or postcode.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Location and distance search</h1>
+  <p class="aka">Also called: geolocation, near me search, geocoding, distance search, PostGIS, maps</p>
+  <p class="lead">Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user&#x27;s own location comes from the browser with permission, or from a typed address or postcode.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>&quot;Near me&quot; search, delivery zones, local listings, check-ins, or maps.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>City or region dropdowns are enough. Exact location is sensitive data, so don&#x27;t collect it without a reason.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>PostGIS <span class="cost">$0</span></h3>
+<p>Add the PostGIS extension, store a geography(Point) column with a GiST index, and query with ST_DWithin and ST_Distance.</p><p class="trade"><strong>Tradeoff:</strong> Accurate and fast at scale. One extension to install (most hosted Postgres offers it).</p></li>
+<li><h3>Your search engine&#x27;s geo features <span class="cost">$0 self-hosted</span></h3>
+<p>Meilisearch, Typesense and Elasticsearch filter and sort by distance from a point.</p><p class="trade"><strong>Tradeoff:</strong> Great when search already lives there. Another index to keep in sync.</p></li>
+<li><h3>Geocoding APIs <span class="cost">free tiers, then per request</span></h3>
+<p>Google Maps Platform, Mapbox, or open data via Nominatim (with its usage policy) or a self-hosted Photon or Pelias.</p><p class="trade"><strong>Tradeoff:</strong> Needed to turn addresses into points. Check terms: some forbid storing results or using them off their maps.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add location search so users can find [things] near them.
+
+Requirements:
+- Store location as [PostGIS geography(Point, 4326)] with a GiST index.
+- Geocode addresses when records are saved, in a background job, with [provider]. Save the coordinates and the provider&#x27;s place id if the terms allow storing it.
+- User location: a typed address or postcode first. Offer &quot;use my location&quot; with the browser Geolocation API only on click, and handle denial.
+- Query by radius with ST_DWithin and sort by ST_Distance. Paginate.
+- Show distances in miles or km by locale.
+- Don&#x27;t store the user&#x27;s precise location unless needed. Round it in logs and analytics.
+- Respect the geocoding provider&#x27;s rate limits and caching rules.
+
+Acceptance checks (run each and show me the result):
+1. A search 10 miles from a point returns only items inside that radius, nearest first.
+2. The query uses the spatial index (EXPLAIN shows it).
+3. Denying location permission falls back to typing a place.
+4. Logs don&#x27;t contain precise user coordinates.
+5. Geocoding failures don&#x27;t block saving a record.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Distance search scans every row and slows down, or you quietly collect precise location you didn&#x27;t need.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;show places near the user&rdquo;</li><li>&ldquo;find all stores within 10 miles&rdquo;</li><li>&ldquo;turn an address into coordinates&rdquo;</li><li>&ldquo;sort results by distance&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://postgis.net/docs/ST_DWithin.html">PostGIS: ST_DWithin</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API">MDN: Geolocation API</a></li><li><a href="https://operations.osmfoundation.org/policies/nominatim/">Nominatim usage policy</a></li><li><a href="https://www.meilisearch.com/docs/capabilities/geo_search/getting_started">Meilisearch: geosearch</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/geolocation.json">api/geolocation.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../calendar-feeds/index.html">&larr; Calendar feeds and invites (ICS)</a><a href="../realtime-updates/index.html">Live updates (WebSockets, SSE or polling) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

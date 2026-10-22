@@ -1,0 +1,87 @@
+{
+  "id": "security-headers",
+  "name": "Security headers (CSP, HSTS)",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "Content Security Policy",
+    "HSTS",
+    "X-Frame-Options",
+    "clickjacking protection",
+    "HTTP security headers"
+  ],
+  "needs": [
+    "my site got an F on a security headers scan",
+    "stop other sites from putting my app in an iframe",
+    "force HTTPS everywhere",
+    "limit which scripts can run on my pages"
+  ],
+  "keywords": [
+    "headers",
+    "csp",
+    "hsts",
+    "https",
+    "iframe",
+    "clickjacking",
+    "frame",
+    "nosniff",
+    "referrer",
+    "permissions",
+    "policy",
+    "xss",
+    "scan"
+  ],
+  "summary": "Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.",
+  "need_when": [
+    "Any app with logins or private data.",
+    "A customer security review or scanner flags missing headers."
+  ],
+  "skip_when": [
+    "Never fully. Even a static site benefits from HSTS and nosniff."
+  ],
+  "ways": [
+    {
+      "title": "Your framework's security settings",
+      "cost": "$0",
+      "how": "Django SECURE_* settings and a CSP middleware, Helmet for Express, Next.js headers config, Rails content_security_policy.",
+      "tradeoff": "Lives with the code and is tested with it. CSP takes some tuning."
+    },
+    {
+      "title": "Set them at the proxy or CDN",
+      "cost": "$0",
+      "how": "Nginx, Caddy or Traefik headers, Cloudflare Transform Rules, or _headers files on Netlify and Cloudflare Pages.",
+      "tradeoff": "One place for all routes. Easy to forget when the app moves."
+    }
+  ],
+  "prompt": "Add security headers to my app and tune them so nothing breaks.\n\nRequirements:\n- Strict-Transport-Security: max-age=31536000; includeSubDomains (preload only once I'm sure every subdomain is HTTPS).\n- X-Content-Type-Options: nosniff. Referrer-Policy: strict-origin-when-cross-origin.\n- Clickjacking: Content-Security-Policy frame-ancestors 'none' (or 'self') plus X-Frame-Options DENY for older browsers.\n- Permissions-Policy turning off camera, microphone and geolocation unless a page needs them.\n- A Content-Security-Policy with default-src 'self', object-src 'none' and base-uri 'self', listing the outside script, style, font, image and connect sources the app really uses.\n- Start CSP in Report-Only mode for [a week], collect violations, then enforce.\n- Prefer nonces over 'unsafe-inline' for scripts; list any inline scripts that block this.\n- Add a test that checks the headers on the home page, a logged-in page and an API response.\n\nAcceptance checks (run each and show me the result):\n1. securityheaders.com or Mozilla Observatory shows an A or better.\n2. The app can't be loaded in an iframe on another origin.\n3. No CSP violations show in the console on main pages after enforcing.\n4. HTTP requests redirect to HTTPS and repeat visits go straight to HTTPS.\n5. The header test runs in CI.",
+  "acceptance_checks": [
+    "securityheaders.com or Mozilla Observatory shows an A or better.",
+    "The app can't be loaded in an iframe on another origin.",
+    "No CSP violations show in the console on main pages after enforcing.",
+    "HTTP requests redirect to HTTPS and repeat visits go straight to HTTPS.",
+    "The header test runs in CI."
+  ],
+  "if_you_skip_it": "Your app can be framed for clickjacking, injected scripts run freely, and security reviews stall on easy findings.",
+  "how_derek_runs_it": "Custody Journal sets HSTS for a year with includeSubDomains and preload in production, nosniff, and X-Frame-Options DENY. A middleware adds a CSP with frame-ancestors 'none', object-src 'none' and base-uri 'self', plus a Permissions-Policy that turns geolocation off. The CSP is deliberately loose about inline scripts so it can't break the live UI.",
+  "links": [
+    {
+      "title": "MDN: Content Security Policy",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP"
+    },
+    {
+      "title": "OWASP HTTP Headers Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html"
+    },
+    {
+      "title": "Mozilla HTTP Observatory",
+      "url": "https://developer.mozilla.org/en-US/observatory"
+    },
+    {
+      "title": "Helmet (Express)",
+      "url": "https://helmetjs.github.io/"
+    }
+  ],
+  "page": "e/security-headers/index.html",
+  "json": "api/security-headers.json",
+  "updated": "2026-10-21"
+}

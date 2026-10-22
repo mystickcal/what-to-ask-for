@@ -33,7 +33,7 @@
 <article class="entry">
   <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
   <h1>Uptime monitoring</h1>
-  <p class="aka">Also called: uptime check, status page, downtime alerts, synthetic monitoring, heartbeat monitoring</p>
+  <p class="aka">Also called: uptime check, downtime alerts, synthetic monitoring, heartbeat monitoring</p>
   <p class="lead">An outside service that checks your site every minute or so and alerts you when it fails. Heartbeat checks do the reverse for jobs: the job pings the monitor when it finishes, and you&#x27;re alerted when the ping doesn&#x27;t arrive.</p>
   <div class="when">
     <section><h2>You need it when</h2><ul><li>Anyone besides you depends on the app being up.</li><li>You have scheduled jobs whose silent failure would hurt.</li></ul></section>
@@ -66,7 +66,7 @@ Acceptance checks (run each and show me the result):
   </section>
   <section><h2>If you skip it</h2><p>Outages and dead background jobs that you find out about from angry users, days later.</p></section>
   
-  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;tell me when my site is down&rdquo;</li><li>&ldquo;my site was down all weekend and I didn&#x27;t know&rdquo;</li><li>&ldquo;alert me if the nightly job stops running&rdquo;</li><li>&ldquo;add a status page&rdquo;</li></ul></section>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;tell me when my site is down&rdquo;</li><li>&ldquo;my site was down all weekend and I didn&#x27;t know&rdquo;</li><li>&ldquo;alert me if the nightly job stops running&rdquo;</li><li>&ldquo;know within minutes when the API stops answering&rdquo;</li></ul></section>
   <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/louislam/uptime-kuma">Uptime Kuma</a></li><li><a href="https://healthchecks.io/docs/">Healthchecks.io docs</a></li><li><a href="https://uptimerobot.com/">UptimeRobot</a></li></ul></section>
   <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/uptime-monitoring.json">api/uptime-monitoring.json</a></p>
   <nav class="pn" aria-label="More entries"><a href="../structured-logging/index.html">&larr; Structured logging</a><a href="../staging-environment/index.html">Staging environment &rarr;</a></nav>

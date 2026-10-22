@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependency updates and audits: What To Ask For</title>
+<meta name="description" content="A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Dependency updates and audits: What To Ask For">
+<meta property="og:description" content="A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/dependency-updates/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dependency updates and audits: What To Ask For">
+<meta name="twitter:description" content="A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Dependency updates and audits</h1>
+  <p class="aka">Also called: Dependabot, Renovate, npm audit, pip-audit, vulnerable packages, supply chain security</p>
+  <p class="lead">A routine for keeping third-party packages current and checked against known vulnerabilities: pinned versions in a lockfile, automatic update pull requests, and an audit step that fails the build on serious issues.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app uses packages from npm, PyPI or any registry, which is nearly every app.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never. Throwaway prototypes can skip the routine, not the lockfile.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Dependabot <span class="cost">free on GitHub</span></h3>
+<p>Turn on Dependabot alerts and security updates, and add a dependabot.yml for weekly version updates.</p><p class="trade"><strong>Tradeoff:</strong> Built in. Can open a lot of pull requests unless you group them.</p></li>
+<li><h3>Renovate <span class="cost">free</span></h3>
+<p>The Renovate app or self-hosted runner opens grouped update pull requests with automerge rules for safe updates.</p><p class="trade"><strong>Tradeoff:</strong> Very configurable. The config takes some learning.</p></li>
+<li><h3>Audit commands in CI <span class="cost">$0</span></h3>
+<p>npm audit --audit-level=high, pip-audit, osv-scanner or bundler-audit run on every push.</p><p class="trade"><strong>Tradeoff:</strong> Catches known issues before deploy. Doesn&#x27;t update anything for you.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up dependency updates and vulnerability audits for this repo.
+
+Requirements:
+- Make sure every dependency is pinned in a committed lockfile.
+- Add [Dependabot / Renovate] config: weekly, grouped minor and patch updates, separate pull requests for majors, security updates right away.
+- Add CI steps: [npm audit --audit-level=high], [pip-audit -r requirements.txt] (or osv-scanner for both). Fail the build on high or critical.
+- Tests must run on update pull requests. Automerge only patch updates that pass.
+- Document how to handle an audit failure with no fix yet (pin, replace, or record an exception with an expiry date).
+- List current high and critical findings and fix or explain each.
+
+Acceptance checks (run each and show me the result):
+1. Adding a package with a known high vulnerability fails CI.
+2. An update pull request appears within a week and runs the tests.
+3. Every dependency file has a lockfile next to it.
+4. Current audit output has no unexplained high or critical findings.
+5. Exceptions have an owner and expiry date.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A known hole in an old package stays in production for months, or a year of skipped updates turns into one painful upgrade.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s release gate runs pip-audit against requirements.txt and npm audit with --audit-level=high on its lockfiles, and the release stops if either fails.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;GitHub says my packages have vulnerabilities&rdquo;</li><li>&ldquo;keep my npm packages up to date&rdquo;</li><li>&ldquo;a library I use has a security hole&rdquo;</li><li>&ldquo;updates keep breaking my app&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain">GitHub: secure your supply chain (Dependabot)</a></li><li><a href="https://docs.renovatebot.com/">Renovate docs</a></li><li><a href="https://github.com/pypa/pip-audit">pip-audit</a></li><li><a href="https://github.com/google/osv-scanner">OSV-Scanner</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/dependency-updates.json">api/dependency-updates.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../security-headers/index.html">&larr; Security headers (CSP, HSTS)</a><a href="../html-sanitizing/index.html">Sanitizing user HTML and markdown (XSS) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

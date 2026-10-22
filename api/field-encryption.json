@@ -1,0 +1,89 @@
+{
+  "id": "field-encryption",
+  "name": "Field-level encryption",
+  "category": "security",
+  "category_name": "Security and abuse",
+  "aliases": [
+    "encrypt database fields",
+    "application-level encryption",
+    "encryption at rest",
+    "encrypted columns",
+    "key rotation"
+  ],
+  "needs": [
+    "encrypt sensitive fields in my database",
+    "if someone steals a backup they shouldn't read user notes",
+    "store tokens for third-party services safely",
+    "rotate my encryption key"
+  ],
+  "keywords": [
+    "encrypt",
+    "encryption",
+    "field",
+    "column",
+    "sensitive",
+    "fernet",
+    "kms",
+    "key",
+    "rotation",
+    "rotate",
+    "ciphertext",
+    "pii",
+    "backup",
+    "tokens"
+  ],
+  "summary": "Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.",
+  "need_when": [
+    "You store very sensitive text (health, legal, financial notes), government ids, or access tokens for other services."
+  ],
+  "skip_when": [
+    "Your host's disk encryption covers your threat and the data isn't especially sensitive. Fields you must search or sort on are hard to encrypt."
+  ],
+  "ways": [
+    {
+      "title": "An encrypted field type in your framework",
+      "cost": "$0",
+      "how": "Rails Active Record Encryption, Laravel encrypted casts, or a Django field built on Fernet from the cryptography package.",
+      "tradeoff": "Transparent in code. Encrypted fields can't be filtered or sorted in SQL."
+    },
+    {
+      "title": "Envelope encryption with a KMS",
+      "cost": "low, per key and request",
+      "how": "AWS KMS, Google Cloud KMS or Vault wrap per-record data keys. Your app encrypts with the data key.",
+      "tradeoff": "Strong key control and audit. More moving parts and latency."
+    },
+    {
+      "title": "Database-side encryption functions",
+      "cost": "$0",
+      "how": "Postgres pgcrypto encrypts in SQL.",
+      "tradeoff": "Easy to add. The key travels to the database in queries and may show up in logs."
+    }
+  ],
+  "prompt": "Add field-level encryption for sensitive columns.\n\nRequirements:\n- Columns: [list]. Encrypt in the app with [Fernet / AES-GCM] before saving and decrypt on read.\n- The key comes from an environment secret separate from other app secrets, never from the database.\n- Prefix each stored value with a version tag so I can tell encrypted from plain and rotate keys later.\n- Rotation: a new key encrypts, old keys still decrypt, and a background command re-encrypts rows in batches.\n- If a value can't be decrypted, show a placeholder and keep the stored ciphertext untouched on save.\n- Encrypt existing rows with a migration that runs in batches and can resume.\n- For fields I need to look up exactly, store a separate keyed hash (HMAC) for lookups.\n- Keep decrypted values out of logs, error reports and analytics.\n\nAcceptance checks (run each and show me the result):\n1. Reading the table directly shows ciphertext for each listed column.\n2. After rotating, old rows still read and the re-encrypt command upgrades them.\n3. Starting the app with the wrong key shows placeholders, not crashes, and saving doesn't destroy data.\n4. Error reports contain no decrypted values.\n5. A restore from backup is readable only with the key.",
+  "acceptance_checks": [
+    "Reading the table directly shows ciphertext for each listed column.",
+    "After rotating, old rows still read and the re-encrypt command upgrades them.",
+    "Starting the app with the wrong key shows placeholders, not crashes, and saving doesn't destroy data.",
+    "Error reports contain no decrypted values.",
+    "A restore from backup is readable only with the key."
+  ],
+  "if_you_skip_it": "A leaked backup or read-only database breach exposes the most private data you hold.",
+  "how_derek_runs_it": "Custody Journal encrypts sensitive text and JSON columns with Fernet before they reach Postgres, using its own field encryption key setting rather than the main app secret. Stored values carry a version prefix, older keys stay decrypt-only for rotation, and a value that can't be decrypted shows a placeholder while the original ciphertext is kept on save.",
+  "links": [
+    {
+      "title": "OWASP Cryptographic Storage Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+    },
+    {
+      "title": "cryptography: Fernet",
+      "url": "https://cryptography.io/en/latest/fernet/"
+    },
+    {
+      "title": "Rails: Active Record Encryption",
+      "url": "https://guides.rubyonrails.org/active_record_encryption.html"
+    }
+  ],
+  "page": "e/field-encryption/index.html",
+  "json": "api/field-encryption.json",
+  "updated": "2026-10-21"
+}

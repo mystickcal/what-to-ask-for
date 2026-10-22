@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security headers (CSP, HSTS): What To Ask For</title>
+<meta name="description" content="Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Security headers (CSP, HSTS): What To Ask For">
+<meta property="og:description" content="Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/security-headers/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Security headers (CSP, HSTS): What To Ask For">
+<meta name="twitter:description" content="Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Security headers (CSP, HSTS)</h1>
+  <p class="aka">Also called: Content Security Policy, HSTS, X-Frame-Options, clickjacking protection, HTTP security headers</p>
+  <p class="lead">Response headers that tell the browser how strict to be with your pages: HTTPS only (HSTS), who may frame you, which scripts and connections are allowed (CSP), and what features like the camera or location are off.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Any app with logins or private data.</li><li>A customer security review or scanner flags missing headers.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Never fully. Even a static site benefits from HSTS and nosniff.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s security settings <span class="cost">$0</span></h3>
+<p>Django SECURE_* settings and a CSP middleware, Helmet for Express, Next.js headers config, Rails content_security_policy.</p><p class="trade"><strong>Tradeoff:</strong> Lives with the code and is tested with it. CSP takes some tuning.</p></li>
+<li><h3>Set them at the proxy or CDN <span class="cost">$0</span></h3>
+<p>Nginx, Caddy or Traefik headers, Cloudflare Transform Rules, or _headers files on Netlify and Cloudflare Pages.</p><p class="trade"><strong>Tradeoff:</strong> One place for all routes. Easy to forget when the app moves.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add security headers to my app and tune them so nothing breaks.
+
+Requirements:
+- Strict-Transport-Security: max-age=31536000; includeSubDomains (preload only once I&#x27;m sure every subdomain is HTTPS).
+- X-Content-Type-Options: nosniff. Referrer-Policy: strict-origin-when-cross-origin.
+- Clickjacking: Content-Security-Policy frame-ancestors &#x27;none&#x27; (or &#x27;self&#x27;) plus X-Frame-Options DENY for older browsers.
+- Permissions-Policy turning off camera, microphone and geolocation unless a page needs them.
+- A Content-Security-Policy with default-src &#x27;self&#x27;, object-src &#x27;none&#x27; and base-uri &#x27;self&#x27;, listing the outside script, style, font, image and connect sources the app really uses.
+- Start CSP in Report-Only mode for [a week], collect violations, then enforce.
+- Prefer nonces over &#x27;unsafe-inline&#x27; for scripts; list any inline scripts that block this.
+- Add a test that checks the headers on the home page, a logged-in page and an API response.
+
+Acceptance checks (run each and show me the result):
+1. securityheaders.com or Mozilla Observatory shows an A or better.
+2. The app can&#x27;t be loaded in an iframe on another origin.
+3. No CSP violations show in the console on main pages after enforcing.
+4. HTTP requests redirect to HTTPS and repeat visits go straight to HTTPS.
+5. The header test runs in CI.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Your app can be framed for clickjacking, injected scripts run freely, and security reviews stall on easy findings.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal sets HSTS for a year with includeSubDomains and preload in production, nosniff, and X-Frame-Options DENY. A middleware adds a CSP with frame-ancestors &#x27;none&#x27;, object-src &#x27;none&#x27; and base-uri &#x27;self&#x27;, plus a Permissions-Policy that turns geolocation off. The CSP is deliberately loose about inline scripts so it can&#x27;t break the live UI.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my site got an F on a security headers scan&rdquo;</li><li>&ldquo;stop other sites from putting my app in an iframe&rdquo;</li><li>&ldquo;force HTTPS everywhere&rdquo;</li><li>&ldquo;limit which scripts can run on my pages&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP">MDN: Content Security Policy</a></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html">OWASP HTTP Headers Cheat Sheet</a></li><li><a href="https://developer.mozilla.org/en-US/observatory">Mozilla HTTP Observatory</a></li><li><a href="https://helmetjs.github.io/">Helmet (Express)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/security-headers.json">api/security-headers.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../bot-protection/index.html">&larr; Bot and spam protection</a><a href="../dependency-updates/index.html">Dependency updates and audits &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+{
+  "id": "ci-pipeline",
+  "name": "CI checks on every push",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "continuous integration",
+    "GitHub Actions",
+    "CI pipeline",
+    "pre-merge checks",
+    "release gate"
+  ],
+  "needs": [
+    "run my tests automatically before I deploy",
+    "stop broken code from reaching main",
+    "my AI agent keeps breaking things that used to work",
+    "set up GitHub Actions for my app"
+  ],
+  "keywords": [
+    "ci",
+    "continuous",
+    "integration",
+    "tests",
+    "actions",
+    "github",
+    "pipeline",
+    "lint",
+    "build",
+    "merge",
+    "gate",
+    "automated",
+    "check"
+  ],
+  "summary": "An automatic run of your tests, linters, type checks and build on every push or pull request. A red result blocks the merge or deploy, so a change that breaks something is caught in minutes instead of by users.",
+  "need_when": [
+    "You have any tests, or you ship code written by AI agents and want a safety net."
+  ],
+  "skip_when": [
+    "Never once there's a second contributor, human or AI."
+  ],
+  "ways": [
+    {
+      "title": "GitHub Actions",
+      "cost": "free for public repos, monthly free minutes for private",
+      "how": "A workflow file runs on push and pull_request: install, lint, type check, test, build. Mark it required in branch protection.",
+      "tradeoff": "Built into GitHub. Private repo minutes run out on heavy suites."
+    },
+    {
+      "title": "Your host's or Git provider's CI",
+      "cost": "free tiers",
+      "how": "GitLab CI, Bitbucket Pipelines, CircleCI, or build checks on Vercel, Netlify and Render.",
+      "tradeoff": "Fine choices. Pick the one next to your code."
+    },
+    {
+      "title": "A local release script",
+      "cost": "$0",
+      "how": "One script you (and your agents) run before each deploy that runs every check and refuses to continue on failure.",
+      "tradeoff": "Free and fast on your machine. Only works if it can't be skipped."
+    }
+  ],
+  "prompt": "Set up CI that runs on every push and pull request.\n\nRequirements:\n- Steps in order: install from lockfile, lint, type check, unit tests, migrations check ([no missing migrations]), build, then [a short end-to-end smoke test].\n- Use a real database service of the same version as production for tests, not SQLite if production is Postgres.\n- Cache dependencies. Target under [10] minutes.\n- Add a dependency audit step that fails on high severity.\n- Make the workflow required for merging into main.\n- Fail on warnings that hide real bugs (unawaited promises, unused imports) once the code is clean.\n- Show me how to run the exact same checks locally with one command.\n\nAcceptance checks (run each and show me the result):\n1. A pull request with a failing test can't be merged.\n2. The local command and CI run the same steps.\n3. A model change without a migration fails CI.\n4. CI runs against the same database engine as production.\n5. A typical run finishes in under 10 minutes.",
+  "acceptance_checks": [
+    "A pull request with a failing test can't be merged.",
+    "The local command and CI run the same steps.",
+    "A model change without a migration fails CI.",
+    "CI runs against the same database engine as production.",
+    "A typical run finishes in under 10 minutes."
+  ],
+  "if_you_skip_it": "Bugs that tests would have caught reach production, and nobody knows which change caused them.",
+  "how_derek_runs_it": "Custody Journal uses a free local release gate script rather than hosted CI. It runs ruff, Django checks, a missing-migrations check, a migration cycle test, the full test suite, pip-audit, npm audit, a Postgres concurrency test, a Playwright smoke test and a Docker build, and it fails closed.",
+  "links": [
+    {
+      "title": "GitHub Actions docs",
+      "url": "https://docs.github.com/en/actions"
+    },
+    {
+      "title": "GitHub: about protected branches",
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+    },
+    {
+      "title": "GitHub Actions billing and free minutes",
+      "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+    }
+  ],
+  "page": "e/ci-pipeline/index.html",
+  "json": "api/ci-pipeline.json",
+  "updated": "2026-10-21"
+}

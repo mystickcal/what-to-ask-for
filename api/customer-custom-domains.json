@@ -1,0 +1,88 @@
+{
+  "id": "customer-custom-domains",
+  "name": "Custom domains for customers",
+  "category": "deploys",
+  "category_name": "Deploys, uptime and monitoring",
+  "aliases": [
+    "white-label domains",
+    "bring your own domain",
+    "custom hostnames",
+    "vanity domains",
+    "SaaS custom domains"
+  ],
+  "needs": [
+    "let customers use their own domain for their page",
+    "SSL for thousands of customer domains",
+    "point a customer's CNAME at my app",
+    "white label my app"
+  ],
+  "keywords": [
+    "domain",
+    "domains",
+    "custom",
+    "cname",
+    "dns",
+    "ssl",
+    "tls",
+    "certificate",
+    "white",
+    "label",
+    "hostname",
+    "vanity",
+    "subdomain"
+  ],
+  "summary": "Letting each customer serve their part of your app from their own domain, like docs.theircompany.com. They add a DNS record, you verify it, issue an HTTPS certificate automatically, and route requests by hostname to the right account.",
+  "need_when": [
+    "Customers publish pages, stores, docs or portals and want their own brand on the address."
+  ],
+  "skip_when": [
+    "Subdomains of your own domain (theirname.yourapp.com) are enough. Those need only one wildcard certificate."
+  ],
+  "ways": [
+    {
+      "title": "Cloudflare for SaaS",
+      "cost": "a number of hostnames free, then per hostname",
+      "how": "Custom Hostnames on your zone: customers CNAME to you, Cloudflare validates and issues certificates.",
+      "tradeoff": "Handles TLS at the edge with little code. Ties you to Cloudflare."
+    },
+    {
+      "title": "Your host's domains API",
+      "cost": "depends on plan",
+      "how": "Vercel, Netlify, Render and Fly.io let you add customer domains through an API and issue certificates.",
+      "tradeoff": "Simple if you already host there. Limits on domain counts per plan."
+    },
+    {
+      "title": "Caddy on-demand TLS",
+      "cost": "$0 plus your server",
+      "how": "Caddy gets a Let's Encrypt certificate the first time a domain is requested, after asking your app whether that domain is allowed.",
+      "tradeoff": "Self-hosted and free. You run the edge server and must keep the allow check strict."
+    }
+  ],
+  "prompt": "Let customers connect their own domain to their [site/portal] in my app using [provider].\n\nRequirements:\n- Settings page: enter a domain, show the exact DNS record to add (CNAME to [customers.myapp.com], or A records for apex domains), and a \"Verify\" button.\n- Verify ownership with the DNS record or a TXT token before routing anything.\n- Issue HTTPS automatically. Show status: pending DNS, issuing certificate, active, error with reason.\n- Route requests by Host header to the right account. Unknown hosts get a plain 404, never another customer's content.\n- Recheck active domains daily. If DNS moves away, mark it and email the owner.\n- Only allow on-demand certificates for domains that are verified in my database.\n- Set cookies per domain and update CORS and CSP to allow the customer domain where needed.\n\nAcceptance checks (run each and show me the result):\n1. A verified domain serves the right customer's content over HTTPS.\n2. An unverified domain pointed at the app gets 404 and no certificate.\n3. Removing the DNS record flips the status and emails the owner.\n4. Logging in on one customer domain doesn't log the user into another.\n5. The status shows a clear reason when DNS is wrong.",
+  "acceptance_checks": [
+    "A verified domain serves the right customer's content over HTTPS.",
+    "An unverified domain pointed at the app gets 404 and no certificate.",
+    "Removing the DNS record flips the status and emails the owner.",
+    "Logging in on one customer domain doesn't log the user into another.",
+    "The status shows a clear reason when DNS is wrong."
+  ],
+  "if_you_skip_it": "Anyone can point a domain at your app and get a certificate for it, or one customer's domain shows another customer's pages.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Cloudflare for SaaS",
+      "url": "https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/"
+    },
+    {
+      "title": "Caddy: on-demand TLS",
+      "url": "https://caddyserver.com/docs/automatic-https#on-demand-tls"
+    },
+    {
+      "title": "Vercel: domains API for platforms",
+      "url": "https://vercel.com/docs/platforms/multi-tenant-platforms/configuring-domains"
+    }
+  ],
+  "page": "e/customer-custom-domains/index.html",
+  "json": "api/customer-custom-domains.json",
+  "updated": "2026-10-21"
+}

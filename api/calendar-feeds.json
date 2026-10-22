@@ -1,0 +1,90 @@
+{
+  "id": "calendar-feeds",
+  "name": "Calendar feeds and invites (ICS)",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "iCal feed",
+    "ICS file",
+    "subscribe to calendar",
+    "add to calendar",
+    "webcal link",
+    "recurring events"
+  ],
+  "needs": [
+    "let users see my app's events in Google Calendar",
+    "add an add-to-calendar button",
+    "a calendar subscription link that updates by itself",
+    "recurring events show at the wrong time after daylight saving"
+  ],
+  "keywords": [
+    "calendar",
+    "ical",
+    "ics",
+    "webcal",
+    "subscribe",
+    "google",
+    "outlook",
+    "apple",
+    "event",
+    "events",
+    "recurring",
+    "rrule",
+    "invite",
+    "schedule"
+  ],
+  "summary": "Publishing events in the iCalendar format so Google, Apple and Outlook calendars can show them. A one-off .ics file adds a single event. A private subscription URL lets the user's calendar refresh your events on its own schedule.",
+  "need_when": [
+    "Your app has dates users care about: bookings, deadlines, schedules, classes, shifts."
+  ],
+  "skip_when": [
+    "You need two-way sync (edits in Google flowing back). That needs the calendar APIs and OAuth, not a feed."
+  ],
+  "ways": [
+    {
+      "title": "A private ICS subscription URL",
+      "cost": "$0",
+      "how": "A URL with a long random token returns text/calendar for that user. Calendar apps poll it.",
+      "tradeoff": "Works everywhere with no OAuth. Google can take hours to refresh, and the URL is the password."
+    },
+    {
+      "title": "One-off .ics files and email invites",
+      "cost": "$0",
+      "how": "A download or email attachment with one VEVENT for \"add to calendar\".",
+      "tradeoff": "Simple. Later changes don't reach the calendar unless you send an update."
+    },
+    {
+      "title": "Calendar APIs",
+      "cost": "$0, OAuth review needed",
+      "how": "Google Calendar API, Microsoft Graph or a unified API like Nylas or Cronofy write events into the user's calendar.",
+      "tradeoff": "Instant and two-way. OAuth setup, scopes review and token storage."
+    }
+  ],
+  "prompt": "Add a private calendar subscription feed (ICS) for each user.\n\nRequirements:\n- URL: /calendar/feed/<token>.ics with a random token of at least 32 bytes stored on the user. No session needed. Unknown token returns 404.\n- Settings page shows the link (plus a webcal:// version and Google and Apple instructions) and a \"reset link\" button that issues a new token.\n- Return text/calendar; charset=utf-8. Each event has a stable UID, DTSTAMP, start and end, and SUMMARY. Escape commas, semicolons and newlines, and fold lines at 75 octets.\n- Use the user's timezone with a VTIMEZONE block, or UTC times. All-day events use DATE values with an exclusive end date.\n- Recurring items use RRULE inside a bounded window instead of expanding forever.\n- Limit the feed to a window such as [1 year back, 2 years ahead]. Keep private notes out of the feed.\n- Cache-Control: private. Validate output with an iCalendar validator in a test.\n\nAcceptance checks (run each and show me the result):\n1. Google Calendar, Apple Calendar and Outlook all subscribe and show the events.\n2. A weekly event stays at the same local time across the daylight saving change.\n3. Resetting the link makes the old URL return 404.\n4. Private notes never appear in the feed.\n5. The feed passes an iCalendar validator.",
+  "acceptance_checks": [
+    "Google Calendar, Apple Calendar and Outlook all subscribe and show the events.",
+    "A weekly event stays at the same local time across the daylight saving change.",
+    "Resetting the link makes the old URL return 404.",
+    "Private notes never appear in the feed.",
+    "The feed passes an iCalendar validator."
+  ],
+  "if_you_skip_it": "Events land an hour off twice a year, feeds leak private details to anyone with the link, or old links can't be shut off.",
+  "how_derek_runs_it": "Custody Journal offers a private calendar subscribe URL authenticated by a random token, with a reset button that issues a new one. The feed is served as text/calendar with Cache-Control private, includes VTIMEZONE blocks, uses RRULE for weekly activities inside a window of about 30 days back and a year ahead, and can be limited to one case or child.",
+  "links": [
+    {
+      "title": "RFC 5545: iCalendar",
+      "url": "https://datatracker.ietf.org/doc/html/rfc5545"
+    },
+    {
+      "title": "iCalendar validator",
+      "url": "https://icalendar.org/validator.html"
+    },
+    {
+      "title": "Google Calendar: subscribe to a calendar by URL",
+      "url": "https://support.google.com/calendar/answer/37100"
+    }
+  ],
+  "page": "e/calendar-feeds/index.html",
+  "json": "api/calendar-feeds.json",
+  "updated": "2026-10-21"
+}

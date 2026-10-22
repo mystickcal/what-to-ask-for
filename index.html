@@ -39,10 +39,10 @@
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
-<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>81</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>9</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>6</span></a><a class="cat" href="#c-data" data-c="data">Data <span>7</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>5</span></a><a class="cat" href="#c-security" data-c="security">Security <span>8</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>7</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>8</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>3</span></a><a class="cat" href="#c-search" data-c="search">Search <span>2</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>2</span></a></nav>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>100</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>9</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>6</span></a><a class="cat" href="#c-data" data-c="data">Data <span>8</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>5</span></a><a class="cat" href="#c-security" data-c="security">Security <span>12</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>10</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>10</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>5</span></a><a class="cat" href="#c-search" data-c="search">Search <span>3</span></a><a class="cat" href="#c-features" data-c="features">Features <span>5</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>3</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">81 entries in 13 categories</p>
+  <p class="count" id="count" aria-live="polite">100 entries in 14 categories</p>
   <ol class="results" id="results" hidden></ol>
   <div id="browse">
 <section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">6</span></h3>
@@ -99,7 +99,7 @@
 <li><a href="e/csv-import/index.html"><span class="r-name">CSV import</span><span class="r-need">&ldquo;let users upload a spreadsheet of their contacts&rdquo;</span></a></li>
 <li><a href="e/pdf-generation/index.html"><span class="r-name">PDF generation</span><span class="r-need">&ldquo;generate invoices as PDF&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">7</span></h3>
+<section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">8</span></h3>
 <ol class="results">
 <li><a href="e/backups-tested-restore/index.html"><span class="r-name">Backups with a tested restore</span><span class="r-need">&ldquo;what happens if my database gets deleted&rdquo;</span></a></li>
 <li><a href="e/database-migrations/index.html"><span class="r-name">Safe database migrations</span><span class="r-need">&ldquo;change a column without breaking the live app&rdquo;</span></a></li>
@@ -108,6 +108,7 @@
 <li><a href="e/audit-log/index.html"><span class="r-name">Audit log</span><span class="r-need">&ldquo;see who changed a record and when&rdquo;</span></a></li>
 <li><a href="e/transactions-race-conditions/index.html"><span class="r-name">Transactions and race conditions</span><span class="r-need">&ldquo;a double click created two orders&rdquo;</span></a></li>
 <li><a href="e/pagination/index.html"><span class="r-name">Pagination</span><span class="r-need">&ldquo;my list page loads every row and got slow&rdquo;</span></a></li>
+<li><a href="e/money-amounts/index.html"><span class="r-name">Storing money amounts</span><span class="r-need">&ldquo;my totals are off by a cent&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-api" data-c="api" aria-labelledby="h-api"><h3 class="group-h" id="h-api">APIs and integrations <span class="group-n">5</span></h3>
 <ol class="results">
@@ -117,7 +118,7 @@
 <li><a href="e/idempotency-keys/index.html"><span class="r-name">Idempotency keys for your API</span><span class="r-need">&ldquo;a retry created two payments&rdquo;</span></a></li>
 <li><a href="e/api-docs-openapi/index.html"><span class="r-name">API docs from an OpenAPI spec</span><span class="r-need">&ldquo;customers keep asking how to call my API&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-security" data-c="security" aria-labelledby="h-security"><h3 class="group-h" id="h-security">Security and abuse <span class="group-n">8</span></h3>
+<section class="group" id="c-security" data-c="security" aria-labelledby="h-security"><h3 class="group-h" id="h-security">Security and abuse <span class="group-n">12</span></h3>
 <ol class="results">
 <li><a href="e/rate-limiting/index.html"><span class="r-name">Rate limiting</span><span class="r-need">&ldquo;someone keeps trying passwords on my login&rdquo;</span></a></li>
 <li><a href="e/ownership-checks/index.html"><span class="r-name">Ownership checks (IDOR)</span><span class="r-need">&ldquo;change the id in the URL and see someone else&#x27;s data&rdquo;</span></a></li>
@@ -127,8 +128,12 @@
 <li><a href="e/secrets-management/index.html"><span class="r-name">Secrets management</span><span class="r-need">&ldquo;I committed my API key to GitHub&rdquo;</span></a></li>
 <li><a href="e/ssrf-protection/index.html"><span class="r-name">SSRF protection</span><span class="r-need">&ldquo;my app fetches a URL the user pastes in&rdquo;</span></a></li>
 <li><a href="e/bot-protection/index.html"><span class="r-name">Bot and spam protection</span><span class="r-need">&ldquo;bots are signing up thousands of fake accounts&rdquo;</span></a></li>
+<li><a href="e/security-headers/index.html"><span class="r-name">Security headers (CSP, HSTS)</span><span class="r-need">&ldquo;my site got an F on a security headers scan&rdquo;</span></a></li>
+<li><a href="e/dependency-updates/index.html"><span class="r-name">Dependency updates and audits</span><span class="r-need">&ldquo;GitHub says my packages have vulnerabilities&rdquo;</span></a></li>
+<li><a href="e/html-sanitizing/index.html"><span class="r-name">Sanitizing user HTML and markdown (XSS)</span><span class="r-need">&ldquo;users can post rich text and I&#x27;m worried about scripts&rdquo;</span></a></li>
+<li><a href="e/field-encryption/index.html"><span class="r-name">Field-level encryption</span><span class="r-need">&ldquo;encrypt sensitive fields in my database&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">7</span></h3>
+<section class="group" id="c-deploys" data-c="deploys" aria-labelledby="h-deploys"><h3 class="group-h" id="h-deploys">Deploys, uptime and monitoring <span class="group-n">10</span></h3>
 <ol class="results">
 <li><a href="e/feature-flags/index.html"><span class="r-name">Feature flag</span><span class="r-need">&ldquo;ship code but keep the feature off&rdquo;</span></a></li>
 <li><a href="e/health-checks/index.html"><span class="r-name">Health checks and safe deploys</span><span class="r-need">&ldquo;the site goes down every time I deploy&rdquo;</span></a></li>
@@ -137,8 +142,11 @@
 <li><a href="e/uptime-monitoring/index.html"><span class="r-name">Uptime monitoring</span><span class="r-need">&ldquo;tell me when my site is down&rdquo;</span></a></li>
 <li><a href="e/staging-environment/index.html"><span class="r-name">Staging environment</span><span class="r-need">&ldquo;test changes somewhere before they hit real users&rdquo;</span></a></li>
 <li><a href="e/rollback/index.html"><span class="r-name">Rollback plan</span><span class="r-need">&ldquo;the new version is broken, put the old one back&rdquo;</span></a></li>
+<li><a href="e/status-page/index.html"><span class="r-name">Status page</span><span class="r-need">&ldquo;tell users the site is down before they email me&rdquo;</span></a></li>
+<li><a href="e/ci-pipeline/index.html"><span class="r-name">CI checks on every push</span><span class="r-need">&ldquo;run my tests automatically before I deploy&rdquo;</span></a></li>
+<li><a href="e/customer-custom-domains/index.html"><span class="r-name">Custom domains for customers</span><span class="r-need">&ldquo;let customers use their own domain for their page&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">8</span></h3>
+<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">10</span></h3>
 <ol class="results">
 <li><a href="e/streaming-ai-responses/index.html"><span class="r-name">Streaming AI responses</span><span class="r-need">&ldquo;show the AI answer as it&#x27;s being written&rdquo;</span></a></li>
 <li><a href="e/llm-retries-fallbacks/index.html"><span class="r-name">LLM retries, timeouts and fallbacks</span><span class="r-need">&ldquo;the AI call fails sometimes with 429 or 500&rdquo;</span></a></li>
@@ -148,22 +156,36 @@
 <li><a href="e/llm-evals/index.html"><span class="r-name">LLM evals</span><span class="r-need">&ldquo;I changed the prompt and something else got worse&rdquo;</span></a></li>
 <li><a href="e/prompt-caching/index.html"><span class="r-name">Prompt caching</span><span class="r-need">&ldquo;every request sends the same long instructions and I pay for them each time&rdquo;</span></a></li>
 <li><a href="e/content-moderation/index.html"><span class="r-name">Content moderation</span><span class="r-need">&ldquo;users can post anything on my site&rdquo;</span></a></li>
+<li><a href="e/tool-calling/index.html"><span class="r-name">LLM tool calling</span><span class="r-need">&ldquo;let the AI look things up in my database&rdquo;</span></a></li>
+<li><a href="e/chat-history/index.html"><span class="r-name">AI chat history storage</span><span class="r-need">&ldquo;save chatbot conversations so users can come back&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">3</span></h3>
+<section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">5</span></h3>
 <ol class="results">
 <li><a href="e/caching-invalidation/index.html"><span class="r-name">Caching and invalidation</span><span class="r-need">&ldquo;the same slow query runs on every page load&rdquo;</span></a></li>
 <li><a href="e/cdn/index.html"><span class="r-name">CDN and static asset caching</span><span class="r-need">&ldquo;my site is slow for people in other countries&rdquo;</span></a></li>
 <li><a href="e/database-indexes/index.html"><span class="r-name">Database indexes</span><span class="r-need">&ldquo;my app got slow as the data grew&rdquo;</span></a></li>
+<li><a href="e/load-testing/index.html"><span class="r-name">Load testing</span><span class="r-need">&ldquo;will my app survive a launch on Product Hunt&rdquo;</span></a></li>
+<li><a href="e/n-plus-one-queries/index.html"><span class="r-name">N+1 query fixes</span><span class="r-need">&ldquo;my list page runs hundreds of database queries&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-search" data-c="search" aria-labelledby="h-search"><h3 class="group-h" id="h-search">Search <span class="group-n">2</span></h3>
+<section class="group" id="c-search" data-c="search" aria-labelledby="h-search"><h3 class="group-h" id="h-search">Search <span class="group-n">3</span></h3>
 <ol class="results">
 <li><a href="e/full-text-search/index.html"><span class="r-name">Full-text search</span><span class="r-need">&ldquo;add a search box that finds posts by any word in them&rdquo;</span></a></li>
 <li><a href="e/semantic-search/index.html"><span class="r-name">Semantic search and RAG</span><span class="r-need">&ldquo;find documents by meaning, not exact words&rdquo;</span></a></li>
+<li><a href="e/search-index-sync/index.html"><span class="r-name">Keeping a search index in sync</span><span class="r-need">&ldquo;search results show things I already deleted&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-privacy" data-c="privacy" aria-labelledby="h-privacy"><h3 class="group-h" id="h-privacy">Analytics and privacy <span class="group-n">2</span></h3>
+<section class="group" id="c-features" data-c="features" aria-labelledby="h-features"><h3 class="group-h" id="h-features">Common app features <span class="group-n">5</span></h3>
+<ol class="results">
+<li><a href="e/i18n/index.html"><span class="r-name">Translations and localization (i18n)</span><span class="r-need">&ldquo;translate my app into Spanish&rdquo;</span></a></li>
+<li><a href="e/calendar-feeds/index.html"><span class="r-name">Calendar feeds and invites (ICS)</span><span class="r-need">&ldquo;let users see my app&#x27;s events in Google Calendar&rdquo;</span></a></li>
+<li><a href="e/geolocation/index.html"><span class="r-name">Location and distance search</span><span class="r-need">&ldquo;show places near the user&rdquo;</span></a></li>
+<li><a href="e/realtime-updates/index.html"><span class="r-name">Live updates (WebSockets, SSE or polling)</span><span class="r-need">&ldquo;show new messages without refreshing&rdquo;</span></a></li>
+<li><a href="e/admin-panel/index.html"><span class="r-name">Internal admin panel</span><span class="r-need">&ldquo;I need a way to look up and fix customer records&rdquo;</span></a></li>
+</ol></section>
+<section class="group" id="c-privacy" data-c="privacy" aria-labelledby="h-privacy"><h3 class="group-h" id="h-privacy">Analytics and privacy <span class="group-n">3</span></h3>
 <ol class="results">
 <li><a href="e/cookie-consent/index.html"><span class="r-name">Cookie consent and privacy-friendly analytics</span><span class="r-need">&ldquo;do I need a cookie banner&rdquo;</span></a></li>
 <li><a href="e/data-export-deletion/index.html"><span class="r-name">Data export and account deletion</span><span class="r-need">&ldquo;let users delete their account and everything in it&rdquo;</span></a></li>
+<li><a href="e/data-retention/index.html"><span class="r-name">Data retention and cleanup</span><span class="r-need">&ldquo;how long should I keep user data&rdquo;</span></a></li>
 </ol></section>
   </div>
   <p class="none" id="none" hidden>No match. Try plainer words, like &ldquo;slow&rdquo;, &ldquo;twice&rdquo; or &ldquo;spam&rdquo;.</p>

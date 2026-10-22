@@ -5,7 +5,6 @@
   "category_name": "Deploys, uptime and monitoring",
   "aliases": [
     "uptime check",
-    "status page",
     "downtime alerts",
     "synthetic monitoring",
     "heartbeat monitoring"
@@ -14,7 +13,7 @@
     "tell me when my site is down",
     "my site was down all weekend and I didn't know",
     "alert me if the nightly job stops running",
-    "add a status page"
+    "know within minutes when the API stops answering"
   ],
   "keywords": [
     "uptime",

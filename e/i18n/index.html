@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Translations and localization (i18n): What To Ask For</title>
+<meta name="description" content="Pulling every user-facing string out of the code into translation files, picking a language per user, and formatting dates, numbers, currencies and plurals with the locale&#x27;s rules. Done early, it&#x27;s cheap. Done late, it means touching every screen.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Translations and localization (i18n): What To Ask For">
+<meta property="og:description" content="Pulling every user-facing string out of the code into translation files, picking a language per user, and formatting dates, numbers, currencies and plurals with the locale&#x27;s rules. Done early, it&#x27;s cheap. Done late, it means touching every screen.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/i18n/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Translations and localization (i18n): What To Ask For">
+<meta name="twitter:description" content="Pulling every user-facing string out of the code into translation files, picking a language per user, and formatting dates, numbers, currencies and plurals with the locale&#x27;s rules. Done early, it&#x27;s cheap. Done late, it means touching every screen.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Translations and localization (i18n)</h1>
+  <p class="aka">Also called: internationalization, localization, l10n, multi-language support, translate my app</p>
+  <p class="lead">Pulling every user-facing string out of the code into translation files, picking a language per user, and formatting dates, numbers, currencies and plurals with the locale&#x27;s rules. Done early, it&#x27;s cheap. Done late, it means touching every screen.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You have or want users who prefer another language.</li><li>You show dates, numbers or money to people in more than one country.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>One market, one language, no plans to change. Still use locale-aware date and number formatting.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your framework&#x27;s i18n system <span class="cost">$0</span></h3>
+<p>Django gettext with .po files, Rails I18n, i18next or next-intl for React, vue-i18n, Flutter intl.</p><p class="trade"><strong>Tradeoff:</strong> Standard and free. You manage translation files and missing keys.</p></li>
+<li><h3>A translation management platform <span class="cost">free tiers, then paid</span></h3>
+<p>Crowdin, Lokalise, Phrase, or open source Weblate or Tolgee sync files with your repo and give translators an editor.</p><p class="trade"><strong>Tradeoff:</strong> Smooth for many languages and translators. Another tool to run or pay for.</p></li>
+<li><h3>Machine translation first, review after <span class="cost">API costs</span></h3>
+<p>Translate new strings with an AI or translation API, then have a fluent speaker review key screens.</p><p class="trade"><strong>Tradeoff:</strong> Fast. Legal, billing and safety text needs human review.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add translations to my app, starting with [Spanish].
+
+Requirements:
+- Use [framework i18n tool]. Move every user-facing string (pages, emails, errors, notifications) into translation keys.
+- Whole sentences per key with placeholders, never sentences glued from pieces. Handle plurals with the library&#x27;s plural rules.
+- Language choice order: user setting, then the browser&#x27;s Accept-Language, then [English]. Save the choice on the account and use it for emails too.
+- Format dates, numbers and money with the locale (Intl API or framework helpers). Keep storing data in UTC and plain numbers.
+- Set the html lang attribute. Make layouts survive 30 percent longer text.
+- Add a check that fails CI on missing keys in any language file.
+- Don&#x27;t translate user-generated content.
+
+Acceptance checks (run each and show me the result):
+1. Switching to Spanish changes pages, emails and error messages.
+2. 1 item and 2 items use the right plural forms.
+3. Dates show as 21/10/2026 for es-ES and 10/21/2026 for en-US.
+4. Removing a key from the Spanish file fails CI.
+5. No English strings remain on main screens in Spanish mode.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Half-translated screens, broken grammar from glued strings, and a painful rewrite when the first non-English customer arrives.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal has Django&#x27;s i18n turned on with English and Spanish, the locale middleware, and a Spanish translation catalog in its locale folder.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;translate my app into Spanish&rdquo;</li><li>&ldquo;support multiple languages&rdquo;</li><li>&ldquo;show dates and prices the way each country expects&rdquo;</li><li>&ldquo;let users pick their language&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.djangoproject.com/en/5.2/topics/i18n/translation/">Django: translation</a></li><li><a href="https://www.i18next.com/">i18next</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl">MDN: Intl</a></li><li><a href="https://weblate.org/">Weblate (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/i18n.json">api/i18n.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../search-index-sync/index.html">&larr; Keeping a search index in sync</a><a href="../calendar-feeds/index.html">Calendar feeds and invites (ICS) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

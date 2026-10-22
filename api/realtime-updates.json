@@ -1,0 +1,100 @@
+{
+  "id": "realtime-updates",
+  "name": "Live updates (WebSockets, SSE or polling)",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "websockets",
+    "server-sent events",
+    "real-time updates",
+    "live data",
+    "pub/sub",
+    "presence"
+  ],
+  "needs": [
+    "show new messages without refreshing",
+    "update the dashboard live",
+    "should I use websockets or polling",
+    "show who else is viewing the document"
+  ],
+  "keywords": [
+    "realtime",
+    "real",
+    "time",
+    "live",
+    "websocket",
+    "websockets",
+    "sse",
+    "polling",
+    "push",
+    "refresh",
+    "pubsub",
+    "presence",
+    "chat",
+    "instant"
+  ],
+  "summary": "Getting changes to the browser as they happen. Polling asks every few seconds. Server-sent events stream one way from server to browser. WebSockets go both ways. Pick the simplest one that meets the delay users will notice.",
+  "need_when": [
+    "Chat, collaborative editing, live dashboards, notifications, or anything where a stale screen causes mistakes."
+  ],
+  "skip_when": [
+    "Updates every 30 seconds are fine. Polling is enough and much simpler."
+  ],
+  "ways": [
+    {
+      "title": "Polling",
+      "cost": "$0",
+      "how": "Fetch an endpoint every few seconds, ideally with If-Modified-Since or a since cursor.",
+      "tradeoff": "Works everywhere, nothing new to run. Some delay and wasted requests."
+    },
+    {
+      "title": "Server-sent events",
+      "cost": "$0",
+      "how": "A long-lived HTTP response that streams events, with automatic reconnect in the browser's EventSource.",
+      "tradeoff": "Simple for server-to-browser updates. Proxies need buffering off and long timeouts."
+    },
+    {
+      "title": "WebSockets, self-run",
+      "cost": "$0 plus server capacity",
+      "how": "Socket.IO, Django Channels, Phoenix Channels or Rails Action Cable, with Redis for fan-out across servers.",
+      "tradeoff": "Two-way and fast. Sticky connections, scaling and auth are your job."
+    },
+    {
+      "title": "A hosted realtime service",
+      "cost": "free tiers, then paid",
+      "how": "Pusher, Ably, Supabase Realtime, Liveblocks or PartyKit carry the connections. Your server publishes events.",
+      "tradeoff": "No connection servers to run. Per-connection or per-message pricing."
+    }
+  ],
+  "prompt": "Add live updates for [feature] using [polling / SSE / WebSockets / hosted service].\n\nRequirements:\n- Explain the choice in two sentences based on how fresh the data must be and whether the browser sends data back.\n- Authenticate the connection with the user's session or a short-lived token. Subscribe only to channels the user may see, checked on the server.\n- Send small events (type, id, changed fields) and let the client fetch full data if needed.\n- On reconnect, catch up from the last event id or timestamp so nothing is missed.\n- Fall back to polling if the connection fails repeatedly.\n- Configure the proxy for long-lived connections (timeouts, buffering off for SSE).\n- With more than one server, fan out through [Redis pub/sub / the hosted service].\n\nAcceptance checks (run each and show me the result):\n1. A change made in one browser shows up in another within [2] seconds.\n2. A user can't subscribe to another user's channel by changing its name.\n3. Dropping the network for 30 seconds, then reconnecting, shows missed updates.\n4. Two app servers both deliver events to their connected users.\n5. Polling fallback works when WebSockets are blocked.",
+  "acceptance_checks": [
+    "A change made in one browser shows up in another within [2] seconds.",
+    "A user can't subscribe to another user's channel by changing its name.",
+    "Dropping the network for 30 seconds, then reconnecting, shows missed updates.",
+    "Two app servers both deliver events to their connected users.",
+    "Polling fallback works when WebSockets are blocked."
+  ],
+  "if_you_skip_it": "Users see stale data and overwrite each other, or private updates go to the wrong browser.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "MDN: Server-sent events",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events"
+    },
+    {
+      "title": "MDN: WebSockets API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+    },
+    {
+      "title": "Socket.IO",
+      "url": "https://socket.io/"
+    },
+    {
+      "title": "Ably: WebSockets vs SSE",
+      "url": "https://ably.com/blog/websockets-vs-sse"
+    }
+  ],
+  "page": "e/realtime-updates/index.html",
+  "json": "api/realtime-updates.json",
+  "updated": "2026-10-21"
+}

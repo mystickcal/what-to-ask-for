@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field-level encryption: What To Ask For</title>
+<meta name="description" content="Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Field-level encryption: What To Ask For">
+<meta property="og:description" content="Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/field-encryption/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Field-level encryption: What To Ask For">
+<meta name="twitter:description" content="Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=security">Security and abuse</a></p>
+  <h1>Field-level encryption</h1>
+  <p class="aka">Also called: encrypt database fields, application-level encryption, encryption at rest, encrypted columns, key rotation</p>
+  <p class="lead">Encrypting chosen columns in your app before they reach the database, with a key the database never sees. A stolen backup or database dump then shows ciphertext for those fields. It needs a plan for keys, rotation and search.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You store very sensitive text (health, legal, financial notes), government ids, or access tokens for other services.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Your host&#x27;s disk encryption covers your threat and the data isn&#x27;t especially sensitive. Fields you must search or sort on are hard to encrypt.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>An encrypted field type in your framework <span class="cost">$0</span></h3>
+<p>Rails Active Record Encryption, Laravel encrypted casts, or a Django field built on Fernet from the cryptography package.</p><p class="trade"><strong>Tradeoff:</strong> Transparent in code. Encrypted fields can&#x27;t be filtered or sorted in SQL.</p></li>
+<li><h3>Envelope encryption with a KMS <span class="cost">low, per key and request</span></h3>
+<p>AWS KMS, Google Cloud KMS or Vault wrap per-record data keys. Your app encrypts with the data key.</p><p class="trade"><strong>Tradeoff:</strong> Strong key control and audit. More moving parts and latency.</p></li>
+<li><h3>Database-side encryption functions <span class="cost">$0</span></h3>
+<p>Postgres pgcrypto encrypts in SQL.</p><p class="trade"><strong>Tradeoff:</strong> Easy to add. The key travels to the database in queries and may show up in logs.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add field-level encryption for sensitive columns.
+
+Requirements:
+- Columns: [list]. Encrypt in the app with [Fernet / AES-GCM] before saving and decrypt on read.
+- The key comes from an environment secret separate from other app secrets, never from the database.
+- Prefix each stored value with a version tag so I can tell encrypted from plain and rotate keys later.
+- Rotation: a new key encrypts, old keys still decrypt, and a background command re-encrypts rows in batches.
+- If a value can&#x27;t be decrypted, show a placeholder and keep the stored ciphertext untouched on save.
+- Encrypt existing rows with a migration that runs in batches and can resume.
+- For fields I need to look up exactly, store a separate keyed hash (HMAC) for lookups.
+- Keep decrypted values out of logs, error reports and analytics.
+
+Acceptance checks (run each and show me the result):
+1. Reading the table directly shows ciphertext for each listed column.
+2. After rotating, old rows still read and the re-encrypt command upgrades them.
+3. Starting the app with the wrong key shows placeholders, not crashes, and saving doesn&#x27;t destroy data.
+4. Error reports contain no decrypted values.
+5. A restore from backup is readable only with the key.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>A leaked backup or read-only database breach exposes the most private data you hold.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal encrypts sensitive text and JSON columns with Fernet before they reach Postgres, using its own field encryption key setting rather than the main app secret. Stored values carry a version prefix, older keys stay decrypt-only for rotation, and a value that can&#x27;t be decrypted shows a placeholder while the original ciphertext is kept on save.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;encrypt sensitive fields in my database&rdquo;</li><li>&ldquo;if someone steals a backup they shouldn&#x27;t read user notes&rdquo;</li><li>&ldquo;store tokens for third-party services safely&rdquo;</li><li>&ldquo;rotate my encryption key&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html">OWASP Cryptographic Storage Cheat Sheet</a></li><li><a href="https://cryptography.io/en/latest/fernet/">cryptography: Fernet</a></li><li><a href="https://guides.rubyonrails.org/active_record_encryption.html">Rails: Active Record Encryption</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/field-encryption.json">api/field-encryption.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../html-sanitizing/index.html">&larr; Sanitizing user HTML and markdown (XSS)</a><a href="../feature-flags/index.html">Feature flag &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

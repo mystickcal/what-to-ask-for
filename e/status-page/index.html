@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status page: What To Ask For</title>
+<meta name="description" content="A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers &quot;is it just me?&quot; without a support email.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Status page: What To Ask For">
+<meta property="og:description" content="A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers &quot;is it just me?&quot; without a support email.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/status-page/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Status page: What To Ask For">
+<meta name="twitter:description" content="A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers &quot;is it just me?&quot; without a support email.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=deploys">Deploys, uptime and monitoring</a></p>
+  <h1>Status page</h1>
+  <p class="aka">Also called: system status, incident page, outage page, service status, incident communication</p>
+  <p class="lead">A public page, hosted away from your app, that shows whether each part of your service is working and lists incidents and planned maintenance with updates. It answers &quot;is it just me?&quot; without a support email.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Paying customers rely on your app being up.</li><li>Every outage brings a pile of &quot;is it down?&quot; messages.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Very early, with few users. A pinned post or banner may do.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A hosted status page with monitoring <span class="cost">free tiers, then paid</span></h3>
+<p>Better Stack, Instatus, UptimeRobot and Atlassian Statuspage pair checks with a public page and subscriber emails.</p><p class="trade"><strong>Tradeoff:</strong> Runs when your servers don&#x27;t. Free tiers limit monitors and branding.</p></li>
+<li><h3>Self-hosted <span class="cost">$0 plus a small server</span></h3>
+<p>Uptime Kuma or Gatus on a separate machine from your app, with its status page turned on.</p><p class="trade"><strong>Tradeoff:</strong> Free and flexible. If it shares a host or network with your app, it goes down with it.</p></li>
+<li><h3>A static page built by scheduled checks <span class="cost">$0</span></h3>
+<p>Upptime runs checks with GitHub Actions and publishes a status page on GitHub Pages.</p><p class="trade"><strong>Tradeoff:</strong> No server at all. Checks run every few minutes at best.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up a public status page for my app with [tool].
+
+Requirements:
+- Host it on a different provider than the app, at [status.mydomain.com].
+- Components: [website, API, background jobs, email]. Each backed by a real check (HTTP health endpoint, job heartbeat).
+- Incidents: an investigating, identified, monitoring, resolved flow with timestamps. Prepare 3 short templates in plain words.
+- Planned maintenance posts with start and end times in UTC and the reader&#x27;s local time.
+- Let users subscribe by email or RSS.
+- Link it from the app footer, the help page and error pages.
+- Write down who posts updates and how fast (for example within 15 minutes of an alert).
+
+Acceptance checks (run each and show me the result):
+1. Stopping the app server turns the website component red within a few minutes.
+2. The status page stays up while the app is down.
+3. A test incident reaches email subscribers.
+4. The app&#x27;s error page links to the status page.
+5. Maintenance times show correctly in two timezones.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>During an outage, users flood support and social media because there&#x27;s nowhere to check, and trust drops more than the outage deserved.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;tell users the site is down before they email me&rdquo;</li><li>&ldquo;post updates during an outage&rdquo;</li><li>&ldquo;customers want to see our uptime history&rdquo;</li><li>&ldquo;announce planned maintenance&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/louislam/uptime-kuma">Uptime Kuma (open source)</a></li><li><a href="https://github.com/TwiN/gatus">Gatus (open source)</a></li><li><a href="https://upptime.js.org/">Upptime</a></li><li><a href="https://instatus.com/">Instatus</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/status-page.json">api/status-page.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../rollback/index.html">&larr; Rollback plan</a><a href="../ci-pipeline/index.html">CI checks on every push &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>
