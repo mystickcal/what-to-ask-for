@@ -1,0 +1,901 @@
+{
+  "name": "What To Ask For",
+  "updated": "2026-10-21",
+  "count": 10,
+  "entries": [
+    {
+      "id": "scheduled-jobs",
+      "name": "Scheduled job",
+      "aliases": [
+        "cron job",
+        "scheduled task",
+        "recurring job",
+        "periodic task",
+        "job scheduler"
+      ],
+      "needs": [
+        "send each user an email at a time they pick",
+        "run something every night",
+        "send a reminder the day before",
+        "clean up old files every hour",
+        "sync with another service every few minutes"
+      ],
+      "keywords": [
+        "cron",
+        "schedule",
+        "daily",
+        "nightly",
+        "hourly",
+        "timer",
+        "reminder",
+        "digest",
+        "recurring"
+      ],
+      "summary": "Code that runs on a clock instead of when someone clicks. A scheduler wakes up, checks what is due and runs it.",
+      "need_when": [
+        "Something has to happen when nobody is on the site: reminders, digests, cleanup, syncing.",
+        "A user picks a time and expects something to arrive then."
+      ],
+      "skip_when": [
+        "The work can run right when the user clicks and finishes in a second or two."
+      ],
+      "ways": [
+        {
+          "title": "Cron or supercronic calling a command",
+          "cost": "$0",
+          "how": "A crontab line (or supercronic inside a container) runs one command on a schedule, like a Django management command or a Node script.",
+          "tradeoff": "If the server is down at 3 AM, that run is simply lost unless you add catch-up. Two copies of the container means every job runs twice."
+        },
+        {
+          "title": "A scheduler inside your worker",
+          "cost": "$0 on your server",
+          "how": "Celery beat (Python), BullMQ repeatable jobs (Node) or pg-boss schedules (Postgres) enqueue jobs on a schedule for your workers.",
+          "tradeoff": "One more process to keep alive, and you need a lock so only one instance does the scheduling."
+        },
+        {
+          "title": "A managed trigger that calls your URL",
+          "cost": "free tiers",
+          "how": "Cloudflare Workers Cron Triggers, Vercel Cron Jobs or a GitHub Actions schedule hits an endpoint on your app.",
+          "tradeoff": "The endpoint is public, so it needs a secret check. Timing can drift, and GitHub notes scheduled workflows can be delayed under load."
+        }
+      ],
+      "prompt": "Add a scheduled job that [does X] every [schedule], in UTC.\n\nRequirements:\n- Put the job logic in one function or command that I can also run by hand.\n- Record each run in the database: job name, scheduled slot, started, finished, status, error code.\n- Make (job name, scheduled slot) unique so the same slot never runs twice, even if two scheduler processes start.\n- If the scheduler was down, catch up missed slots inside a [2 hour] window and skip older ones.\n- Give each run a timeout and a max attempt count.\n- Store and compare times in UTC. Convert to the user's timezone only for display and for user-picked send times.\n\nAcceptance checks (run each and show me the result):\n1. Running the command by hand twice for the same slot does the work once.\n2. Starting two scheduler processes at the same time still runs each slot once.\n3. Stopping the scheduler for 10 minutes and restarting it runs the missed slot once.\n4. A run that passes its timeout is marked failed and the next slot still runs.\n5. A user who picked 7:00 PM in New York gets it at 7:00 PM New York time across a daylight saving change.",
+      "acceptance_checks": [
+        "Running the command by hand twice for the same slot does the work once.",
+        "Starting two scheduler processes at the same time still runs each slot once.",
+        "Stopping the scheduler for 10 minutes and restarting it runs the missed slot once.",
+        "A run that passes its timeout is marked failed and the next slot still runs.",
+        "A user who picked 7:00 PM in New York gets it at 7:00 PM New York time across a daylight saving change."
+      ],
+      "if_you_skip_it": "Reminders silently stop after a restart, or every user gets the same email twice when you scale to two containers.",
+      "how_derek_runs_it": "Custody Journal runs its own UTC scheduler in a separate operations container. Every job has a schedule, a catch-up window, a timeout and a max attempt count. Each run claims its time slot in a database row with a row lock, so one slot can't run twice. Examples from the job list: transactional mail every minute and a subscription reconcile once a day.",
+      "links": [
+        {
+          "title": "supercronic",
+          "url": "https://github.com/aptible/supercronic"
+        },
+        {
+          "title": "Cloudflare Workers Cron Triggers",
+          "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/"
+        },
+        {
+          "title": "Vercel Cron Jobs",
+          "url": "https://vercel.com/docs/cron-jobs"
+        },
+        {
+          "title": "pg-boss",
+          "url": "https://github.com/timgit/pg-boss"
+        },
+        {
+          "title": "Healthchecks.io (alerts when a job stops running)",
+          "url": "https://healthchecks.io/"
+        }
+      ],
+      "page": "e/scheduled-jobs/index.html",
+      "json": "api/scheduled-jobs.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "background-job-queue",
+      "name": "Background job queue",
+      "aliases": [
+        "task queue",
+        "worker",
+        "async job",
+        "background worker",
+        "job runner"
+      ],
+      "needs": [
+        "the AI step takes 40 seconds and the page hangs",
+        "generate a PDF without making the user wait",
+        "my request times out",
+        "process an upload after it finishes",
+        "call a slow API without blocking the page"
+      ],
+      "keywords": [
+        "slow",
+        "timeout",
+        "hangs",
+        "wait",
+        "llm",
+        "ai",
+        "openai",
+        "video",
+        "pdf",
+        "export",
+        "async",
+        "celery",
+        "redis",
+        "queue",
+        "worker",
+        "spinner"
+      ],
+      "summary": "The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it.",
+      "need_when": [
+        "A step takes more than a few seconds: LLM calls, video or image work, PDFs, big exports.",
+        "A step calls an outside service that can fail and should be retried."
+      ],
+      "skip_when": [
+        "The work is fast and you need the answer before you can reply to the user."
+      ],
+      "ways": [
+        {
+          "title": "A jobs table in the database you already have",
+          "cost": "$0",
+          "how": "Workers claim rows with a lock (Postgres FOR UPDATE SKIP LOCKED). Libraries: pg-boss (Node), River (Go), good_job (Rails), or a small model in Django.",
+          "tradeoff": "No new service to run. Fine for modest volume. Polling adds a little database load."
+        },
+        {
+          "title": "A Redis-backed queue",
+          "cost": "$0 if you run Redis",
+          "how": "Celery or RQ for Python, BullMQ for Node.",
+          "tradeoff": "Fast and common, but it is one more service to run and monitor, and Redis persistence settings decide whether queued jobs survive a restart."
+        },
+        {
+          "title": "A hosted background job service",
+          "cost": "free tiers",
+          "how": "Inngest or Trigger.dev run steps for you and call back into your code.",
+          "tradeoff": "Less to operate. Another account, your data leaves your server, and moving off it later is work."
+        }
+      ],
+      "prompt": "Move [slow task] out of the web request into a background job.\n\nRequirements:\n- On request: validate input, create a job row (status pending, dedupe key, owner), and return 202 with the job id within 500 ms.\n- A worker claims jobs with a lease (token plus claimed_at). If a worker dies, the job becomes claimable again after the lease expires.\n- Retry with backoff up to [3] attempts, then mark it failed with a short error code. No stack traces or user data in that field.\n- Add a status endpoint that returns pending, running, done or failed, plus the result link when done. Only the owner can read it.\n- Cap active jobs per user and in total. Return 429 or 503 with a plain message when full.\n- The page polls the status endpoint every [2] seconds and shows progress.\n\nAcceptance checks (run each and show me the result):\n1. The request returns in under 500 ms even when the task takes 60 seconds.\n2. Killing the worker in the middle of a job and restarting it finishes the job exactly once.\n3. Submitting the same request twice quickly creates one job.\n4. A task that always fails ends as failed after the max attempts and the page says so.\n5. Changing the job id in the URL can't show another user's job.",
+      "acceptance_checks": [
+        "The request returns in under 500 ms even when the task takes 60 seconds.",
+        "Killing the worker in the middle of a job and restarting it finishes the job exactly once.",
+        "Submitting the same request twice quickly creates one job.",
+        "A task that always fails ends as failed after the max attempts and the page says so.",
+        "Changing the job id in the URL can't show another user's job."
+      ],
+      "if_you_skip_it": "Requests time out behind your proxy, users click again and start duplicate work, and one slow call ties up the whole server.",
+      "how_derek_runs_it": "Custody Journal runs exports as queued jobs stored in Postgres. Each job has a dedupe key, a lease token and a max attempt count. Jobs with expired leases go back into the queue, or fail after the last attempt. There are caps on active exports per user and in total: a user with an export already running gets a 429, and a full queue returns 503.",
+      "links": [
+        {
+          "title": "pg-boss (Postgres queue for Node)",
+          "url": "https://github.com/timgit/pg-boss"
+        },
+        {
+          "title": "River (Postgres queue for Go)",
+          "url": "https://github.com/riverqueue/river"
+        },
+        {
+          "title": "RQ (Redis queue for Python)",
+          "url": "https://python-rq.org/"
+        },
+        {
+          "title": "BullMQ",
+          "url": "https://docs.bullmq.io/"
+        },
+        {
+          "title": "Celery",
+          "url": "https://docs.celeryq.dev/en/stable/"
+        }
+      ],
+      "page": "e/background-job-queue/index.html",
+      "json": "api/background-job-queue.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "webhook-signature-verification",
+      "name": "Webhook signature verification",
+      "aliases": [
+        "webhook signing",
+        "HMAC signature",
+        "signing secret",
+        "Stripe-Signature header"
+      ],
+      "needs": [
+        "Stripe calls my server when someone pays",
+        "how do I know the webhook is really from Stripe",
+        "anyone could POST to my webhook URL",
+        "receive events from GitHub or another service"
+      ],
+      "keywords": [
+        "webhook",
+        "stripe",
+        "signature",
+        "hmac",
+        "verify",
+        "secret",
+        "callback",
+        "github",
+        "payment",
+        "security",
+        "fake"
+      ],
+      "summary": "A webhook is another service calling your URL when something happens. The sender signs each request with a shared secret. Your server recomputes the signature from the raw body and rejects anything that doesn't match or is too old.",
+      "need_when": [
+        "A webhook changes anything: payments, plan changes, orders, form submissions."
+      ],
+      "skip_when": [
+        "Don't skip it for anything that changes data. Even if you re-fetch the object from the API, verify first so strangers can't trigger work."
+      ],
+      "ways": [
+        {
+          "title": "The provider's SDK helper",
+          "cost": "$0",
+          "how": "Stripe: stripe.Webhook.construct_event in Python, stripe.webhooks.constructEvent in Node. Test locally with the Stripe CLI: stripe listen --forward-to and stripe trigger.",
+          "tradeoff": "Simplest and correct, but it needs the raw request body. Frameworks that parse JSON first break the signature."
+        },
+        {
+          "title": "HMAC-SHA256 by hand",
+          "cost": "$0",
+          "how": "For providers without an SDK (for example GitHub's X-Hub-Signature-256), compute the HMAC of the raw body and compare with hmac.compare_digest or crypto.timingSafeEqual.",
+          "tradeoff": "Easy to get subtly wrong: plain string compare, wrong encoding, or no timestamp check."
+        },
+        {
+          "title": "A webhook gateway",
+          "cost": "free tiers",
+          "how": "Hookdeck or Svix receive, verify, queue and retry webhooks, then forward them to you.",
+          "tradeoff": "Another hop and account. Useful when you receive from many providers."
+        }
+      ],
+      "prompt": "Add a webhook endpoint at [path] for [provider].\n\nRequirements:\n- Read the raw request body before any JSON parsing.\n- Verify the signature with the provider's SDK (or HMAC-SHA256 with a constant-time compare). The secret comes from an environment variable.\n- Enforce the timestamp tolerance so old requests can't be replayed (Stripe's libraries default to 5 minutes).\n- Reject bodies over [1 MB] with 413 and bad signatures with 400, before touching any data.\n- Exempt only this route from CSRF.\n- Log the event id and type only. Never log the payload, headers or secret.\n\nAcceptance checks (run each and show me the result):\n1. A request with no signature returns 400 and changes nothing.\n2. A correctly signed request with one byte of the body changed returns 400.\n3. stripe trigger checkout.session.completed through the Stripe CLI returns 200.\n4. Replaying an old signed request outside the tolerance returns 400.\n5. The secret appears only in environment config, not in code, logs or the frontend.",
+      "acceptance_checks": [
+        "A request with no signature returns 400 and changes nothing.",
+        "A correctly signed request with one byte of the body changed returns 400.",
+        "stripe trigger checkout.session.completed through the Stripe CLI returns 200.",
+        "Replaying an old signed request outside the tolerance returns 400.",
+        "The secret appears only in environment config, not in code, logs or the frontend."
+      ],
+      "if_you_skip_it": "Anyone who finds the URL can mark orders paid or upgrade accounts for free.",
+      "how_derek_runs_it": "Custody Journal's Stripe endpoint returns 413 for bodies over 1 MB, verifies with stripe.Webhook.construct_event, and returns 400 on a bad signature before any data changes. For the webhooks it sends to other systems, it signs the body with HMAC-SHA256 in an X-Webhook-Signature header and checks destination URLs with an SSRF guard.",
+      "links": [
+        {
+          "title": "Stripe: verify webhook signatures",
+          "url": "https://docs.stripe.com/webhooks/signature"
+        },
+        {
+          "title": "GitHub: validating webhook deliveries",
+          "url": "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries"
+        },
+        {
+          "title": "Stripe CLI",
+          "url": "https://github.com/stripe/stripe-cli"
+        }
+      ],
+      "page": "e/webhook-signature-verification/index.html",
+      "json": "api/webhook-signature-verification.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "idempotent-webhooks",
+      "name": "Idempotent webhook handling",
+      "aliases": [
+        "idempotency key",
+        "event dedupe",
+        "processed events table",
+        "event inbox",
+        "exactly-once processing"
+      ],
+      "needs": [
+        "a customer paid once but got upgraded twice",
+        "Stripe sent the same event two times",
+        "webhook retries create duplicate orders",
+        "events arrive out of order",
+        "don't double charge when my request retries"
+      ],
+      "keywords": [
+        "duplicate",
+        "twice",
+        "retry",
+        "idempotent",
+        "idempotency",
+        "dedupe",
+        "stripe",
+        "webhook",
+        "payment",
+        "billing",
+        "double"
+      ],
+      "summary": "Providers retry webhooks and sometimes deliver the same event more than once or out of order. Idempotent handling means running the same event twice has the same result as running it once. The usual way: save the event id first and skip it if it's already done.",
+      "need_when": [
+        "You take payments or grant access based on webhooks.",
+        "A handler sends email, creates records or calls another paid API."
+      ],
+      "skip_when": [
+        "The handler only copies the latest state from the provider's API onto your record. That is already idempotent, but dedupe anyway if it also sends email."
+      ],
+      "ways": [
+        {
+          "title": "A processed-events table",
+          "cost": "$0",
+          "how": "Unique constraint on the event id. Insert first, then process, then mark complete. A recovery job replays failed or stuck rows.",
+          "tradeoff": "Solid. You need that recovery job, or events that crash mid-way stay stuck."
+        },
+        {
+          "title": "Re-fetch and sync state",
+          "cost": "$0",
+          "how": "Treat the event as a hint. Fetch the subscription or order from the API and set your record to match it.",
+          "tradeoff": "Handles out-of-order events well. Costs an API call per event and can hit rate limits."
+        },
+        {
+          "title": "Idempotency keys on your outgoing calls",
+          "cost": "$0",
+          "how": "Send an Idempotency-Key header on Stripe POST requests, based on your own record id, so your retries don't create a second charge.",
+          "tradeoff": "Covers your requests to Stripe, not the events Stripe sends you. Use it with one of the above."
+        }
+      ],
+      "prompt": "Make the [provider] webhook handler idempotent.\n\nRequirements:\n- After the signature check, insert the event id into a processed_events table with a unique constraint. If it already exists and is complete, return 200 and do nothing.\n- Process inside a transaction and lock the affected account or subscription row.\n- Mark the event complete only after the work commits. On failure, mark it failed with a next retry time and return 500 so the provider retries.\n- Add a recovery job that replays failed events and events stuck in processing past a lease time.\n- For outgoing Stripe POSTs that create charges or subscriptions, send an Idempotency-Key based on our own record id.\n\nAcceptance checks (run each and show me the result):\n1. Sending the same signed event twice gives one upgrade, one email and one row.\n2. Two copies sent at the same moment still give one result.\n3. An event that throws once is retried, succeeds, and its effect happens once.\n4. subscription.deleted arriving before subscription.updated still leaves the right final state.\n5. Retrying our own create call with the same Idempotency-Key does not make a second charge.",
+      "acceptance_checks": [
+        "Sending the same signed event twice gives one upgrade, one email and one row.",
+        "Two copies sent at the same moment still give one result.",
+        "An event that throws once is retried, succeeds, and its effect happens once.",
+        "subscription.deleted arriving before subscription.updated still leaves the right final state.",
+        "Retrying our own create call with the same Idempotency-Key does not make a second charge."
+      ],
+      "if_you_skip_it": "Double upgrades, double emails, duplicate orders, or a canceled customer who keeps access.",
+      "how_derek_runs_it": "Custody Journal stores each verified Stripe event in a row keyed by the event id before doing any work. Processing locks that row, takes a 3 minute lease and marks it complete only after the work succeeds. A failure is scheduled for retry 2 minutes later and the endpoint returns 500. A replay job picks up failed or stuck events, and a separate daily job reconciles subscriptions.",
+      "links": [
+        {
+          "title": "Stripe: idempotent requests",
+          "url": "https://docs.stripe.com/idempotency"
+        },
+        {
+          "title": "Stripe: webhooks (retries and duplicates)",
+          "url": "https://docs.stripe.com/webhooks"
+        }
+      ],
+      "page": "e/idempotent-webhooks/index.html",
+      "json": "api/idempotent-webhooks.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "signed-download-links",
+      "name": "Signed download link",
+      "aliases": [
+        "presigned URL",
+        "expiring link",
+        "signed URL",
+        "private file link",
+        "temporary download URL"
+      ],
+      "needs": [
+        "let a user download their file without making it public",
+        "the PDF link should stop working after a day",
+        "the files in my bucket are public",
+        "share a private file with one person"
+      ],
+      "keywords": [
+        "download",
+        "file",
+        "upload",
+        "s3",
+        "bucket",
+        "r2",
+        "storage",
+        "private",
+        "expire",
+        "link",
+        "pdf",
+        "invoice",
+        "presigned"
+      ],
+      "summary": "A URL with an expiry time and a signature built in. Anyone with the link can download until it expires, and changing any part of it breaks the signature. The files stay private by default.",
+      "need_when": [
+        "User uploads, invoices, exports, paid downloads, anything you don't want indexed or shared forever."
+      ],
+      "skip_when": [
+        "The files are meant to be public, like marketing images or open docs."
+      ],
+      "ways": [
+        {
+          "title": "Presigned URLs from object storage",
+          "cost": "storage cost, or $0 self-hosted",
+          "how": "S3, Cloudflare R2, DigitalOcean Spaces and self-hosted MinIO or Garage all support S3-style presigned GET links.",
+          "tradeoff": "Fast and offloads bandwidth. Anyone holding the link can use it until it expires, so keep expiry short."
+        },
+        {
+          "title": "Your app checks access and streams the file",
+          "cost": "$0",
+          "how": "Check login and ownership, then send the file, or hand it to the proxy with X-Accel-Redirect or X-Sendfile.",
+          "tradeoff": "Access is checked on every download. Large files tie up app workers unless the proxy serves them."
+        },
+        {
+          "title": "Sign your own links",
+          "cost": "$0",
+          "how": "Django signing (TimestampSigner), Rails signed ids, or a JWT with an exp claim on a download route.",
+          "tradeoff": "You write the checks yourself. Rotating the key kills every outstanding link, which is sometimes what you want."
+        }
+      ],
+      "prompt": "Serve [file type] privately with expiring download links.\n\nRequirements:\n- The bucket or folder is private. No public ACLs or public bucket policy.\n- When a logged-in user asks for a file, check they own it, then create a presigned GET URL that expires in [15 minutes].\n- Set Content-Disposition so it downloads with a safe filename.\n- Keep the storage keys on the server. The frontend only ever gets the short-lived URL.\n- Log who created a link for which file and when. Don't log the URL itself.\n\nAcceptance checks (run each and show me the result):\n1. The object's plain URL without a signature returns 403.\n2. A new link works, then returns 403 after it expires.\n3. Changing one character of the path or signature returns 403.\n4. User A can't get a link to user B's file by changing the id.\n5. Signed URLs don't show up in server logs or analytics.",
+      "acceptance_checks": [
+        "The object's plain URL without a signature returns 403.",
+        "A new link works, then returns 403 after it expires.",
+        "Changing one character of the path or signature returns 403.",
+        "User A can't get a link to user B's file by changing the id.",
+        "Signed URLs don't show up in server logs or analytics."
+      ],
+      "if_you_skip_it": "Private files get indexed, guessed or shared forever, and you can't take a link back.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "AWS: sharing objects with presigned URLs",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html"
+        },
+        {
+          "title": "Cloudflare R2: presigned URLs",
+          "url": "https://developers.cloudflare.com/r2/api/s3/presigned-urls/"
+        },
+        {
+          "title": "Django: cryptographic signing",
+          "url": "https://docs.djangoproject.com/en/5.2/topics/signing/"
+        },
+        {
+          "title": "Garage (self-hosted S3-compatible storage)",
+          "url": "https://garagehq.deuxfleurs.fr/"
+        }
+      ],
+      "page": "e/signed-download-links/index.html",
+      "json": "api/signed-download-links.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "rate-limiting",
+      "name": "Rate limiting",
+      "aliases": [
+        "throttling",
+        "request limits",
+        "brute-force protection",
+        "429 Too Many Requests"
+      ],
+      "needs": [
+        "someone keeps trying passwords on my login",
+        "a bot is hammering my AI endpoint and my bill went up",
+        "limit each user to 10 generations an hour",
+        "stop spam on my signup form"
+      ],
+      "keywords": [
+        "rate",
+        "limit",
+        "throttle",
+        "bot",
+        "spam",
+        "brute",
+        "login",
+        "password",
+        "429",
+        "abuse",
+        "ddos",
+        "bill",
+        "cost",
+        "otp"
+      ],
+      "summary": "Count requests per key (IP address, user or API key) in a time window and refuse with 429 once the count passes the limit.",
+      "need_when": [
+        "Login, signup, password reset and one-time codes.",
+        "Any endpoint that costs you money per call: LLMs, email, SMS.",
+        "Public forms."
+      ],
+      "skip_when": [
+        "Static pages served from a CDN."
+      ],
+      "ways": [
+        {
+          "title": "Rules at the edge",
+          "cost": "free plan available",
+          "how": "Cloudflare WAF rate limiting rules block by IP before traffic reaches your server.",
+          "tradeoff": "Stops floods cheaply, but only sees IPs and paths, not your logged-in users or plans."
+        },
+        {
+          "title": "Counters in your app, stored in Redis",
+          "cost": "$0",
+          "how": "Fixed or sliding window counters in Redis or your shared cache. Libraries: django-ratelimit, express-rate-limit with a Redis store.",
+          "tradeoff": "Can key on user id and plan. In-memory counters reset on restart and aren't shared between processes, so use Redis."
+        },
+        {
+          "title": "Usage quotas in the database",
+          "cost": "$0",
+          "how": "Count generations per user per month in a table and check it before the expensive call.",
+          "tradeoff": "Right for paid limits. It is billing logic, so it needs tests."
+        }
+      ],
+      "prompt": "Add rate limiting to [endpoints].\n\nRequirements:\n- Use a shared store (Redis) so limits hold across processes and restarts.\n- Limits: [login: 5 tries per 15 minutes per IP and per account], [AI endpoint: N per hour per user].\n- Get the client IP correctly behind our proxy. Only trust X-Forwarded-For when the request comes from our proxy, and take the address our proxy added (counted from the right), not the leftmost one.\n- Return 429 with a Retry-After header and a plain message.\n- For login, reset and code entry, fail closed: if the counter store is down, refuse the attempt.\n\nAcceptance checks (run each and show me the result):\n1. The 6th login attempt inside 15 minutes returns 429.\n2. Sending a made-up X-Forwarded-For header doesn't reset the limit.\n3. Limits still apply after restarting the app.\n4. With Redis stopped, login refuses attempts instead of allowing unlimited tries.\n5. Normal use (browsing, one login) never sees a 429.",
+      "acceptance_checks": [
+        "The 6th login attempt inside 15 minutes returns 429.",
+        "Sending a made-up X-Forwarded-For header doesn't reset the limit.",
+        "Limits still apply after restarting the app.",
+        "With Redis stopped, login refuses attempts instead of allowing unlimited tries.",
+        "Normal use (browsing, one login) never sees a 429."
+      ],
+      "if_you_skip_it": "Password guessing, scraped content, and a surprise bill when a bot finds your AI endpoint.",
+      "how_derek_runs_it": "Custody Journal uses fixed-window counters in the Redis cache it already runs, with no extra library, and hashes the counter keys. Security-sensitive limits fail closed: if the counter store is unavailable, the request is denied. The client IP comes from X-Forwarded-For only when the request arrives from a trusted proxy, counted from the right by the number of proxy hops, so a spoofed header can't dodge the limit.",
+      "links": [
+        {
+          "title": "Cloudflare rate limiting rules",
+          "url": "https://developers.cloudflare.com/waf/rate-limiting-rules/"
+        },
+        {
+          "title": "django-ratelimit",
+          "url": "https://django-ratelimit.readthedocs.io/"
+        },
+        {
+          "title": "express-rate-limit",
+          "url": "https://github.com/express-rate-limit/express-rate-limit"
+        }
+      ],
+      "page": "e/rate-limiting/index.html",
+      "json": "api/rate-limiting.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "email-authentication",
+      "name": "Email authentication (SPF, DKIM, DMARC)",
+      "aliases": [
+        "email deliverability",
+        "SPF record",
+        "DKIM signing",
+        "DMARC policy",
+        "emails going to spam"
+      ],
+      "needs": [
+        "my password reset emails go to spam",
+        "Gmail says it can't verify the sender",
+        "set up my domain to send email",
+        "send receipts from my own domain"
+      ],
+      "keywords": [
+        "email",
+        "spam",
+        "spf",
+        "dkim",
+        "dmarc",
+        "dns",
+        "deliverability",
+        "gmail",
+        "inbox",
+        "smtp",
+        "mail",
+        "newsletter",
+        "transactional",
+        "receipt"
+      ],
+      "summary": "Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.",
+      "need_when": [
+        "As soon as your app sends any email from your own domain.",
+        "Gmail's sender guidelines require them, with stricter rules for bulk senders."
+      ],
+      "skip_when": [
+        "You don't send from your own domain at all."
+      ],
+      "ways": [
+        {
+          "title": "A transactional email provider",
+          "cost": "free or cheap tiers",
+          "how": "Postmark, Resend or Amazon SES give you the DKIM records to paste into DNS and handle sending reputation.",
+          "tradeoff": "The easy path for password resets and receipts. Per-message cost at volume and another account."
+        },
+        {
+          "title": "Self-hosted mail server",
+          "cost": "$0 software",
+          "how": "Postfix with OpenDKIM on a VPS.",
+          "tradeoff": "Hard to keep out of spam. New VPS IPs often have poor reputation, and many hosts block outbound port 25. Not a good choice for password resets."
+        },
+        {
+          "title": "Self-hosted newsletter tool over provider SMTP",
+          "cost": "$0 software",
+          "how": "Listmonk for lists and campaigns, sending through a provider's SMTP.",
+          "tradeoff": "You own the list. You still need the same DNS records, and newsletters should use a separate subdomain or stream from transactional mail."
+        }
+      ],
+      "prompt": "Set up email authentication for [domain], sending through [provider].\n\nRequirements:\n- List the exact DNS records to add: one SPF TXT record that includes the provider, the provider's DKIM records, and a DMARC record at _dmarc starting with p=none and a rua reporting address.\n- Keep transactional mail (resets, receipts) separate from marketing mail: different subdomain or provider stream.\n- Make the app's From address use the authenticated domain.\n- In local development, send all mail to Mailpit instead of real inboxes.\n- Add List-Unsubscribe headers to marketing mail.\n\nAcceptance checks (run each and show me the result):\n1. dig TXT [domain] shows exactly one SPF record.\n2. A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.\n3. A mail-tester.com run lists no authentication problems.\n4. Local development never delivers to a real inbox.\n5. After DMARC reports show only your real senders passing, the policy moves to p=quarantine.",
+      "acceptance_checks": [
+        "dig TXT [domain] shows exactly one SPF record.",
+        "A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.",
+        "A mail-tester.com run lists no authentication problems.",
+        "Local development never delivers to a real inbox.",
+        "After DMARC reports show only your real senders passing, the policy moves to p=quarantine."
+      ],
+      "if_you_skip_it": "Password resets and receipts land in spam or get rejected, and users think your app is broken.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Gmail email sender guidelines",
+          "url": "https://support.google.com/a/answer/81126"
+        },
+        {
+          "title": "DMARC (RFC 7489)",
+          "url": "https://www.rfc-editor.org/rfc/rfc7489"
+        },
+        {
+          "title": "Mailpit (local test inbox)",
+          "url": "https://github.com/axllent/mailpit"
+        },
+        {
+          "title": "mail-tester.com",
+          "url": "https://www.mail-tester.com/"
+        },
+        {
+          "title": "Listmonk",
+          "url": "https://listmonk.app/"
+        }
+      ],
+      "page": "e/email-authentication/index.html",
+      "json": "api/email-authentication.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "backups-tested-restore",
+      "name": "Backups with a tested restore",
+      "aliases": [
+        "database backup",
+        "pg_dump",
+        "restore drill",
+        "disaster recovery",
+        "point-in-time recovery"
+      ],
+      "needs": [
+        "what happens if my database gets deleted",
+        "I have backups but never tried restoring one",
+        "take a backup before I deploy",
+        "back up user uploads too"
+      ],
+      "keywords": [
+        "backup",
+        "restore",
+        "database",
+        "postgres",
+        "pg_dump",
+        "disaster",
+        "recovery",
+        "deleted",
+        "lost",
+        "data",
+        "snapshot"
+      ],
+      "summary": "A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.",
+      "need_when": [
+        "You store anything users would be upset to lose."
+      ],
+      "skip_when": [
+        "The data can be rebuilt from somewhere else."
+      ],
+      "ways": [
+        {
+          "title": "pg_dump on a schedule, shipped off the server with restic",
+          "cost": "$0 software plus storage",
+          "how": "A nightly pg_dump and an archive of uploads, encrypted and deduplicated by restic into object storage.",
+          "tradeoff": "Simple. You lose whatever changed since the last dump."
+        },
+        {
+          "title": "Continuous WAL archiving",
+          "cost": "$0 software",
+          "how": "pgBackRest (or similar) for point-in-time recovery.",
+          "tradeoff": "More setup. Worth it when losing hours of data is not acceptable."
+        },
+        {
+          "title": "Managed database backups",
+          "cost": "monthly cost",
+          "how": "A managed Postgres such as DigitalOcean's takes automated backups.",
+          "tradeoff": "Less to run, but you still have to test a restore, and uploaded files need their own backup. A server snapshot is not the same as a tested database restore."
+        }
+      ],
+      "prompt": "Add backups with an automated restore test for [Postgres database + uploads folder].\n\nRequirements:\n- Nightly job: pg_dump in custom format plus an archive of uploaded files, taken together so they match.\n- Encrypt and copy off the server to [bucket]. Keep [7 daily and 4 weekly].\n- Write a manifest per run with file checksums.\n- Restore test job: start a disposable Postgres, restore the latest backup into it, run a migrations check and a few row-count queries, then delete it. Record pass or fail.\n- Refuse to run the restore test against anything that isn't the disposable database.\n- Alert if the last good backup is older than [26 hours] or the last passing restore test is older than [8 days].\n- Before each deploy, take a backup and stop the deploy if it fails.\n\nAcceptance checks (run each and show me the result):\n1. Restoring last night's backup into a scratch database shows a row created yesterday.\n2. Pointing the restore test at the production database URL makes it refuse to run.\n3. Backup files can't be read without the key.\n4. Turning off the backup job triggers the stale-backup alert.\n5. A deploy with a failed backup stops before migrations run.",
+      "acceptance_checks": [
+        "Restoring last night's backup into a scratch database shows a row created yesterday.",
+        "Pointing the restore test at the production database URL makes it refuse to run.",
+        "Backup files can't be read without the key.",
+        "Turning off the backup job triggers the stale-backup alert.",
+        "A deploy with a failed backup stops before migrations run."
+      ],
+      "if_you_skip_it": "You find out the backups were empty or unreadable on the day you need them.",
+      "how_derek_runs_it": "Custody Journal's release runbook makes a matched database and media backup a hard gate before any release. Its encrypted manifest has to pass a restore into a disposable PostgreSQL container, and an attest command records that result. The app's operations health report flags a failed or uncommitted latest backup. There is also a command for copying backups off the server.",
+      "links": [
+        {
+          "title": "PostgreSQL: pg_dump",
+          "url": "https://www.postgresql.org/docs/current/app-pgdump.html"
+        },
+        {
+          "title": "restic",
+          "url": "https://restic.net/"
+        },
+        {
+          "title": "pgBackRest",
+          "url": "https://pgbackrest.org/"
+        }
+      ],
+      "page": "e/backups-tested-restore/index.html",
+      "json": "api/backups-tested-restore.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "feature-flags",
+      "name": "Feature flag",
+      "aliases": [
+        "feature toggle",
+        "kill switch",
+        "gradual rollout",
+        "dark launch",
+        "flag"
+      ],
+      "needs": [
+        "ship code but keep the feature off",
+        "turn off the new thing without rolling back",
+        "let only me test it in production",
+        "roll a feature out to some users first"
+      ],
+      "keywords": [
+        "flag",
+        "toggle",
+        "switch",
+        "rollout",
+        "beta",
+        "kill",
+        "disable",
+        "enable",
+        "experiment",
+        "staff"
+      ],
+      "summary": "A named on and off switch the code checks at runtime. You deploy with the feature off, turn it on for everyone, some users or just yourself, and turn it off fast if it breaks.",
+      "need_when": [
+        "Risky changes, payment changes, anything you want to undo without a rollback.",
+        "You want to try something in production before users see it."
+      ],
+      "skip_when": [
+        "Small fixes. Every flag is a branch in your code that you have to remove later."
+      ],
+      "ways": [
+        {
+          "title": "Environment variable flags",
+          "cost": "$0",
+          "how": "Read FEATURE_X_ENABLED at startup.",
+          "tradeoff": "Dead simple. Changing a flag needs a restart or redeploy, and it is all or nothing."
+        },
+        {
+          "title": "A flags table with an admin switch",
+          "cost": "$0",
+          "how": "django-waffle, Flipper for Rails, or your own table with a cached lookup.",
+          "tradeoff": "Flip without deploying and target staff or a list of users. More code, and the lookup needs caching."
+        },
+        {
+          "title": "A flag service",
+          "cost": "free tiers or self-hosted",
+          "how": "Unleash and GrowthBook are open source and self-hostable. PostHog also has feature flags.",
+          "tradeoff": "Percent rollouts and targeting built in. Another service and SDK in your stack."
+        }
+      ],
+      "prompt": "Put [feature] behind a feature flag named [flag_name].\n\nRequirements:\n- Default off in every environment.\n- One helper, is_enabled(flag, user), used everywhere. No scattered environment reads.\n- Support three states: off, on for everyone, on for a list of staff user ids.\n- When off: the feature's routes return 404, its UI is hidden and its scheduled jobs skip.\n- Log flag changes with who and when.\n- Add a dated TODO to remove the flag once it has been fully on for a while.\n\nAcceptance checks (run each and show me the result):\n1. With the flag off, the feature can't be reached by URL.\n2. Turning it on for one staff user shows it only to them.\n3. Turning it off hides it again without a code change.\n4. Tests cover both the on and off states.\n5. Scheduled jobs for the feature do nothing while it's off.",
+      "acceptance_checks": [
+        "With the flag off, the feature can't be reached by URL.",
+        "Turning it on for one staff user shows it only to them.",
+        "Turning it off hides it again without a code change.",
+        "Tests cover both the on and off states.",
+        "Scheduled jobs for the feature do nothing while it's off."
+      ],
+      "if_you_skip_it": "Every risky change becomes a full rollback, and half-built features leak to users.",
+      "how_derek_runs_it": "Custody Journal uses environment flags (for example CJ_BILLING_MEASUREMENTS_ENABLED) set per service in a small Compose override file that each release must include. Its release guard compares environment keys between the live and new stack and aborts on any flag change that isn't named in an explicit allow rule for one service, one key and one exact change.",
+      "links": [
+        {
+          "title": "django-waffle",
+          "url": "https://github.com/django-waffle/django-waffle"
+        },
+        {
+          "title": "Flipper",
+          "url": "https://github.com/flippercloud/flipper"
+        },
+        {
+          "title": "Unleash",
+          "url": "https://github.com/Unleash/unleash"
+        },
+        {
+          "title": "GrowthBook",
+          "url": "https://github.com/growthbook/growthbook"
+        },
+        {
+          "title": "PostHog feature flags",
+          "url": "https://posthog.com/docs/feature-flags"
+        }
+      ],
+      "page": "e/feature-flags/index.html",
+      "json": "api/feature-flags.json",
+      "updated": "2026-10-21"
+    },
+    {
+      "id": "health-checks",
+      "name": "Health checks and safe deploys",
+      "aliases": [
+        "health endpoint",
+        "readiness probe",
+        "liveness probe",
+        "healthz",
+        "zero-downtime deploy",
+        "rolling deploy"
+      ],
+      "needs": [
+        "the site goes down every time I deploy",
+        "know my app is broken before users tell me",
+        "the new version started before the database was ready",
+        "roll back automatically if the deploy is bad"
+      ],
+      "keywords": [
+        "health",
+        "healthz",
+        "ready",
+        "readiness",
+        "liveness",
+        "deploy",
+        "downtime",
+        "rollback",
+        "uptime",
+        "monitor",
+        "coolify",
+        "docker",
+        "probe",
+        "502"
+      ],
+      "summary": "Small URLs your platform calls to ask two things: is the process alive (liveness), and can it serve traffic right now, with the database, cache and migrations in order (readiness). Deploy tools wait for readiness before sending traffic to a new version and keep the old one if it never gets there.",
+      "need_when": [
+        "Anything with users, and any automated deploy."
+      ],
+      "skip_when": [
+        "Rarely. Even a hobby app benefits from a readiness check and an outside uptime ping."
+      ],
+      "ways": [
+        {
+          "title": "Two endpoints in your app",
+          "cost": "$0",
+          "how": "/health/ (process up, no dependency calls) and /health/ready/ (database, cache, schema). Point Docker HEALTHCHECK, Coolify health checks or Kubernetes probes at the readiness one.",
+          "tradeoff": "A readiness check that tests too much can flap and take the site down on a minor issue."
+        },
+        {
+          "title": "Health-gated rolling or blue-green deploys",
+          "cost": "$0",
+          "how": "Start the new container, wait for readiness, switch the proxy, then stop the old one.",
+          "tradeoff": "Needs database migrations that work with both the old and new code at once: add columns first, remove them in a later release."
+        },
+        {
+          "title": "Outside monitoring",
+          "cost": "free tiers or self-hosted",
+          "how": "An uptime checker for the site, and Healthchecks.io (open source) for alerts when a scheduled job stops checking in.",
+          "tradeoff": "Tells you something broke. It doesn't stop a bad deploy."
+        }
+      ],
+      "prompt": "Add health checks and a health-gated deploy for this app.\n\nRequirements:\n- GET /health/ returns 200 when the process is running. No database calls.\n- GET /health/ready/ checks the database (SELECT 1), the cache (set and read a short-lived key) and pending migrations. It returns 200 with per-dependency status JSON, or 503 if any fail. No secrets, versions or hostnames in the response.\n- The container health check points at /health/ready/.\n- Deploy: start the new version, wait until /health/ready/ returns 200 (timeout [90 seconds]), then switch traffic. If it never gets ready, keep the old version serving.\n- Migrations in this release must work with the currently running code.\n\nAcceptance checks (run each and show me the result):\n1. Stopping the database makes /health/ready/ return 503 within a few seconds while /health/ stays 200.\n2. Deploying a build that crashes on start leaves the old version serving.\n3. During a normal deploy, a curl loop every half second sees no 5xx responses (if zero downtime is the goal).\n4. The health response contains no secrets or internal hostnames.\n5. Health check traffic is excluded from analytics and rate limits.",
+      "acceptance_checks": [
+        "Stopping the database makes /health/ready/ return 503 within a few seconds while /health/ stays 200.",
+        "Deploying a build that crashes on start leaves the old version serving.",
+        "During a normal deploy, a curl loop every half second sees no 5xx responses (if zero downtime is the goal).",
+        "The health response contains no secrets or internal hostnames.",
+        "Health check traffic is excluded from analytics and rate limits."
+      ],
+      "if_you_skip_it": "Every deploy causes a few minutes of errors, and a bad build stays live until someone notices.",
+      "how_derek_runs_it": "Custody Journal exposes /health/ready/, which reports database, cache and schema status. Its releases are not zero-downtime: the runbook uses a short maintenance window, says not to use the Coolify Deploy button (that redeploy replaces the whole stack, including Postgres and Redis), and doesn't end maintenance until all six services are healthy and /health/ready/ returns 200. If any health gate fails, the release guard runs the captured rollback automatically.",
+      "links": [
+        {
+          "title": "Kubernetes: liveness, readiness and startup probes",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+        },
+        {
+          "title": "Coolify: health checks",
+          "url": "https://coolify.io/docs/knowledge-base/health-checks"
+        },
+        {
+          "title": "Healthchecks.io (open source)",
+          "url": "https://github.com/healthchecks/healthchecks"
+        }
+      ],
+      "page": "e/health-checks/index.html",
+      "json": "api/health-checks.json",
+      "updated": "2026-10-21"
+    }
+  ]
+}

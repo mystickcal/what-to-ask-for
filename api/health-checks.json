@@ -1,0 +1,88 @@
+{
+  "id": "health-checks",
+  "name": "Health checks and safe deploys",
+  "aliases": [
+    "health endpoint",
+    "readiness probe",
+    "liveness probe",
+    "healthz",
+    "zero-downtime deploy",
+    "rolling deploy"
+  ],
+  "needs": [
+    "the site goes down every time I deploy",
+    "know my app is broken before users tell me",
+    "the new version started before the database was ready",
+    "roll back automatically if the deploy is bad"
+  ],
+  "keywords": [
+    "health",
+    "healthz",
+    "ready",
+    "readiness",
+    "liveness",
+    "deploy",
+    "downtime",
+    "rollback",
+    "uptime",
+    "monitor",
+    "coolify",
+    "docker",
+    "probe",
+    "502"
+  ],
+  "summary": "Small URLs your platform calls to ask two things: is the process alive (liveness), and can it serve traffic right now, with the database, cache and migrations in order (readiness). Deploy tools wait for readiness before sending traffic to a new version and keep the old one if it never gets there.",
+  "need_when": [
+    "Anything with users, and any automated deploy."
+  ],
+  "skip_when": [
+    "Rarely. Even a hobby app benefits from a readiness check and an outside uptime ping."
+  ],
+  "ways": [
+    {
+      "title": "Two endpoints in your app",
+      "cost": "$0",
+      "how": "/health/ (process up, no dependency calls) and /health/ready/ (database, cache, schema). Point Docker HEALTHCHECK, Coolify health checks or Kubernetes probes at the readiness one.",
+      "tradeoff": "A readiness check that tests too much can flap and take the site down on a minor issue."
+    },
+    {
+      "title": "Health-gated rolling or blue-green deploys",
+      "cost": "$0",
+      "how": "Start the new container, wait for readiness, switch the proxy, then stop the old one.",
+      "tradeoff": "Needs database migrations that work with both the old and new code at once: add columns first, remove them in a later release."
+    },
+    {
+      "title": "Outside monitoring",
+      "cost": "free tiers or self-hosted",
+      "how": "An uptime checker for the site, and Healthchecks.io (open source) for alerts when a scheduled job stops checking in.",
+      "tradeoff": "Tells you something broke. It doesn't stop a bad deploy."
+    }
+  ],
+  "prompt": "Add health checks and a health-gated deploy for this app.\n\nRequirements:\n- GET /health/ returns 200 when the process is running. No database calls.\n- GET /health/ready/ checks the database (SELECT 1), the cache (set and read a short-lived key) and pending migrations. It returns 200 with per-dependency status JSON, or 503 if any fail. No secrets, versions or hostnames in the response.\n- The container health check points at /health/ready/.\n- Deploy: start the new version, wait until /health/ready/ returns 200 (timeout [90 seconds]), then switch traffic. If it never gets ready, keep the old version serving.\n- Migrations in this release must work with the currently running code.\n\nAcceptance checks (run each and show me the result):\n1. Stopping the database makes /health/ready/ return 503 within a few seconds while /health/ stays 200.\n2. Deploying a build that crashes on start leaves the old version serving.\n3. During a normal deploy, a curl loop every half second sees no 5xx responses (if zero downtime is the goal).\n4. The health response contains no secrets or internal hostnames.\n5. Health check traffic is excluded from analytics and rate limits.",
+  "acceptance_checks": [
+    "Stopping the database makes /health/ready/ return 503 within a few seconds while /health/ stays 200.",
+    "Deploying a build that crashes on start leaves the old version serving.",
+    "During a normal deploy, a curl loop every half second sees no 5xx responses (if zero downtime is the goal).",
+    "The health response contains no secrets or internal hostnames.",
+    "Health check traffic is excluded from analytics and rate limits."
+  ],
+  "if_you_skip_it": "Every deploy causes a few minutes of errors, and a bad build stays live until someone notices.",
+  "how_derek_runs_it": "Custody Journal exposes /health/ready/, which reports database, cache and schema status. Its releases are not zero-downtime: the runbook uses a short maintenance window, says not to use the Coolify Deploy button (that redeploy replaces the whole stack, including Postgres and Redis), and doesn't end maintenance until all six services are healthy and /health/ready/ returns 200. If any health gate fails, the release guard runs the captured rollback automatically.",
+  "links": [
+    {
+      "title": "Kubernetes: liveness, readiness and startup probes",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+    },
+    {
+      "title": "Coolify: health checks",
+      "url": "https://coolify.io/docs/knowledge-base/health-checks"
+    },
+    {
+      "title": "Healthchecks.io (open source)",
+      "url": "https://github.com/healthchecks/healthchecks"
+    }
+  ],
+  "page": "e/health-checks/index.html",
+  "json": "api/health-checks.json",
+  "updated": "2026-10-21"
+}

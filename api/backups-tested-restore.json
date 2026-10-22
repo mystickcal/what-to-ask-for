@@ -1,0 +1,84 @@
+{
+  "id": "backups-tested-restore",
+  "name": "Backups with a tested restore",
+  "aliases": [
+    "database backup",
+    "pg_dump",
+    "restore drill",
+    "disaster recovery",
+    "point-in-time recovery"
+  ],
+  "needs": [
+    "what happens if my database gets deleted",
+    "I have backups but never tried restoring one",
+    "take a backup before I deploy",
+    "back up user uploads too"
+  ],
+  "keywords": [
+    "backup",
+    "restore",
+    "database",
+    "postgres",
+    "pg_dump",
+    "disaster",
+    "recovery",
+    "deleted",
+    "lost",
+    "data",
+    "snapshot"
+  ],
+  "summary": "A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.",
+  "need_when": [
+    "You store anything users would be upset to lose."
+  ],
+  "skip_when": [
+    "The data can be rebuilt from somewhere else."
+  ],
+  "ways": [
+    {
+      "title": "pg_dump on a schedule, shipped off the server with restic",
+      "cost": "$0 software plus storage",
+      "how": "A nightly pg_dump and an archive of uploads, encrypted and deduplicated by restic into object storage.",
+      "tradeoff": "Simple. You lose whatever changed since the last dump."
+    },
+    {
+      "title": "Continuous WAL archiving",
+      "cost": "$0 software",
+      "how": "pgBackRest (or similar) for point-in-time recovery.",
+      "tradeoff": "More setup. Worth it when losing hours of data is not acceptable."
+    },
+    {
+      "title": "Managed database backups",
+      "cost": "monthly cost",
+      "how": "A managed Postgres such as DigitalOcean's takes automated backups.",
+      "tradeoff": "Less to run, but you still have to test a restore, and uploaded files need their own backup. A server snapshot is not the same as a tested database restore."
+    }
+  ],
+  "prompt": "Add backups with an automated restore test for [Postgres database + uploads folder].\n\nRequirements:\n- Nightly job: pg_dump in custom format plus an archive of uploaded files, taken together so they match.\n- Encrypt and copy off the server to [bucket]. Keep [7 daily and 4 weekly].\n- Write a manifest per run with file checksums.\n- Restore test job: start a disposable Postgres, restore the latest backup into it, run a migrations check and a few row-count queries, then delete it. Record pass or fail.\n- Refuse to run the restore test against anything that isn't the disposable database.\n- Alert if the last good backup is older than [26 hours] or the last passing restore test is older than [8 days].\n- Before each deploy, take a backup and stop the deploy if it fails.\n\nAcceptance checks (run each and show me the result):\n1. Restoring last night's backup into a scratch database shows a row created yesterday.\n2. Pointing the restore test at the production database URL makes it refuse to run.\n3. Backup files can't be read without the key.\n4. Turning off the backup job triggers the stale-backup alert.\n5. A deploy with a failed backup stops before migrations run.",
+  "acceptance_checks": [
+    "Restoring last night's backup into a scratch database shows a row created yesterday.",
+    "Pointing the restore test at the production database URL makes it refuse to run.",
+    "Backup files can't be read without the key.",
+    "Turning off the backup job triggers the stale-backup alert.",
+    "A deploy with a failed backup stops before migrations run."
+  ],
+  "if_you_skip_it": "You find out the backups were empty or unreadable on the day you need them.",
+  "how_derek_runs_it": "Custody Journal's release runbook makes a matched database and media backup a hard gate before any release. Its encrypted manifest has to pass a restore into a disposable PostgreSQL container, and an attest command records that result. The app's operations health report flags a failed or uncommitted latest backup. There is also a command for copying backups off the server.",
+  "links": [
+    {
+      "title": "PostgreSQL: pg_dump",
+      "url": "https://www.postgresql.org/docs/current/app-pgdump.html"
+    },
+    {
+      "title": "restic",
+      "url": "https://restic.net/"
+    },
+    {
+      "title": "pgBackRest",
+      "url": "https://pgbackrest.org/"
+    }
+  ],
+  "page": "e/backups-tested-restore/index.html",
+  "json": "api/backups-tested-restore.json",
+  "updated": "2026-10-21"
+}

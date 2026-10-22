@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webhook signature verification: What To Ask For</title>
+<meta name="description" content="A webhook is another service calling your URL when something happens. The sender signs each request with a shared secret. Your server recomputes the signature from the raw body and rejects anything that doesn&#x27;t match or is too old.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Webhook signature verification</h1>
+  <p class="aka">Also called: webhook signing, HMAC signature, signing secret, Stripe-Signature header</p>
+  <p class="lead">A webhook is another service calling your URL when something happens. The sender signs each request with a shared secret. Your server recomputes the signature from the raw body and rejects anything that doesn&#x27;t match or is too old.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>A webhook changes anything: payments, plan changes, orders, form submissions.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Don&#x27;t skip it for anything that changes data. Even if you re-fetch the object from the API, verify first so strangers can&#x27;t trigger work.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>The provider&#x27;s SDK helper <span class="cost">$0</span></h3>
+<p>Stripe: stripe.Webhook.construct_event in Python, stripe.webhooks.constructEvent in Node. Test locally with the Stripe CLI: stripe listen --forward-to and stripe trigger.</p><p class="trade"><strong>Tradeoff:</strong> Simplest and correct, but it needs the raw request body. Frameworks that parse JSON first break the signature.</p></li>
+<li><h3>HMAC-SHA256 by hand <span class="cost">$0</span></h3>
+<p>For providers without an SDK (for example GitHub&#x27;s X-Hub-Signature-256), compute the HMAC of the raw body and compare with hmac.compare_digest or crypto.timingSafeEqual.</p><p class="trade"><strong>Tradeoff:</strong> Easy to get subtly wrong: plain string compare, wrong encoding, or no timestamp check.</p></li>
+<li><h3>A webhook gateway <span class="cost">free tiers</span></h3>
+<p>Hookdeck or Svix receive, verify, queue and retry webhooks, then forward them to you.</p><p class="trade"><strong>Tradeoff:</strong> Another hop and account. Useful when you receive from many providers.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a webhook endpoint at [path] for [provider].
+
+Requirements:
+- Read the raw request body before any JSON parsing.
+- Verify the signature with the provider&#x27;s SDK (or HMAC-SHA256 with a constant-time compare). The secret comes from an environment variable.
+- Enforce the timestamp tolerance so old requests can&#x27;t be replayed (Stripe&#x27;s libraries default to 5 minutes).
+- Reject bodies over [1 MB] with 413 and bad signatures with 400, before touching any data.
+- Exempt only this route from CSRF.
+- Log the event id and type only. Never log the payload, headers or secret.
+
+Acceptance checks (run each and show me the result):
+1. A request with no signature returns 400 and changes nothing.
+2. A correctly signed request with one byte of the body changed returns 400.
+3. stripe trigger checkout.session.completed through the Stripe CLI returns 200.
+4. Replaying an old signed request outside the tolerance returns 400.
+5. The secret appears only in environment config, not in code, logs or the frontend.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Anyone who finds the URL can mark orders paid or upgrade accounts for free.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s Stripe endpoint returns 413 for bodies over 1 MB, verifies with stripe.Webhook.construct_event, and returns 400 on a bad signature before any data changes. For the webhooks it sends to other systems, it signs the body with HMAC-SHA256 in an X-Webhook-Signature header and checks destination URLs with an SSRF guard.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;Stripe calls my server when someone pays&rdquo;</li><li>&ldquo;how do I know the webhook is really from Stripe&rdquo;</li><li>&ldquo;anyone could POST to my webhook URL&rdquo;</li><li>&ldquo;receive events from GitHub or another service&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/webhooks/signature">Stripe: verify webhook signatures</a></li><li><a href="https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries">GitHub: validating webhook deliveries</a></li><li><a href="https://github.com/stripe/stripe-cli">Stripe CLI</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/webhook-signature-verification.json">api/webhook-signature-verification.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../background-job-queue/index.html">&larr; Background job queue</a><a href="../idempotent-webhooks/index.html">Idempotent webhook handling &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

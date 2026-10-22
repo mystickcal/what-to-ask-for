@@ -1,0 +1,92 @@
+{
+  "id": "feature-flags",
+  "name": "Feature flag",
+  "aliases": [
+    "feature toggle",
+    "kill switch",
+    "gradual rollout",
+    "dark launch",
+    "flag"
+  ],
+  "needs": [
+    "ship code but keep the feature off",
+    "turn off the new thing without rolling back",
+    "let only me test it in production",
+    "roll a feature out to some users first"
+  ],
+  "keywords": [
+    "flag",
+    "toggle",
+    "switch",
+    "rollout",
+    "beta",
+    "kill",
+    "disable",
+    "enable",
+    "experiment",
+    "staff"
+  ],
+  "summary": "A named on and off switch the code checks at runtime. You deploy with the feature off, turn it on for everyone, some users or just yourself, and turn it off fast if it breaks.",
+  "need_when": [
+    "Risky changes, payment changes, anything you want to undo without a rollback.",
+    "You want to try something in production before users see it."
+  ],
+  "skip_when": [
+    "Small fixes. Every flag is a branch in your code that you have to remove later."
+  ],
+  "ways": [
+    {
+      "title": "Environment variable flags",
+      "cost": "$0",
+      "how": "Read FEATURE_X_ENABLED at startup.",
+      "tradeoff": "Dead simple. Changing a flag needs a restart or redeploy, and it is all or nothing."
+    },
+    {
+      "title": "A flags table with an admin switch",
+      "cost": "$0",
+      "how": "django-waffle, Flipper for Rails, or your own table with a cached lookup.",
+      "tradeoff": "Flip without deploying and target staff or a list of users. More code, and the lookup needs caching."
+    },
+    {
+      "title": "A flag service",
+      "cost": "free tiers or self-hosted",
+      "how": "Unleash and GrowthBook are open source and self-hostable. PostHog also has feature flags.",
+      "tradeoff": "Percent rollouts and targeting built in. Another service and SDK in your stack."
+    }
+  ],
+  "prompt": "Put [feature] behind a feature flag named [flag_name].\n\nRequirements:\n- Default off in every environment.\n- One helper, is_enabled(flag, user), used everywhere. No scattered environment reads.\n- Support three states: off, on for everyone, on for a list of staff user ids.\n- When off: the feature's routes return 404, its UI is hidden and its scheduled jobs skip.\n- Log flag changes with who and when.\n- Add a dated TODO to remove the flag once it has been fully on for a while.\n\nAcceptance checks (run each and show me the result):\n1. With the flag off, the feature can't be reached by URL.\n2. Turning it on for one staff user shows it only to them.\n3. Turning it off hides it again without a code change.\n4. Tests cover both the on and off states.\n5. Scheduled jobs for the feature do nothing while it's off.",
+  "acceptance_checks": [
+    "With the flag off, the feature can't be reached by URL.",
+    "Turning it on for one staff user shows it only to them.",
+    "Turning it off hides it again without a code change.",
+    "Tests cover both the on and off states.",
+    "Scheduled jobs for the feature do nothing while it's off."
+  ],
+  "if_you_skip_it": "Every risky change becomes a full rollback, and half-built features leak to users.",
+  "how_derek_runs_it": "Custody Journal uses environment flags (for example CJ_BILLING_MEASUREMENTS_ENABLED) set per service in a small Compose override file that each release must include. Its release guard compares environment keys between the live and new stack and aborts on any flag change that isn't named in an explicit allow rule for one service, one key and one exact change.",
+  "links": [
+    {
+      "title": "django-waffle",
+      "url": "https://github.com/django-waffle/django-waffle"
+    },
+    {
+      "title": "Flipper",
+      "url": "https://github.com/flippercloud/flipper"
+    },
+    {
+      "title": "Unleash",
+      "url": "https://github.com/Unleash/unleash"
+    },
+    {
+      "title": "GrowthBook",
+      "url": "https://github.com/growthbook/growthbook"
+    },
+    {
+      "title": "PostHog feature flags",
+      "url": "https://posthog.com/docs/feature-flags"
+    }
+  ],
+  "page": "e/feature-flags/index.html",
+  "json": "api/feature-flags.json",
+  "updated": "2026-10-21"
+}

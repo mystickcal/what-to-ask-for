@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scheduled job: What To Ask For</title>
+<meta name="description" content="Code that runs on a clock instead of when someone clicks. A scheduler wakes up, checks what is due and runs it.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Scheduled job</h1>
+  <p class="aka">Also called: cron job, scheduled task, recurring job, periodic task, job scheduler</p>
+  <p class="lead">Code that runs on a clock instead of when someone clicks. A scheduler wakes up, checks what is due and runs it.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Something has to happen when nobody is on the site: reminders, digests, cleanup, syncing.</li><li>A user picks a time and expects something to arrive then.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The work can run right when the user clicks and finishes in a second or two.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Cron or supercronic calling a command <span class="cost">$0</span></h3>
+<p>A crontab line (or supercronic inside a container) runs one command on a schedule, like a Django management command or a Node script.</p><p class="trade"><strong>Tradeoff:</strong> If the server is down at 3 AM, that run is simply lost unless you add catch-up. Two copies of the container means every job runs twice.</p></li>
+<li><h3>A scheduler inside your worker <span class="cost">$0 on your server</span></h3>
+<p>Celery beat (Python), BullMQ repeatable jobs (Node) or pg-boss schedules (Postgres) enqueue jobs on a schedule for your workers.</p><p class="trade"><strong>Tradeoff:</strong> One more process to keep alive, and you need a lock so only one instance does the scheduling.</p></li>
+<li><h3>A managed trigger that calls your URL <span class="cost">free tiers</span></h3>
+<p>Cloudflare Workers Cron Triggers, Vercel Cron Jobs or a GitHub Actions schedule hits an endpoint on your app.</p><p class="trade"><strong>Tradeoff:</strong> The endpoint is public, so it needs a secret check. Timing can drift, and GitHub notes scheduled workflows can be delayed under load.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add a scheduled job that [does X] every [schedule], in UTC.
+
+Requirements:
+- Put the job logic in one function or command that I can also run by hand.
+- Record each run in the database: job name, scheduled slot, started, finished, status, error code.
+- Make (job name, scheduled slot) unique so the same slot never runs twice, even if two scheduler processes start.
+- If the scheduler was down, catch up missed slots inside a [2 hour] window and skip older ones.
+- Give each run a timeout and a max attempt count.
+- Store and compare times in UTC. Convert to the user&#x27;s timezone only for display and for user-picked send times.
+
+Acceptance checks (run each and show me the result):
+1. Running the command by hand twice for the same slot does the work once.
+2. Starting two scheduler processes at the same time still runs each slot once.
+3. Stopping the scheduler for 10 minutes and restarting it runs the missed slot once.
+4. A run that passes its timeout is marked failed and the next slot still runs.
+5. A user who picked 7:00 PM in New York gets it at 7:00 PM New York time across a daylight saving change.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Reminders silently stop after a restart, or every user gets the same email twice when you scale to two containers.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal runs its own UTC scheduler in a separate operations container. Every job has a schedule, a catch-up window, a timeout and a max attempt count. Each run claims its time slot in a database row with a row lock, so one slot can&#x27;t run twice. Examples from the job list: transactional mail every minute and a subscription reconcile once a day.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;send each user an email at a time they pick&rdquo;</li><li>&ldquo;run something every night&rdquo;</li><li>&ldquo;send a reminder the day before&rdquo;</li><li>&ldquo;clean up old files every hour&rdquo;</li><li>&ldquo;sync with another service every few minutes&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/aptible/supercronic">supercronic</a></li><li><a href="https://developers.cloudflare.com/workers/configuration/cron-triggers/">Cloudflare Workers Cron Triggers</a></li><li><a href="https://vercel.com/docs/cron-jobs">Vercel Cron Jobs</a></li><li><a href="https://github.com/timgit/pg-boss">pg-boss</a></li><li><a href="https://healthchecks.io/">Healthchecks.io (alerts when a job stops running)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/scheduled-jobs.json">api/scheduled-jobs.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../health-checks/index.html">&larr; Health checks and safe deploys</a><a href="../background-job-queue/index.html">Background job queue &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

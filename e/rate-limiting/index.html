@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rate limiting: What To Ask For</title>
+<meta name="description" content="Count requests per key (IP address, user or API key) in a time window and refuse with 429 once the count passes the limit.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Rate limiting</h1>
+  <p class="aka">Also called: throttling, request limits, brute-force protection, 429 Too Many Requests</p>
+  <p class="lead">Count requests per key (IP address, user or API key) in a time window and refuse with 429 once the count passes the limit.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Login, signup, password reset and one-time codes.</li><li>Any endpoint that costs you money per call: LLMs, email, SMS.</li><li>Public forms.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Static pages served from a CDN.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Rules at the edge <span class="cost">free plan available</span></h3>
+<p>Cloudflare WAF rate limiting rules block by IP before traffic reaches your server.</p><p class="trade"><strong>Tradeoff:</strong> Stops floods cheaply, but only sees IPs and paths, not your logged-in users or plans.</p></li>
+<li><h3>Counters in your app, stored in Redis <span class="cost">$0</span></h3>
+<p>Fixed or sliding window counters in Redis or your shared cache. Libraries: django-ratelimit, express-rate-limit with a Redis store.</p><p class="trade"><strong>Tradeoff:</strong> Can key on user id and plan. In-memory counters reset on restart and aren&#x27;t shared between processes, so use Redis.</p></li>
+<li><h3>Usage quotas in the database <span class="cost">$0</span></h3>
+<p>Count generations per user per month in a table and check it before the expensive call.</p><p class="trade"><strong>Tradeoff:</strong> Right for paid limits. It is billing logic, so it needs tests.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add rate limiting to [endpoints].
+
+Requirements:
+- Use a shared store (Redis) so limits hold across processes and restarts.
+- Limits: [login: 5 tries per 15 minutes per IP and per account], [AI endpoint: N per hour per user].
+- Get the client IP correctly behind our proxy. Only trust X-Forwarded-For when the request comes from our proxy, and take the address our proxy added (counted from the right), not the leftmost one.
+- Return 429 with a Retry-After header and a plain message.
+- For login, reset and code entry, fail closed: if the counter store is down, refuse the attempt.
+
+Acceptance checks (run each and show me the result):
+1. The 6th login attempt inside 15 minutes returns 429.
+2. Sending a made-up X-Forwarded-For header doesn&#x27;t reset the limit.
+3. Limits still apply after restarting the app.
+4. With Redis stopped, login refuses attempts instead of allowing unlimited tries.
+5. Normal use (browsing, one login) never sees a 429.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Password guessing, scraped content, and a surprise bill when a bot finds your AI endpoint.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses fixed-window counters in the Redis cache it already runs, with no extra library, and hashes the counter keys. Security-sensitive limits fail closed: if the counter store is unavailable, the request is denied. The client IP comes from X-Forwarded-For only when the request arrives from a trusted proxy, counted from the right by the number of proxy hops, so a spoofed header can&#x27;t dodge the limit.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;someone keeps trying passwords on my login&rdquo;</li><li>&ldquo;a bot is hammering my AI endpoint and my bill went up&rdquo;</li><li>&ldquo;limit each user to 10 generations an hour&rdquo;</li><li>&ldquo;stop spam on my signup form&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.cloudflare.com/waf/rate-limiting-rules/">Cloudflare rate limiting rules</a></li><li><a href="https://django-ratelimit.readthedocs.io/">django-ratelimit</a></li><li><a href="https://github.com/express-rate-limit/express-rate-limit">express-rate-limit</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/rate-limiting.json">api/rate-limiting.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../signed-download-links/index.html">&larr; Signed download link</a><a href="../email-authentication/index.html">Email authentication (SPF, DKIM, DMARC) &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

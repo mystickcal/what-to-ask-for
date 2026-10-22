@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email authentication (SPF, DKIM, DMARC): What To Ask For</title>
+<meta name="description" content="Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Email authentication (SPF, DKIM, DMARC)</h1>
+  <p class="aka">Also called: email deliverability, SPF record, DKIM signing, DMARC policy, emails going to spam</p>
+  <p class="lead">Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>As soon as your app sends any email from your own domain.</li><li>Gmail&#x27;s sender guidelines require them, with stricter rules for bulk senders.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You don&#x27;t send from your own domain at all.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A transactional email provider <span class="cost">free or cheap tiers</span></h3>
+<p>Postmark, Resend or Amazon SES give you the DKIM records to paste into DNS and handle sending reputation.</p><p class="trade"><strong>Tradeoff:</strong> The easy path for password resets and receipts. Per-message cost at volume and another account.</p></li>
+<li><h3>Self-hosted mail server <span class="cost">$0 software</span></h3>
+<p>Postfix with OpenDKIM on a VPS.</p><p class="trade"><strong>Tradeoff:</strong> Hard to keep out of spam. New VPS IPs often have poor reputation, and many hosts block outbound port 25. Not a good choice for password resets.</p></li>
+<li><h3>Self-hosted newsletter tool over provider SMTP <span class="cost">$0 software</span></h3>
+<p>Listmonk for lists and campaigns, sending through a provider&#x27;s SMTP.</p><p class="trade"><strong>Tradeoff:</strong> You own the list. You still need the same DNS records, and newsletters should use a separate subdomain or stream from transactional mail.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Set up email authentication for [domain], sending through [provider].
+
+Requirements:
+- List the exact DNS records to add: one SPF TXT record that includes the provider, the provider&#x27;s DKIM records, and a DMARC record at _dmarc starting with p=none and a rua reporting address.
+- Keep transactional mail (resets, receipts) separate from marketing mail: different subdomain or provider stream.
+- Make the app&#x27;s From address use the authenticated domain.
+- In local development, send all mail to Mailpit instead of real inboxes.
+- Add List-Unsubscribe headers to marketing mail.
+
+Acceptance checks (run each and show me the result):
+1. dig TXT [domain] shows exactly one SPF record.
+2. A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.
+3. A mail-tester.com run lists no authentication problems.
+4. Local development never delivers to a real inbox.
+5. After DMARC reports show only your real senders passing, the policy moves to p=quarantine.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Password resets and receipts land in spam or get rejected, and users think your app is broken.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my password reset emails go to spam&rdquo;</li><li>&ldquo;Gmail says it can&#x27;t verify the sender&rdquo;</li><li>&ldquo;set up my domain to send email&rdquo;</li><li>&ldquo;send receipts from my own domain&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://support.google.com/a/answer/81126">Gmail email sender guidelines</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc7489">DMARC (RFC 7489)</a></li><li><a href="https://github.com/axllent/mailpit">Mailpit (local test inbox)</a></li><li><a href="https://www.mail-tester.com/">mail-tester.com</a></li><li><a href="https://listmonk.app/">Listmonk</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/email-authentication.json">api/email-authentication.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../rate-limiting/index.html">&larr; Rate limiting</a><a href="../backups-tested-restore/index.html">Backups with a tested restore &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

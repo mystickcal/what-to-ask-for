@@ -1,0 +1,88 @@
+{
+  "id": "rate-limiting",
+  "name": "Rate limiting",
+  "aliases": [
+    "throttling",
+    "request limits",
+    "brute-force protection",
+    "429 Too Many Requests"
+  ],
+  "needs": [
+    "someone keeps trying passwords on my login",
+    "a bot is hammering my AI endpoint and my bill went up",
+    "limit each user to 10 generations an hour",
+    "stop spam on my signup form"
+  ],
+  "keywords": [
+    "rate",
+    "limit",
+    "throttle",
+    "bot",
+    "spam",
+    "brute",
+    "login",
+    "password",
+    "429",
+    "abuse",
+    "ddos",
+    "bill",
+    "cost",
+    "otp"
+  ],
+  "summary": "Count requests per key (IP address, user or API key) in a time window and refuse with 429 once the count passes the limit.",
+  "need_when": [
+    "Login, signup, password reset and one-time codes.",
+    "Any endpoint that costs you money per call: LLMs, email, SMS.",
+    "Public forms."
+  ],
+  "skip_when": [
+    "Static pages served from a CDN."
+  ],
+  "ways": [
+    {
+      "title": "Rules at the edge",
+      "cost": "free plan available",
+      "how": "Cloudflare WAF rate limiting rules block by IP before traffic reaches your server.",
+      "tradeoff": "Stops floods cheaply, but only sees IPs and paths, not your logged-in users or plans."
+    },
+    {
+      "title": "Counters in your app, stored in Redis",
+      "cost": "$0",
+      "how": "Fixed or sliding window counters in Redis or your shared cache. Libraries: django-ratelimit, express-rate-limit with a Redis store.",
+      "tradeoff": "Can key on user id and plan. In-memory counters reset on restart and aren't shared between processes, so use Redis."
+    },
+    {
+      "title": "Usage quotas in the database",
+      "cost": "$0",
+      "how": "Count generations per user per month in a table and check it before the expensive call.",
+      "tradeoff": "Right for paid limits. It is billing logic, so it needs tests."
+    }
+  ],
+  "prompt": "Add rate limiting to [endpoints].\n\nRequirements:\n- Use a shared store (Redis) so limits hold across processes and restarts.\n- Limits: [login: 5 tries per 15 minutes per IP and per account], [AI endpoint: N per hour per user].\n- Get the client IP correctly behind our proxy. Only trust X-Forwarded-For when the request comes from our proxy, and take the address our proxy added (counted from the right), not the leftmost one.\n- Return 429 with a Retry-After header and a plain message.\n- For login, reset and code entry, fail closed: if the counter store is down, refuse the attempt.\n\nAcceptance checks (run each and show me the result):\n1. The 6th login attempt inside 15 minutes returns 429.\n2. Sending a made-up X-Forwarded-For header doesn't reset the limit.\n3. Limits still apply after restarting the app.\n4. With Redis stopped, login refuses attempts instead of allowing unlimited tries.\n5. Normal use (browsing, one login) never sees a 429.",
+  "acceptance_checks": [
+    "The 6th login attempt inside 15 minutes returns 429.",
+    "Sending a made-up X-Forwarded-For header doesn't reset the limit.",
+    "Limits still apply after restarting the app.",
+    "With Redis stopped, login refuses attempts instead of allowing unlimited tries.",
+    "Normal use (browsing, one login) never sees a 429."
+  ],
+  "if_you_skip_it": "Password guessing, scraped content, and a surprise bill when a bot finds your AI endpoint.",
+  "how_derek_runs_it": "Custody Journal uses fixed-window counters in the Redis cache it already runs, with no extra library, and hashes the counter keys. Security-sensitive limits fail closed: if the counter store is unavailable, the request is denied. The client IP comes from X-Forwarded-For only when the request arrives from a trusted proxy, counted from the right by the number of proxy hops, so a spoofed header can't dodge the limit.",
+  "links": [
+    {
+      "title": "Cloudflare rate limiting rules",
+      "url": "https://developers.cloudflare.com/waf/rate-limiting-rules/"
+    },
+    {
+      "title": "django-ratelimit",
+      "url": "https://django-ratelimit.readthedocs.io/"
+    },
+    {
+      "title": "express-rate-limit",
+      "url": "https://github.com/express-rate-limit/express-rate-limit"
+    }
+  ],
+  "page": "e/rate-limiting/index.html",
+  "json": "api/rate-limiting.json",
+  "updated": "2026-10-21"
+}

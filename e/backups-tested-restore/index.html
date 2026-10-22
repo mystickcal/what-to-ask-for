@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backups with a tested restore: What To Ask For</title>
+<meta name="description" content="A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Backups with a tested restore</h1>
+  <p class="aka">Also called: database backup, pg_dump, restore drill, disaster recovery, point-in-time recovery</p>
+  <p class="lead">A backup only counts once you have restored it. Back up the database and uploaded files on a schedule, copy them off the server, and regularly restore into a throwaway database to prove they work.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You store anything users would be upset to lose.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The data can be rebuilt from somewhere else.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>pg_dump on a schedule, shipped off the server with restic <span class="cost">$0 software plus storage</span></h3>
+<p>A nightly pg_dump and an archive of uploads, encrypted and deduplicated by restic into object storage.</p><p class="trade"><strong>Tradeoff:</strong> Simple. You lose whatever changed since the last dump.</p></li>
+<li><h3>Continuous WAL archiving <span class="cost">$0 software</span></h3>
+<p>pgBackRest (or similar) for point-in-time recovery.</p><p class="trade"><strong>Tradeoff:</strong> More setup. Worth it when losing hours of data is not acceptable.</p></li>
+<li><h3>Managed database backups <span class="cost">monthly cost</span></h3>
+<p>A managed Postgres such as DigitalOcean&#x27;s takes automated backups.</p><p class="trade"><strong>Tradeoff:</strong> Less to run, but you still have to test a restore, and uploaded files need their own backup. A server snapshot is not the same as a tested database restore.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add backups with an automated restore test for [Postgres database + uploads folder].
+
+Requirements:
+- Nightly job: pg_dump in custom format plus an archive of uploaded files, taken together so they match.
+- Encrypt and copy off the server to [bucket]. Keep [7 daily and 4 weekly].
+- Write a manifest per run with file checksums.
+- Restore test job: start a disposable Postgres, restore the latest backup into it, run a migrations check and a few row-count queries, then delete it. Record pass or fail.
+- Refuse to run the restore test against anything that isn&#x27;t the disposable database.
+- Alert if the last good backup is older than [26 hours] or the last passing restore test is older than [8 days].
+- Before each deploy, take a backup and stop the deploy if it fails.
+
+Acceptance checks (run each and show me the result):
+1. Restoring last night&#x27;s backup into a scratch database shows a row created yesterday.
+2. Pointing the restore test at the production database URL makes it refuse to run.
+3. Backup files can&#x27;t be read without the key.
+4. Turning off the backup job triggers the stale-backup alert.
+5. A deploy with a failed backup stops before migrations run.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>You find out the backups were empty or unreadable on the day you need them.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s release runbook makes a matched database and media backup a hard gate before any release. Its encrypted manifest has to pass a restore into a disposable PostgreSQL container, and an attest command records that result. The app&#x27;s operations health report flags a failed or uncommitted latest backup. There is also a command for copying backups off the server.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;what happens if my database gets deleted&rdquo;</li><li>&ldquo;I have backups but never tried restoring one&rdquo;</li><li>&ldquo;take a backup before I deploy&rdquo;</li><li>&ldquo;back up user uploads too&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.postgresql.org/docs/current/app-pgdump.html">PostgreSQL: pg_dump</a></li><li><a href="https://restic.net/">restic</a></li><li><a href="https://pgbackrest.org/">pgBackRest</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/backups-tested-restore.json">api/backups-tested-restore.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../email-authentication/index.html">&larr; Email authentication (SPF, DKIM, DMARC)</a><a href="../feature-flags/index.html">Feature flag &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

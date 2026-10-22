@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Background job queue: What To Ask For</title>
+<meta name="description" content="The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Background job queue</h1>
+  <p class="aka">Also called: task queue, worker, async job, background worker, job runner</p>
+  <p class="lead">The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>A step takes more than a few seconds: LLM calls, video or image work, PDFs, big exports.</li><li>A step calls an outside service that can fail and should be retried.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The work is fast and you need the answer before you can reply to the user.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A jobs table in the database you already have <span class="cost">$0</span></h3>
+<p>Workers claim rows with a lock (Postgres FOR UPDATE SKIP LOCKED). Libraries: pg-boss (Node), River (Go), good_job (Rails), or a small model in Django.</p><p class="trade"><strong>Tradeoff:</strong> No new service to run. Fine for modest volume. Polling adds a little database load.</p></li>
+<li><h3>A Redis-backed queue <span class="cost">$0 if you run Redis</span></h3>
+<p>Celery or RQ for Python, BullMQ for Node.</p><p class="trade"><strong>Tradeoff:</strong> Fast and common, but it is one more service to run and monitor, and Redis persistence settings decide whether queued jobs survive a restart.</p></li>
+<li><h3>A hosted background job service <span class="cost">free tiers</span></h3>
+<p>Inngest or Trigger.dev run steps for you and call back into your code.</p><p class="trade"><strong>Tradeoff:</strong> Less to operate. Another account, your data leaves your server, and moving off it later is work.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Move [slow task] out of the web request into a background job.
+
+Requirements:
+- On request: validate input, create a job row (status pending, dedupe key, owner), and return 202 with the job id within 500 ms.
+- A worker claims jobs with a lease (token plus claimed_at). If a worker dies, the job becomes claimable again after the lease expires.
+- Retry with backoff up to [3] attempts, then mark it failed with a short error code. No stack traces or user data in that field.
+- Add a status endpoint that returns pending, running, done or failed, plus the result link when done. Only the owner can read it.
+- Cap active jobs per user and in total. Return 429 or 503 with a plain message when full.
+- The page polls the status endpoint every [2] seconds and shows progress.
+
+Acceptance checks (run each and show me the result):
+1. The request returns in under 500 ms even when the task takes 60 seconds.
+2. Killing the worker in the middle of a job and restarting it finishes the job exactly once.
+3. Submitting the same request twice quickly creates one job.
+4. A task that always fails ends as failed after the max attempts and the page says so.
+5. Changing the job id in the URL can&#x27;t show another user&#x27;s job.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Requests time out behind your proxy, users click again and start duplicate work, and one slow call ties up the whole server.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal runs exports as queued jobs stored in Postgres. Each job has a dedupe key, a lease token and a max attempt count. Jobs with expired leases go back into the queue, or fail after the last attempt. There are caps on active exports per user and in total: a user with an export already running gets a 429, and a full queue returns 503.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the AI step takes 40 seconds and the page hangs&rdquo;</li><li>&ldquo;generate a PDF without making the user wait&rdquo;</li><li>&ldquo;my request times out&rdquo;</li><li>&ldquo;process an upload after it finishes&rdquo;</li><li>&ldquo;call a slow API without blocking the page&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/timgit/pg-boss">pg-boss (Postgres queue for Node)</a></li><li><a href="https://github.com/riverqueue/river">River (Postgres queue for Go)</a></li><li><a href="https://python-rq.org/">RQ (Redis queue for Python)</a></li><li><a href="https://docs.bullmq.io/">BullMQ</a></li><li><a href="https://docs.celeryq.dev/en/stable/">Celery</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/background-job-queue.json">api/background-job-queue.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../scheduled-jobs/index.html">&larr; Scheduled job</a><a href="../webhook-signature-verification/index.html">Webhook signature verification &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

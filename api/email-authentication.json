@@ -1,0 +1,96 @@
+{
+  "id": "email-authentication",
+  "name": "Email authentication (SPF, DKIM, DMARC)",
+  "aliases": [
+    "email deliverability",
+    "SPF record",
+    "DKIM signing",
+    "DMARC policy",
+    "emails going to spam"
+  ],
+  "needs": [
+    "my password reset emails go to spam",
+    "Gmail says it can't verify the sender",
+    "set up my domain to send email",
+    "send receipts from my own domain"
+  ],
+  "keywords": [
+    "email",
+    "spam",
+    "spf",
+    "dkim",
+    "dmarc",
+    "dns",
+    "deliverability",
+    "gmail",
+    "inbox",
+    "smtp",
+    "mail",
+    "newsletter",
+    "transactional",
+    "receipt"
+  ],
+  "summary": "Three DNS records that let inbox providers check that mail really comes from you. SPF lists which servers may send for your domain. DKIM signs each message with a key published in DNS. DMARC says what to do when those checks fail and where to send reports.",
+  "need_when": [
+    "As soon as your app sends any email from your own domain.",
+    "Gmail's sender guidelines require them, with stricter rules for bulk senders."
+  ],
+  "skip_when": [
+    "You don't send from your own domain at all."
+  ],
+  "ways": [
+    {
+      "title": "A transactional email provider",
+      "cost": "free or cheap tiers",
+      "how": "Postmark, Resend or Amazon SES give you the DKIM records to paste into DNS and handle sending reputation.",
+      "tradeoff": "The easy path for password resets and receipts. Per-message cost at volume and another account."
+    },
+    {
+      "title": "Self-hosted mail server",
+      "cost": "$0 software",
+      "how": "Postfix with OpenDKIM on a VPS.",
+      "tradeoff": "Hard to keep out of spam. New VPS IPs often have poor reputation, and many hosts block outbound port 25. Not a good choice for password resets."
+    },
+    {
+      "title": "Self-hosted newsletter tool over provider SMTP",
+      "cost": "$0 software",
+      "how": "Listmonk for lists and campaigns, sending through a provider's SMTP.",
+      "tradeoff": "You own the list. You still need the same DNS records, and newsletters should use a separate subdomain or stream from transactional mail."
+    }
+  ],
+  "prompt": "Set up email authentication for [domain], sending through [provider].\n\nRequirements:\n- List the exact DNS records to add: one SPF TXT record that includes the provider, the provider's DKIM records, and a DMARC record at _dmarc starting with p=none and a rua reporting address.\n- Keep transactional mail (resets, receipts) separate from marketing mail: different subdomain or provider stream.\n- Make the app's From address use the authenticated domain.\n- In local development, send all mail to Mailpit instead of real inboxes.\n- Add List-Unsubscribe headers to marketing mail.\n\nAcceptance checks (run each and show me the result):\n1. dig TXT [domain] shows exactly one SPF record.\n2. A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.\n3. A mail-tester.com run lists no authentication problems.\n4. Local development never delivers to a real inbox.\n5. After DMARC reports show only your real senders passing, the policy moves to p=quarantine.",
+  "acceptance_checks": [
+    "dig TXT [domain] shows exactly one SPF record.",
+    "A test email to Gmail shows SPF, DKIM and DMARC as PASS under Show original.",
+    "A mail-tester.com run lists no authentication problems.",
+    "Local development never delivers to a real inbox.",
+    "After DMARC reports show only your real senders passing, the policy moves to p=quarantine."
+  ],
+  "if_you_skip_it": "Password resets and receipts land in spam or get rejected, and users think your app is broken.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Gmail email sender guidelines",
+      "url": "https://support.google.com/a/answer/81126"
+    },
+    {
+      "title": "DMARC (RFC 7489)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7489"
+    },
+    {
+      "title": "Mailpit (local test inbox)",
+      "url": "https://github.com/axllent/mailpit"
+    },
+    {
+      "title": "mail-tester.com",
+      "url": "https://www.mail-tester.com/"
+    },
+    {
+      "title": "Listmonk",
+      "url": "https://listmonk.app/"
+    }
+  ],
+  "page": "e/email-authentication/index.html",
+  "json": "api/email-authentication.json",
+  "updated": "2026-10-21"
+}

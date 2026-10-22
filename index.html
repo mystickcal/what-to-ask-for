@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What To Ask For: backend building blocks, named and turned into prompts</title>
+<meta name="description" content="Describe a need in plain words and find the backend building block, when you need it, ways to build it and a copy-paste prompt.">
+<link rel="stylesheet" href="style.css">
+<link rel="alternate" type="text/plain" href="llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="index.html">What To Ask For</a></header>
+<main id="main">
+
+<section class="hero">
+  <h1>Say what your app needs. Get the name of the piece, and a prompt for your coding agent.</h1>
+  <p class="lead">For the parts of an app nobody sees: jobs, webhooks, backups, limits. Each entry says when you need it, a few ways to build it, and a prompt with checks for Claude Code, Cursor or Codex.</p>
+  <form class="search" role="search" onsubmit="return false">
+    <label for="q" class="vh">Describe what you need</label>
+    <input id="q" type="search" placeholder="e.g. send each user an email at a time they pick" autocomplete="off" spellcheck="false">
+  </form>
+  <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
+</section>
+<section aria-labelledby="results-h">
+  <h2 id="results-h" class="vh">Entries</h2>
+  <p class="count" id="count" aria-live="polite">10 entries</p>
+  <ol class="results" id="results">
+<li><a href="e/scheduled-jobs/index.html"><span class="r-name">Scheduled job</span><span class="r-need">&ldquo;send each user an email at a time they pick&rdquo;</span></a></li>
+<li><a href="e/background-job-queue/index.html"><span class="r-name">Background job queue</span><span class="r-need">&ldquo;the AI step takes 40 seconds and the page hangs&rdquo;</span></a></li>
+<li><a href="e/webhook-signature-verification/index.html"><span class="r-name">Webhook signature verification</span><span class="r-need">&ldquo;Stripe calls my server when someone pays&rdquo;</span></a></li>
+<li><a href="e/idempotent-webhooks/index.html"><span class="r-name">Idempotent webhook handling</span><span class="r-need">&ldquo;a customer paid once but got upgraded twice&rdquo;</span></a></li>
+<li><a href="e/signed-download-links/index.html"><span class="r-name">Signed download link</span><span class="r-need">&ldquo;let a user download their file without making it public&rdquo;</span></a></li>
+<li><a href="e/rate-limiting/index.html"><span class="r-name">Rate limiting</span><span class="r-need">&ldquo;someone keeps trying passwords on my login&rdquo;</span></a></li>
+<li><a href="e/email-authentication/index.html"><span class="r-name">Email authentication (SPF, DKIM, DMARC)</span><span class="r-need">&ldquo;my password reset emails go to spam&rdquo;</span></a></li>
+<li><a href="e/backups-tested-restore/index.html"><span class="r-name">Backups with a tested restore</span><span class="r-need">&ldquo;what happens if my database gets deleted&rdquo;</span></a></li>
+<li><a href="e/feature-flags/index.html"><span class="r-name">Feature flag</span><span class="r-need">&ldquo;ship code but keep the feature off&rdquo;</span></a></li>
+<li><a href="e/health-checks/index.html"><span class="r-name">Health checks and safe deploys</span><span class="r-need">&ldquo;the site goes down every time I deploy&rdquo;</span></a></li>
+  </ol>
+  <p class="none" id="none" hidden>No match. Try plainer words, like &ldquo;slow&rdquo;, &ldquo;twice&rdquo; or &ldquo;spam&rdquo;.</p>
+</section>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="llms.txt">llms.txt</a> &middot; <a href="entries.json">entries.json</a></p>
+</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

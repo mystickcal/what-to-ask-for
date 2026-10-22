@@ -1,0 +1,90 @@
+{
+  "id": "signed-download-links",
+  "name": "Signed download link",
+  "aliases": [
+    "presigned URL",
+    "expiring link",
+    "signed URL",
+    "private file link",
+    "temporary download URL"
+  ],
+  "needs": [
+    "let a user download their file without making it public",
+    "the PDF link should stop working after a day",
+    "the files in my bucket are public",
+    "share a private file with one person"
+  ],
+  "keywords": [
+    "download",
+    "file",
+    "upload",
+    "s3",
+    "bucket",
+    "r2",
+    "storage",
+    "private",
+    "expire",
+    "link",
+    "pdf",
+    "invoice",
+    "presigned"
+  ],
+  "summary": "A URL with an expiry time and a signature built in. Anyone with the link can download until it expires, and changing any part of it breaks the signature. The files stay private by default.",
+  "need_when": [
+    "User uploads, invoices, exports, paid downloads, anything you don't want indexed or shared forever."
+  ],
+  "skip_when": [
+    "The files are meant to be public, like marketing images or open docs."
+  ],
+  "ways": [
+    {
+      "title": "Presigned URLs from object storage",
+      "cost": "storage cost, or $0 self-hosted",
+      "how": "S3, Cloudflare R2, DigitalOcean Spaces and self-hosted MinIO or Garage all support S3-style presigned GET links.",
+      "tradeoff": "Fast and offloads bandwidth. Anyone holding the link can use it until it expires, so keep expiry short."
+    },
+    {
+      "title": "Your app checks access and streams the file",
+      "cost": "$0",
+      "how": "Check login and ownership, then send the file, or hand it to the proxy with X-Accel-Redirect or X-Sendfile.",
+      "tradeoff": "Access is checked on every download. Large files tie up app workers unless the proxy serves them."
+    },
+    {
+      "title": "Sign your own links",
+      "cost": "$0",
+      "how": "Django signing (TimestampSigner), Rails signed ids, or a JWT with an exp claim on a download route.",
+      "tradeoff": "You write the checks yourself. Rotating the key kills every outstanding link, which is sometimes what you want."
+    }
+  ],
+  "prompt": "Serve [file type] privately with expiring download links.\n\nRequirements:\n- The bucket or folder is private. No public ACLs or public bucket policy.\n- When a logged-in user asks for a file, check they own it, then create a presigned GET URL that expires in [15 minutes].\n- Set Content-Disposition so it downloads with a safe filename.\n- Keep the storage keys on the server. The frontend only ever gets the short-lived URL.\n- Log who created a link for which file and when. Don't log the URL itself.\n\nAcceptance checks (run each and show me the result):\n1. The object's plain URL without a signature returns 403.\n2. A new link works, then returns 403 after it expires.\n3. Changing one character of the path or signature returns 403.\n4. User A can't get a link to user B's file by changing the id.\n5. Signed URLs don't show up in server logs or analytics.",
+  "acceptance_checks": [
+    "The object's plain URL without a signature returns 403.",
+    "A new link works, then returns 403 after it expires.",
+    "Changing one character of the path or signature returns 403.",
+    "User A can't get a link to user B's file by changing the id.",
+    "Signed URLs don't show up in server logs or analytics."
+  ],
+  "if_you_skip_it": "Private files get indexed, guessed or shared forever, and you can't take a link back.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "AWS: sharing objects with presigned URLs",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html"
+    },
+    {
+      "title": "Cloudflare R2: presigned URLs",
+      "url": "https://developers.cloudflare.com/r2/api/s3/presigned-urls/"
+    },
+    {
+      "title": "Django: cryptographic signing",
+      "url": "https://docs.djangoproject.com/en/5.2/topics/signing/"
+    },
+    {
+      "title": "Garage (self-hosted S3-compatible storage)",
+      "url": "https://garagehq.deuxfleurs.fr/"
+    }
+  ],
+  "page": "e/signed-download-links/index.html",
+  "json": "api/signed-download-links.json",
+  "updated": "2026-10-21"
+}

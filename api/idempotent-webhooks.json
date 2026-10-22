@@ -1,0 +1,82 @@
+{
+  "id": "idempotent-webhooks",
+  "name": "Idempotent webhook handling",
+  "aliases": [
+    "idempotency key",
+    "event dedupe",
+    "processed events table",
+    "event inbox",
+    "exactly-once processing"
+  ],
+  "needs": [
+    "a customer paid once but got upgraded twice",
+    "Stripe sent the same event two times",
+    "webhook retries create duplicate orders",
+    "events arrive out of order",
+    "don't double charge when my request retries"
+  ],
+  "keywords": [
+    "duplicate",
+    "twice",
+    "retry",
+    "idempotent",
+    "idempotency",
+    "dedupe",
+    "stripe",
+    "webhook",
+    "payment",
+    "billing",
+    "double"
+  ],
+  "summary": "Providers retry webhooks and sometimes deliver the same event more than once or out of order. Idempotent handling means running the same event twice has the same result as running it once. The usual way: save the event id first and skip it if it's already done.",
+  "need_when": [
+    "You take payments or grant access based on webhooks.",
+    "A handler sends email, creates records or calls another paid API."
+  ],
+  "skip_when": [
+    "The handler only copies the latest state from the provider's API onto your record. That is already idempotent, but dedupe anyway if it also sends email."
+  ],
+  "ways": [
+    {
+      "title": "A processed-events table",
+      "cost": "$0",
+      "how": "Unique constraint on the event id. Insert first, then process, then mark complete. A recovery job replays failed or stuck rows.",
+      "tradeoff": "Solid. You need that recovery job, or events that crash mid-way stay stuck."
+    },
+    {
+      "title": "Re-fetch and sync state",
+      "cost": "$0",
+      "how": "Treat the event as a hint. Fetch the subscription or order from the API and set your record to match it.",
+      "tradeoff": "Handles out-of-order events well. Costs an API call per event and can hit rate limits."
+    },
+    {
+      "title": "Idempotency keys on your outgoing calls",
+      "cost": "$0",
+      "how": "Send an Idempotency-Key header on Stripe POST requests, based on your own record id, so your retries don't create a second charge.",
+      "tradeoff": "Covers your requests to Stripe, not the events Stripe sends you. Use it with one of the above."
+    }
+  ],
+  "prompt": "Make the [provider] webhook handler idempotent.\n\nRequirements:\n- After the signature check, insert the event id into a processed_events table with a unique constraint. If it already exists and is complete, return 200 and do nothing.\n- Process inside a transaction and lock the affected account or subscription row.\n- Mark the event complete only after the work commits. On failure, mark it failed with a next retry time and return 500 so the provider retries.\n- Add a recovery job that replays failed events and events stuck in processing past a lease time.\n- For outgoing Stripe POSTs that create charges or subscriptions, send an Idempotency-Key based on our own record id.\n\nAcceptance checks (run each and show me the result):\n1. Sending the same signed event twice gives one upgrade, one email and one row.\n2. Two copies sent at the same moment still give one result.\n3. An event that throws once is retried, succeeds, and its effect happens once.\n4. subscription.deleted arriving before subscription.updated still leaves the right final state.\n5. Retrying our own create call with the same Idempotency-Key does not make a second charge.",
+  "acceptance_checks": [
+    "Sending the same signed event twice gives one upgrade, one email and one row.",
+    "Two copies sent at the same moment still give one result.",
+    "An event that throws once is retried, succeeds, and its effect happens once.",
+    "subscription.deleted arriving before subscription.updated still leaves the right final state.",
+    "Retrying our own create call with the same Idempotency-Key does not make a second charge."
+  ],
+  "if_you_skip_it": "Double upgrades, double emails, duplicate orders, or a canceled customer who keeps access.",
+  "how_derek_runs_it": "Custody Journal stores each verified Stripe event in a row keyed by the event id before doing any work. Processing locks that row, takes a 3 minute lease and marks it complete only after the work succeeds. A failure is scheduled for retry 2 minutes later and the endpoint returns 500. A replay job picks up failed or stuck events, and a separate daily job reconciles subscriptions.",
+  "links": [
+    {
+      "title": "Stripe: idempotent requests",
+      "url": "https://docs.stripe.com/idempotency"
+    },
+    {
+      "title": "Stripe: webhooks (retries and duplicates)",
+      "url": "https://docs.stripe.com/webhooks"
+    }
+  ],
+  "page": "e/idempotent-webhooks/index.html",
+  "json": "api/idempotent-webhooks.json",
+  "updated": "2026-10-21"
+}

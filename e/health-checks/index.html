@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health checks and safe deploys: What To Ask For</title>
+<meta name="description" content="Small URLs your platform calls to ask two things: is the process alive (liveness), and can it serve traffic right now, with the database, cache and migrations in order (readiness). Deploy tools wait for readiness before sending traffic to a new version and keep the old one if it never gets there.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Health checks and safe deploys</h1>
+  <p class="aka">Also called: health endpoint, readiness probe, liveness probe, healthz, zero-downtime deploy, rolling deploy</p>
+  <p class="lead">Small URLs your platform calls to ask two things: is the process alive (liveness), and can it serve traffic right now, with the database, cache and migrations in order (readiness). Deploy tools wait for readiness before sending traffic to a new version and keep the old one if it never gets there.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Anything with users, and any automated deploy.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Rarely. Even a hobby app benefits from a readiness check and an outside uptime ping.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Two endpoints in your app <span class="cost">$0</span></h3>
+<p>/health/ (process up, no dependency calls) and /health/ready/ (database, cache, schema). Point Docker HEALTHCHECK, Coolify health checks or Kubernetes probes at the readiness one.</p><p class="trade"><strong>Tradeoff:</strong> A readiness check that tests too much can flap and take the site down on a minor issue.</p></li>
+<li><h3>Health-gated rolling or blue-green deploys <span class="cost">$0</span></h3>
+<p>Start the new container, wait for readiness, switch the proxy, then stop the old one.</p><p class="trade"><strong>Tradeoff:</strong> Needs database migrations that work with both the old and new code at once: add columns first, remove them in a later release.</p></li>
+<li><h3>Outside monitoring <span class="cost">free tiers or self-hosted</span></h3>
+<p>An uptime checker for the site, and Healthchecks.io (open source) for alerts when a scheduled job stops checking in.</p><p class="trade"><strong>Tradeoff:</strong> Tells you something broke. It doesn&#x27;t stop a bad deploy.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add health checks and a health-gated deploy for this app.
+
+Requirements:
+- GET /health/ returns 200 when the process is running. No database calls.
+- GET /health/ready/ checks the database (SELECT 1), the cache (set and read a short-lived key) and pending migrations. It returns 200 with per-dependency status JSON, or 503 if any fail. No secrets, versions or hostnames in the response.
+- The container health check points at /health/ready/.
+- Deploy: start the new version, wait until /health/ready/ returns 200 (timeout [90 seconds]), then switch traffic. If it never gets ready, keep the old version serving.
+- Migrations in this release must work with the currently running code.
+
+Acceptance checks (run each and show me the result):
+1. Stopping the database makes /health/ready/ return 503 within a few seconds while /health/ stays 200.
+2. Deploying a build that crashes on start leaves the old version serving.
+3. During a normal deploy, a curl loop every half second sees no 5xx responses (if zero downtime is the goal).
+4. The health response contains no secrets or internal hostnames.
+5. Health check traffic is excluded from analytics and rate limits.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Every deploy causes a few minutes of errors, and a bad build stays live until someone notices.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal exposes /health/ready/, which reports database, cache and schema status. Its releases are not zero-downtime: the runbook uses a short maintenance window, says not to use the Coolify Deploy button (that redeploy replaces the whole stack, including Postgres and Redis), and doesn&#x27;t end maintenance until all six services are healthy and /health/ready/ returns 200. If any health gate fails, the release guard runs the captured rollback automatically.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;the site goes down every time I deploy&rdquo;</li><li>&ldquo;know my app is broken before users tell me&rdquo;</li><li>&ldquo;the new version started before the database was ready&rdquo;</li><li>&ldquo;roll back automatically if the deploy is bad&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes: liveness, readiness and startup probes</a></li><li><a href="https://coolify.io/docs/knowledge-base/health-checks">Coolify: health checks</a></li><li><a href="https://github.com/healthchecks/healthchecks">Healthchecks.io (open source)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/health-checks.json">api/health-checks.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../feature-flags/index.html">&larr; Feature flag</a><a href="../scheduled-jobs/index.html">Scheduled job &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

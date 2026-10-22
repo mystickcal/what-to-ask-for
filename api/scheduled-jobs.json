@@ -1,0 +1,92 @@
+{
+  "id": "scheduled-jobs",
+  "name": "Scheduled job",
+  "aliases": [
+    "cron job",
+    "scheduled task",
+    "recurring job",
+    "periodic task",
+    "job scheduler"
+  ],
+  "needs": [
+    "send each user an email at a time they pick",
+    "run something every night",
+    "send a reminder the day before",
+    "clean up old files every hour",
+    "sync with another service every few minutes"
+  ],
+  "keywords": [
+    "cron",
+    "schedule",
+    "daily",
+    "nightly",
+    "hourly",
+    "timer",
+    "reminder",
+    "digest",
+    "recurring"
+  ],
+  "summary": "Code that runs on a clock instead of when someone clicks. A scheduler wakes up, checks what is due and runs it.",
+  "need_when": [
+    "Something has to happen when nobody is on the site: reminders, digests, cleanup, syncing.",
+    "A user picks a time and expects something to arrive then."
+  ],
+  "skip_when": [
+    "The work can run right when the user clicks and finishes in a second or two."
+  ],
+  "ways": [
+    {
+      "title": "Cron or supercronic calling a command",
+      "cost": "$0",
+      "how": "A crontab line (or supercronic inside a container) runs one command on a schedule, like a Django management command or a Node script.",
+      "tradeoff": "If the server is down at 3 AM, that run is simply lost unless you add catch-up. Two copies of the container means every job runs twice."
+    },
+    {
+      "title": "A scheduler inside your worker",
+      "cost": "$0 on your server",
+      "how": "Celery beat (Python), BullMQ repeatable jobs (Node) or pg-boss schedules (Postgres) enqueue jobs on a schedule for your workers.",
+      "tradeoff": "One more process to keep alive, and you need a lock so only one instance does the scheduling."
+    },
+    {
+      "title": "A managed trigger that calls your URL",
+      "cost": "free tiers",
+      "how": "Cloudflare Workers Cron Triggers, Vercel Cron Jobs or a GitHub Actions schedule hits an endpoint on your app.",
+      "tradeoff": "The endpoint is public, so it needs a secret check. Timing can drift, and GitHub notes scheduled workflows can be delayed under load."
+    }
+  ],
+  "prompt": "Add a scheduled job that [does X] every [schedule], in UTC.\n\nRequirements:\n- Put the job logic in one function or command that I can also run by hand.\n- Record each run in the database: job name, scheduled slot, started, finished, status, error code.\n- Make (job name, scheduled slot) unique so the same slot never runs twice, even if two scheduler processes start.\n- If the scheduler was down, catch up missed slots inside a [2 hour] window and skip older ones.\n- Give each run a timeout and a max attempt count.\n- Store and compare times in UTC. Convert to the user's timezone only for display and for user-picked send times.\n\nAcceptance checks (run each and show me the result):\n1. Running the command by hand twice for the same slot does the work once.\n2. Starting two scheduler processes at the same time still runs each slot once.\n3. Stopping the scheduler for 10 minutes and restarting it runs the missed slot once.\n4. A run that passes its timeout is marked failed and the next slot still runs.\n5. A user who picked 7:00 PM in New York gets it at 7:00 PM New York time across a daylight saving change.",
+  "acceptance_checks": [
+    "Running the command by hand twice for the same slot does the work once.",
+    "Starting two scheduler processes at the same time still runs each slot once.",
+    "Stopping the scheduler for 10 minutes and restarting it runs the missed slot once.",
+    "A run that passes its timeout is marked failed and the next slot still runs.",
+    "A user who picked 7:00 PM in New York gets it at 7:00 PM New York time across a daylight saving change."
+  ],
+  "if_you_skip_it": "Reminders silently stop after a restart, or every user gets the same email twice when you scale to two containers.",
+  "how_derek_runs_it": "Custody Journal runs its own UTC scheduler in a separate operations container. Every job has a schedule, a catch-up window, a timeout and a max attempt count. Each run claims its time slot in a database row with a row lock, so one slot can't run twice. Examples from the job list: transactional mail every minute and a subscription reconcile once a day.",
+  "links": [
+    {
+      "title": "supercronic",
+      "url": "https://github.com/aptible/supercronic"
+    },
+    {
+      "title": "Cloudflare Workers Cron Triggers",
+      "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/"
+    },
+    {
+      "title": "Vercel Cron Jobs",
+      "url": "https://vercel.com/docs/cron-jobs"
+    },
+    {
+      "title": "pg-boss",
+      "url": "https://github.com/timgit/pg-boss"
+    },
+    {
+      "title": "Healthchecks.io (alerts when a job stops running)",
+      "url": "https://healthchecks.io/"
+    }
+  ],
+  "page": "e/scheduled-jobs/index.html",
+  "json": "api/scheduled-jobs.json",
+  "updated": "2026-10-21"
+}

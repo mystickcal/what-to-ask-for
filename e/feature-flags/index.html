@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feature flag: What To Ask For</title>
+<meta name="description" content="A named on and off switch the code checks at runtime. You deploy with the feature off, turn it on for everyone, some users or just yourself, and turn it off fast if it breaks.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Feature flag</h1>
+  <p class="aka">Also called: feature toggle, kill switch, gradual rollout, dark launch, flag</p>
+  <p class="lead">A named on and off switch the code checks at runtime. You deploy with the feature off, turn it on for everyone, some users or just yourself, and turn it off fast if it breaks.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Risky changes, payment changes, anything you want to undo without a rollback.</li><li>You want to try something in production before users see it.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Small fixes. Every flag is a branch in your code that you have to remove later.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Environment variable flags <span class="cost">$0</span></h3>
+<p>Read FEATURE_X_ENABLED at startup.</p><p class="trade"><strong>Tradeoff:</strong> Dead simple. Changing a flag needs a restart or redeploy, and it is all or nothing.</p></li>
+<li><h3>A flags table with an admin switch <span class="cost">$0</span></h3>
+<p>django-waffle, Flipper for Rails, or your own table with a cached lookup.</p><p class="trade"><strong>Tradeoff:</strong> Flip without deploying and target staff or a list of users. More code, and the lookup needs caching.</p></li>
+<li><h3>A flag service <span class="cost">free tiers or self-hosted</span></h3>
+<p>Unleash and GrowthBook are open source and self-hostable. PostHog also has feature flags.</p><p class="trade"><strong>Tradeoff:</strong> Percent rollouts and targeting built in. Another service and SDK in your stack.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Put [feature] behind a feature flag named [flag_name].
+
+Requirements:
+- Default off in every environment.
+- One helper, is_enabled(flag, user), used everywhere. No scattered environment reads.
+- Support three states: off, on for everyone, on for a list of staff user ids.
+- When off: the feature&#x27;s routes return 404, its UI is hidden and its scheduled jobs skip.
+- Log flag changes with who and when.
+- Add a dated TODO to remove the flag once it has been fully on for a while.
+
+Acceptance checks (run each and show me the result):
+1. With the flag off, the feature can&#x27;t be reached by URL.
+2. Turning it on for one staff user shows it only to them.
+3. Turning it off hides it again without a code change.
+4. Tests cover both the on and off states.
+5. Scheduled jobs for the feature do nothing while it&#x27;s off.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Every risky change becomes a full rollback, and half-built features leak to users.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal uses environment flags (for example CJ_BILLING_MEASUREMENTS_ENABLED) set per service in a small Compose override file that each release must include. Its release guard compares environment keys between the live and new stack and aborts on any flag change that isn&#x27;t named in an explicit allow rule for one service, one key and one exact change.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-21.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;ship code but keep the feature off&rdquo;</li><li>&ldquo;turn off the new thing without rolling back&rdquo;</li><li>&ldquo;let only me test it in production&rdquo;</li><li>&ldquo;roll a feature out to some users first&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://github.com/django-waffle/django-waffle">django-waffle</a></li><li><a href="https://github.com/flippercloud/flipper">Flipper</a></li><li><a href="https://github.com/Unleash/unleash">Unleash</a></li><li><a href="https://github.com/growthbook/growthbook">GrowthBook</a></li><li><a href="https://posthog.com/docs/feature-flags">PostHog feature flags</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/feature-flags.json">api/feature-flags.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../backups-tested-restore/index.html">&larr; Backups with a tested restore</a><a href="../health-checks/index.html">Health checks and safe deploys &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

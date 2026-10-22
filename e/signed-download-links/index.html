@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signed download link: What To Ask For</title>
+<meta name="description" content="A URL with an expiry time and a signature built in. Anyone with the link can download until it expires, and changing any part of it breaks the signature. The files stay private by default.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a></p>
+  <h1>Signed download link</h1>
+  <p class="aka">Also called: presigned URL, expiring link, signed URL, private file link, temporary download URL</p>
+  <p class="lead">A URL with an expiry time and a signature built in. Anyone with the link can download until it expires, and changing any part of it breaks the signature. The files stay private by default.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>User uploads, invoices, exports, paid downloads, anything you don&#x27;t want indexed or shared forever.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>The files are meant to be public, like marketing images or open docs.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Presigned URLs from object storage <span class="cost">storage cost, or $0 self-hosted</span></h3>
+<p>S3, Cloudflare R2, DigitalOcean Spaces and self-hosted MinIO or Garage all support S3-style presigned GET links.</p><p class="trade"><strong>Tradeoff:</strong> Fast and offloads bandwidth. Anyone holding the link can use it until it expires, so keep expiry short.</p></li>
+<li><h3>Your app checks access and streams the file <span class="cost">$0</span></h3>
+<p>Check login and ownership, then send the file, or hand it to the proxy with X-Accel-Redirect or X-Sendfile.</p><p class="trade"><strong>Tradeoff:</strong> Access is checked on every download. Large files tie up app workers unless the proxy serves them.</p></li>
+<li><h3>Sign your own links <span class="cost">$0</span></h3>
+<p>Django signing (TimestampSigner), Rails signed ids, or a JWT with an exp claim on a download route.</p><p class="trade"><strong>Tradeoff:</strong> You write the checks yourself. Rotating the key kills every outstanding link, which is sometimes what you want.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Serve [file type] privately with expiring download links.
+
+Requirements:
+- The bucket or folder is private. No public ACLs or public bucket policy.
+- When a logged-in user asks for a file, check they own it, then create a presigned GET URL that expires in [15 minutes].
+- Set Content-Disposition so it downloads with a safe filename.
+- Keep the storage keys on the server. The frontend only ever gets the short-lived URL.
+- Log who created a link for which file and when. Don&#x27;t log the URL itself.
+
+Acceptance checks (run each and show me the result):
+1. The object&#x27;s plain URL without a signature returns 403.
+2. A new link works, then returns 403 after it expires.
+3. Changing one character of the path or signature returns 403.
+4. User A can&#x27;t get a link to user B&#x27;s file by changing the id.
+5. Signed URLs don&#x27;t show up in server logs or analytics.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Private files get indexed, guessed or shared forever, and you can&#x27;t take a link back.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let a user download their file without making it public&rdquo;</li><li>&ldquo;the PDF link should stop working after a day&rdquo;</li><li>&ldquo;the files in my bucket are public&rdquo;</li><li>&ldquo;share a private file with one person&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">AWS: sharing objects with presigned URLs</a></li><li><a href="https://developers.cloudflare.com/r2/api/s3/presigned-urls/">Cloudflare R2: presigned URLs</a></li><li><a href="https://docs.djangoproject.com/en/5.2/topics/signing/">Django: cryptographic signing</a></li><li><a href="https://garagehq.deuxfleurs.fr/">Garage (self-hosted S3-compatible storage)</a></li></ul></section>
+  <p class="meta">Checked 2026-10-21. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/signed-download-links.json">api/signed-download-links.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../idempotent-webhooks/index.html">&larr; Idempotent webhook handling</a><a href="../rate-limiting/index.html">Rate limiting &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" novalidate>
+    <!-- TODO(Derek): wire to the self-hosted Listmonk gateway (POST /v1/subscriptions with this brand's slug) after this site has an allowed origin. Not connected on purpose. -->
+    <label for="signup-email">One building block a week, by email</label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" placeholder="you@example.com" autocomplete="email">
+      <button type="submit">Sign up</button>
+    </div>
+    <p class="signup-note" id="signup-note" role="status">Not connected yet. Nothing you type here is sent anywhere.</p>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

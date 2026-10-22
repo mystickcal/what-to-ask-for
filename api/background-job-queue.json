@@ -1,0 +1,99 @@
+{
+  "id": "background-job-queue",
+  "name": "Background job queue",
+  "aliases": [
+    "task queue",
+    "worker",
+    "async job",
+    "background worker",
+    "job runner"
+  ],
+  "needs": [
+    "the AI step takes 40 seconds and the page hangs",
+    "generate a PDF without making the user wait",
+    "my request times out",
+    "process an upload after it finishes",
+    "call a slow API without blocking the page"
+  ],
+  "keywords": [
+    "slow",
+    "timeout",
+    "hangs",
+    "wait",
+    "llm",
+    "ai",
+    "openai",
+    "video",
+    "pdf",
+    "export",
+    "async",
+    "celery",
+    "redis",
+    "queue",
+    "worker",
+    "spinner"
+  ],
+  "summary": "The web request saves a job and answers right away. A separate worker picks up the job, does the slow part and stores the result. The page checks back for it.",
+  "need_when": [
+    "A step takes more than a few seconds: LLM calls, video or image work, PDFs, big exports.",
+    "A step calls an outside service that can fail and should be retried."
+  ],
+  "skip_when": [
+    "The work is fast and you need the answer before you can reply to the user."
+  ],
+  "ways": [
+    {
+      "title": "A jobs table in the database you already have",
+      "cost": "$0",
+      "how": "Workers claim rows with a lock (Postgres FOR UPDATE SKIP LOCKED). Libraries: pg-boss (Node), River (Go), good_job (Rails), or a small model in Django.",
+      "tradeoff": "No new service to run. Fine for modest volume. Polling adds a little database load."
+    },
+    {
+      "title": "A Redis-backed queue",
+      "cost": "$0 if you run Redis",
+      "how": "Celery or RQ for Python, BullMQ for Node.",
+      "tradeoff": "Fast and common, but it is one more service to run and monitor, and Redis persistence settings decide whether queued jobs survive a restart."
+    },
+    {
+      "title": "A hosted background job service",
+      "cost": "free tiers",
+      "how": "Inngest or Trigger.dev run steps for you and call back into your code.",
+      "tradeoff": "Less to operate. Another account, your data leaves your server, and moving off it later is work."
+    }
+  ],
+  "prompt": "Move [slow task] out of the web request into a background job.\n\nRequirements:\n- On request: validate input, create a job row (status pending, dedupe key, owner), and return 202 with the job id within 500 ms.\n- A worker claims jobs with a lease (token plus claimed_at). If a worker dies, the job becomes claimable again after the lease expires.\n- Retry with backoff up to [3] attempts, then mark it failed with a short error code. No stack traces or user data in that field.\n- Add a status endpoint that returns pending, running, done or failed, plus the result link when done. Only the owner can read it.\n- Cap active jobs per user and in total. Return 429 or 503 with a plain message when full.\n- The page polls the status endpoint every [2] seconds and shows progress.\n\nAcceptance checks (run each and show me the result):\n1. The request returns in under 500 ms even when the task takes 60 seconds.\n2. Killing the worker in the middle of a job and restarting it finishes the job exactly once.\n3. Submitting the same request twice quickly creates one job.\n4. A task that always fails ends as failed after the max attempts and the page says so.\n5. Changing the job id in the URL can't show another user's job.",
+  "acceptance_checks": [
+    "The request returns in under 500 ms even when the task takes 60 seconds.",
+    "Killing the worker in the middle of a job and restarting it finishes the job exactly once.",
+    "Submitting the same request twice quickly creates one job.",
+    "A task that always fails ends as failed after the max attempts and the page says so.",
+    "Changing the job id in the URL can't show another user's job."
+  ],
+  "if_you_skip_it": "Requests time out behind your proxy, users click again and start duplicate work, and one slow call ties up the whole server.",
+  "how_derek_runs_it": "Custody Journal runs exports as queued jobs stored in Postgres. Each job has a dedupe key, a lease token and a max attempt count. Jobs with expired leases go back into the queue, or fail after the last attempt. There are caps on active exports per user and in total: a user with an export already running gets a 429, and a full queue returns 503.",
+  "links": [
+    {
+      "title": "pg-boss (Postgres queue for Node)",
+      "url": "https://github.com/timgit/pg-boss"
+    },
+    {
+      "title": "River (Postgres queue for Go)",
+      "url": "https://github.com/riverqueue/river"
+    },
+    {
+      "title": "RQ (Redis queue for Python)",
+      "url": "https://python-rq.org/"
+    },
+    {
+      "title": "BullMQ",
+      "url": "https://docs.bullmq.io/"
+    },
+    {
+      "title": "Celery",
+      "url": "https://docs.celeryq.dev/en/stable/"
+    }
+  ],
+  "page": "e/background-job-queue/index.html",
+  "json": "api/background-job-queue.json",
+  "updated": "2026-10-21"
+}

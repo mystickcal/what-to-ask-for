@@ -1,0 +1,83 @@
+{
+  "id": "webhook-signature-verification",
+  "name": "Webhook signature verification",
+  "aliases": [
+    "webhook signing",
+    "HMAC signature",
+    "signing secret",
+    "Stripe-Signature header"
+  ],
+  "needs": [
+    "Stripe calls my server when someone pays",
+    "how do I know the webhook is really from Stripe",
+    "anyone could POST to my webhook URL",
+    "receive events from GitHub or another service"
+  ],
+  "keywords": [
+    "webhook",
+    "stripe",
+    "signature",
+    "hmac",
+    "verify",
+    "secret",
+    "callback",
+    "github",
+    "payment",
+    "security",
+    "fake"
+  ],
+  "summary": "A webhook is another service calling your URL when something happens. The sender signs each request with a shared secret. Your server recomputes the signature from the raw body and rejects anything that doesn't match or is too old.",
+  "need_when": [
+    "A webhook changes anything: payments, plan changes, orders, form submissions."
+  ],
+  "skip_when": [
+    "Don't skip it for anything that changes data. Even if you re-fetch the object from the API, verify first so strangers can't trigger work."
+  ],
+  "ways": [
+    {
+      "title": "The provider's SDK helper",
+      "cost": "$0",
+      "how": "Stripe: stripe.Webhook.construct_event in Python, stripe.webhooks.constructEvent in Node. Test locally with the Stripe CLI: stripe listen --forward-to and stripe trigger.",
+      "tradeoff": "Simplest and correct, but it needs the raw request body. Frameworks that parse JSON first break the signature."
+    },
+    {
+      "title": "HMAC-SHA256 by hand",
+      "cost": "$0",
+      "how": "For providers without an SDK (for example GitHub's X-Hub-Signature-256), compute the HMAC of the raw body and compare with hmac.compare_digest or crypto.timingSafeEqual.",
+      "tradeoff": "Easy to get subtly wrong: plain string compare, wrong encoding, or no timestamp check."
+    },
+    {
+      "title": "A webhook gateway",
+      "cost": "free tiers",
+      "how": "Hookdeck or Svix receive, verify, queue and retry webhooks, then forward them to you.",
+      "tradeoff": "Another hop and account. Useful when you receive from many providers."
+    }
+  ],
+  "prompt": "Add a webhook endpoint at [path] for [provider].\n\nRequirements:\n- Read the raw request body before any JSON parsing.\n- Verify the signature with the provider's SDK (or HMAC-SHA256 with a constant-time compare). The secret comes from an environment variable.\n- Enforce the timestamp tolerance so old requests can't be replayed (Stripe's libraries default to 5 minutes).\n- Reject bodies over [1 MB] with 413 and bad signatures with 400, before touching any data.\n- Exempt only this route from CSRF.\n- Log the event id and type only. Never log the payload, headers or secret.\n\nAcceptance checks (run each and show me the result):\n1. A request with no signature returns 400 and changes nothing.\n2. A correctly signed request with one byte of the body changed returns 400.\n3. stripe trigger checkout.session.completed through the Stripe CLI returns 200.\n4. Replaying an old signed request outside the tolerance returns 400.\n5. The secret appears only in environment config, not in code, logs or the frontend.",
+  "acceptance_checks": [
+    "A request with no signature returns 400 and changes nothing.",
+    "A correctly signed request with one byte of the body changed returns 400.",
+    "stripe trigger checkout.session.completed through the Stripe CLI returns 200.",
+    "Replaying an old signed request outside the tolerance returns 400.",
+    "The secret appears only in environment config, not in code, logs or the frontend."
+  ],
+  "if_you_skip_it": "Anyone who finds the URL can mark orders paid or upgrade accounts for free.",
+  "how_derek_runs_it": "Custody Journal's Stripe endpoint returns 413 for bodies over 1 MB, verifies with stripe.Webhook.construct_event, and returns 400 on a bad signature before any data changes. For the webhooks it sends to other systems, it signs the body with HMAC-SHA256 in an X-Webhook-Signature header and checks destination URLs with an SSRF guard.",
+  "links": [
+    {
+      "title": "Stripe: verify webhook signatures",
+      "url": "https://docs.stripe.com/webhooks/signature"
+    },
+    {
+      "title": "GitHub: validating webhook deliveries",
+      "url": "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries"
+    },
+    {
+      "title": "Stripe CLI",
+      "url": "https://github.com/stripe/stripe-cli"
+    }
+  ],
+  "page": "e/webhook-signature-verification/index.html",
+  "json": "api/webhook-signature-verification.json",
+  "updated": "2026-10-21"
+}
