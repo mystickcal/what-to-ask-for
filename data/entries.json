@@ -4512,6 +4512,98 @@
     "updated": "2026-10-21"
   },
   {
+    "id": "timeouts-circuit-breakers",
+    "name": "Timeouts and circuit breakers",
+    "category": "api",
+    "aliases": [
+      "request timeouts",
+      "circuit breaker",
+      "fail fast",
+      "slow third-party API",
+      "cascading failure"
+    ],
+    "needs": [
+      "my app hangs when a third-party API is slow",
+      "one slow service takes down my whole app",
+      "retries ran up a huge bill when an API was down"
+    ],
+    "keywords": [
+      "timeout",
+      "timeouts",
+      "circuit",
+      "breaker",
+      "hang",
+      "slow",
+      "third",
+      "party",
+      "api",
+      "retry",
+      "retries",
+      "fail",
+      "fast",
+      "cascade",
+      "outage",
+      "fallback"
+    ],
+    "summary": "A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.",
+    "need_when": [
+      "Your app calls payment, email, AI or other third-party APIs during a request.",
+      "You have retries, and a long outage could turn them into a flood of calls."
+    ],
+    "skip_when": [
+      "Calls that only happen in background jobs with their own timeout, where waiting longer is fine."
+    ],
+    "ways": [
+      {
+        "title": "Timeouts on every outbound call",
+        "cost": "$0",
+        "how": "Set a timeout in your HTTP client (requests timeout=, fetch with AbortSignal.timeout, SDK timeout options). Most clients wait forever by default.",
+        "tradeoff": "The biggest win for the least work. Pick numbers from how slow the service really gets."
+      },
+      {
+        "title": "A circuit breaker library",
+        "cost": "$0",
+        "how": "opossum (Node), pybreaker (Python) or resilience4j (Java) wrapped around the calls that matter.",
+        "tradeoff": "Stops hammering a service that is down. Another thing to tune and monitor."
+      },
+      {
+        "title": "Move slow calls off the request",
+        "cost": "$0",
+        "how": "Put the call in a background job, show a pending state, and let the job retry with backoff.",
+        "tradeoff": "Users never wait on a third party. Needs a job queue and a way to show results later."
+      }
+    ],
+    "prompt": "Add timeouts and a circuit breaker to this app's outbound calls to [Stripe / OpenAI / email provider / other APIs].\n\nRequirements:\n- Find every outbound HTTP or SDK call and give it an explicit timeout: [5] seconds for user-facing requests, longer only where the work needs it.\n- Cap retries at [2] with exponential backoff and jitter. Never retry inside a loop that is itself retried.\n- Wrap [the slow or flaky service] in a circuit breaker that opens after [5] failures in a row, fails fast for [30] seconds, then lets one test call through.\n- When the breaker is open, return a clear message or a fallback instead of an error page.\n- Log each timeout and every time the breaker opens or closes.\n- Use [opossum / pybreaker / the existing HTTP client's options].\n\nAcceptance checks (run each and show me the result):\n1. Pointing [service] at an address that never answers makes the call fail within the set timeout, not hang.\n2. A slow external service doesn't make unrelated pages slow, checked with a quick load test.\n3. After [5] failures in a row the breaker opens and calls fail fast without hitting the service.\n4. Once the service is back, the breaker closes again on its own and calls succeed.",
+    "acceptance_checks": [
+      "Pointing [service] at an address that never answers makes the call fail within the set timeout, not hang.",
+      "A slow external service doesn't make unrelated pages slow, checked with a quick load test.",
+      "After [5] failures in a row the breaker opens and calls fail fast without hitting the service.",
+      "Once the service is back, the breaker closes again on its own and calls succeed."
+    ],
+    "if_you_skip_it": "One slow API ties up every worker and your whole site goes down with it. Retries against a dead service can pile up into thousands of calls and a surprise bill.",
+    "how_derek_runs_it": "Custody Journal sets explicit timeouts on its outbound calls: 10 seconds for each webhook delivery, with the DNS lookup capped at 5 seconds, and 60 seconds with one retry for voice memo transcription, which then tells the user to try again or type instead. It does not use a circuit breaker.",
+    "links": [
+      {
+        "title": "Martin Fowler: CircuitBreaker",
+        "url": "https://martinfowler.com/bliki/CircuitBreaker.html"
+      },
+      {
+        "title": "AWS Builders' Library: timeouts, retries and backoff with jitter",
+        "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+      },
+      {
+        "title": "MDN: AbortSignal.timeout()",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static"
+      },
+      {
+        "title": "opossum",
+        "url": "https://github.com/nodeshift/opossum"
+      }
+    ],
+    "updated": "2026-10-28",
+    "derek_checked": "2026-10-28"
+  },
+  {
     "id": "rate-limiting",
     "name": "Rate limiting",
     "category": "security",
@@ -7715,6 +7807,93 @@
     "updated": "2026-10-21"
   },
   {
+    "id": "debouncing",
+    "name": "Debounce and throttle",
+    "category": "performance",
+    "aliases": [
+      "debounce",
+      "throttle",
+      "search as you type",
+      "rate limit input",
+      "too many requests from typing"
+    ],
+    "needs": [
+      "my search box sends a request on every keystroke",
+      "my app hammers the API while the user types",
+      "scrolling makes my page lag"
+    ],
+    "keywords": [
+      "debounce",
+      "throttle",
+      "keystroke",
+      "typing",
+      "search",
+      "autocomplete",
+      "input",
+      "scroll",
+      "resize",
+      "requests",
+      "api",
+      "lag",
+      "delay",
+      "abort",
+      "stale"
+    ],
+    "summary": "Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.",
+    "need_when": [
+      "Search or autocomplete that calls an API or database as people type.",
+      "Handlers on scroll, resize, mouse move or drag that do real work."
+    ],
+    "skip_when": [
+      "Buttons and form submits. Disable the button while it runs instead, so a double click can't send twice."
+    ],
+    "ways": [
+      {
+        "title": "A small utility",
+        "cost": "$0",
+        "how": "lodash debounce and throttle, or a hook like use-debounce in React. A hand-written debounce is about ten lines.",
+        "tradeoff": "Simple and well tested. Remember to cancel pending calls when the component goes away."
+      },
+      {
+        "title": "Your framework's built-in delay",
+        "cost": "$0",
+        "how": "htmx hx-trigger with delay: (debounce) or throttle:, or the debounce option in your form or search library.",
+        "tradeoff": "No code to maintain. Less control over edge cases."
+      },
+      {
+        "title": "Debounce plus cancel the old request",
+        "cost": "$0",
+        "how": "Debounce the input and abort the previous fetch with AbortController when a new query starts.",
+        "tradeoff": "Fixes results arriving out of order. A little more code."
+      }
+    ],
+    "prompt": "Add debouncing to [search box / autocomplete / filter inputs] and throttling to [scroll / resize handlers].\n\nRequirements:\n- Debounce input-driven requests by [300] ms so one request goes out after the user pauses.\n- Cancel the previous in-flight request with AbortController when a new one starts, and ignore any response that is not for the latest query.\n- Throttle [scroll / resize / drag] handlers to at most once every [100] ms.\n- Show a small loading state while a debounced search is running.\n- Clean up timers and pending requests when the component unmounts or the page changes.\n- Use [lodash / use-debounce / htmx delay / a small helper] rather than a new dependency if one already exists.\n\nAcceptance checks (run each and show me the result):\n1. Typing a 10 letter word in the search box sends one request, not ten, in the network tab.\n2. Results still appear within about half a second after typing stops.\n3. Typing fast and then pausing never shows results for an older query on top of the newer one.\n4. Scrolling or resizing for 5 seconds runs the handler a bounded number of times, logged in the console.",
+    "acceptance_checks": [
+      "Typing a 10 letter word in the search box sends one request, not ten, in the network tab.",
+      "Results still appear within about half a second after typing stops.",
+      "Typing fast and then pausing never shows results for an older query on top of the newer one.",
+      "Scrolling or resizing for 5 seconds runs the handler a bounded number of times, logged in the console."
+    ],
+    "if_you_skip_it": "Your API and database bills grow with every keystroke, rate limits kick in, results flash in the wrong order, and scroll handlers make the page stutter.",
+    "how_derek_runs_it": "The Custody Journal entry editor autosaves through an htmx trigger of keyup changed delay:2s, which is a debounce. It posts once typing pauses for 2 seconds, and also on change.",
+    "links": [
+      {
+        "title": "MDN: Debounce",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/Debounce"
+      },
+      {
+        "title": "htmx: hx-trigger delay and throttle",
+        "url": "https://htmx.org/attributes/hx-trigger/"
+      },
+      {
+        "title": "MDN: AbortController",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController"
+      }
+    ],
+    "updated": "2026-10-28",
+    "derek_checked": "2026-10-28"
+  },
+  {
     "id": "full-text-search",
     "name": "Full-text search",
     "category": "search",
@@ -8433,6 +8612,186 @@
     "updated": "2026-10-21"
   },
   {
+    "id": "optimistic-updates",
+    "name": "Optimistic updates",
+    "category": "features",
+    "aliases": [
+      "optimistic UI",
+      "instant UI updates",
+      "useOptimistic",
+      "rollback on error",
+      "snappy UI"
+    ],
+    "needs": [
+      "my app feels slow every time I click a button",
+      "the like button waits for the server before it changes",
+      "make my UI feel instant"
+    ],
+    "keywords": [
+      "optimistic",
+      "instant",
+      "snappy",
+      "slow",
+      "lag",
+      "click",
+      "button",
+      "like",
+      "toggle",
+      "rollback",
+      "undo",
+      "mutation",
+      "spinner",
+      "usereducer",
+      "useoptimistic",
+      "react",
+      "query"
+    ],
+    "summary": "Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.",
+    "need_when": [
+      "Small, common actions that almost always succeed, like toggles, likes, renames and reordering.",
+      "Users notice a delay between clicking and seeing the change."
+    ],
+    "skip_when": [
+      "Payments, deletes of important data, or anything where showing success and then taking it back would hurt or confuse people. Show a clear pending state there instead."
+    ],
+    "ways": [
+      {
+        "title": "Your data library's optimistic option",
+        "cost": "$0",
+        "how": "TanStack Query's onMutate with rollback in onError, SWR's optimisticData, or the cache update in Apollo or RTK Query.",
+        "tradeoff": "Handles caching, rollback and refetching for you. Each action still needs its own update code."
+      },
+      {
+        "title": "React useOptimistic",
+        "cost": "$0",
+        "how": "Wrap the state you show in useOptimistic and set the new value before the server action runs.",
+        "tradeoff": "Built in and small. Works best with React server actions and forms."
+      },
+      {
+        "title": "Write it by hand",
+        "cost": "$0",
+        "how": "Save the old value, set the new one, send the request, and put the old value back if it fails.",
+        "tradeoff": "No library needed. Easy to miss the out-of-order and double-click cases."
+      }
+    ],
+    "prompt": "Make these actions update the UI optimistically: [like button / todo checkbox / rename / reorder].\n\nRequirements:\n- Update the screen immediately when the user acts, then send the request in the background.\n- Keep the previous value. If the request fails or times out, restore it and show a short error the user can see.\n- After the request settles, refetch or replace with the server's version so the screen matches the database.\n- If the user clicks again before the first request finishes, the last click wins and the screen never flickers between old states.\n- Do not use optimistic updates for [payments / deletes / anything listed here]. Show a pending state there instead.\n- Use [TanStack Query / SWR / useOptimistic / the existing data layer] and follow its documented rollback pattern.\n\nAcceptance checks (run each and show me the result):\n1. Clicking like (or done) updates the screen right away, before the server answers.\n2. With the network throttled to Slow 3G in dev tools, the change still shows instantly.\n3. When the server returns an error, the screen goes back to the old value and shows a message.\n4. Clicking the same button five times fast ends with the right final state after a refresh.",
+    "acceptance_checks": [
+      "Clicking like (or done) updates the screen right away, before the server answers.",
+      "With the network throttled to Slow 3G in dev tools, the change still shows instantly.",
+      "When the server returns an error, the screen goes back to the old value and shows a message.",
+      "Clicking the same button five times fast ends with the right final state after a refresh."
+    ],
+    "if_you_skip_it": "Every click waits on a round trip, so the app feels sluggish even when the server is fine. Done badly, you get the opposite problem: changes that look saved but quietly were not.",
+    "how_derek_runs_it": null,
+    "links": [
+      {
+        "title": "TanStack Query: optimistic updates",
+        "url": "https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates"
+      },
+      {
+        "title": "React: useOptimistic",
+        "url": "https://react.dev/reference/react/useOptimistic"
+      },
+      {
+        "title": "SWR: mutation and optimistic data",
+        "url": "https://swr.vercel.app/docs/mutation"
+      }
+    ],
+    "updated": "2026-10-28"
+  },
+  {
+    "id": "autosave-drafts",
+    "name": "Autosave and drafts",
+    "category": "features",
+    "aliases": [
+      "autosave",
+      "auto save",
+      "save draft",
+      "unsaved changes",
+      "lost my work"
+    ],
+    "needs": [
+      "users lose what they typed when the page refreshes",
+      "save drafts automatically while people type",
+      "warn before leaving with unsaved changes"
+    ],
+    "keywords": [
+      "autosave",
+      "auto",
+      "save",
+      "draft",
+      "drafts",
+      "unsaved",
+      "lost",
+      "work",
+      "refresh",
+      "form",
+      "editor",
+      "localstorage",
+      "beforeunload",
+      "conflict",
+      "typing"
+    ],
+    "summary": "Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.",
+    "need_when": [
+      "Long forms, editors, or anything people type into for more than a minute.",
+      "Users write on phones, where tabs get killed in the background."
+    ],
+    "skip_when": [
+      "Short forms of a few fields. A warning before leaving the page is enough."
+    ],
+    "ways": [
+      {
+        "title": "Save to the browser",
+        "cost": "$0",
+        "how": "Write the form to localStorage on a short debounce and restore it on load. Clear it after a real save.",
+        "tradeoff": "No server changes and works offline. Lost if they switch devices or clear the browser."
+      },
+      {
+        "title": "Server-side draft",
+        "cost": "$0",
+        "how": "Post the content on a debounce to a draft endpoint that updates one draft row per user and record, then promote it on Save.",
+        "tradeoff": "Survives any device or crash. You must keep drafts out of every list, count and export."
+      },
+      {
+        "title": "An editor with built-in autosave",
+        "cost": "$0 to paid",
+        "how": "Rich text or form libraries that ship an autosave plugin, or collaborative editors that save every change.",
+        "tradeoff": "Least code. Ties you to that editor's storage model."
+      }
+    ],
+    "prompt": "Add autosave with drafts to [form / editor].\n\nRequirements:\n- Save the content [2] seconds after the user stops typing, and when the field loses focus or the page is hidden.\n- Store it as a draft, one draft per user per [record], updated in place instead of a new row each time.\n- Keep drafts out of normal lists, search, exports, notifications and usage limits until the user presses Save.\n- Show a small status near the form: Saving, Saved, or a clear error if it failed.\n- If the record changed somewhere else since it was loaded, stop autosaving and show a conflict message instead of overwriting.\n- Warn with beforeunload only when there are changes that have not been saved yet.\n\nAcceptance checks (run each and show me the result):\n1. Typing in the form, waiting 3 seconds and refreshing brings the text back.\n2. The save status changes from Saving to Saved, and to an error when the network is off.\n3. Autosaving 20 times leaves one draft, not 20 records.\n4. Drafts don't show in lists, search, exports or usage counts until the user presses Save.\n5. Editing the same record in two tabs shows a conflict message instead of silently overwriting.",
+    "acceptance_checks": [
+      "Typing in the form, waiting 3 seconds and refreshing brings the text back.",
+      "The save status changes from Saving to Saved, and to an error when the network is off.",
+      "Autosaving 20 times leaves one draft, not 20 records.",
+      "Drafts don't show in lists, search, exports or usage counts until the user presses Save.",
+      "Editing the same record in two tabs shows a conflict message instead of silently overwriting."
+    ],
+    "if_you_skip_it": "People lose long pieces of writing to a refresh or a dropped connection, and they rarely come back after that. Done carelessly, half-finished drafts show up as real records.",
+    "how_derek_runs_it": "The Custody Journal entry form autosaves about 2 seconds after typing stops. Each user gets one draft per custody case, drafts are hidden from every list and report and don't count against the free plan, and the draft becomes a real entry only when the user presses Save. Autosave stops with a warning if the entry changed elsewhere, and it never rewrites an entry that has already been sealed.",
+    "links": [
+      {
+        "title": "htmx: hx-trigger",
+        "url": "https://htmx.org/attributes/hx-trigger/"
+      },
+      {
+        "title": "MDN: localStorage",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+      },
+      {
+        "title": "MDN: visibilitychange event",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event"
+      },
+      {
+        "title": "MDN: beforeunload event",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event"
+      }
+    ],
+    "updated": "2026-10-28",
+    "derek_checked": "2026-10-28"
+  },
+  {
     "id": "cookie-consent",
     "name": "Cookie consent and privacy-friendly analytics",
     "category": "privacy",
@@ -8687,5 +9046,94 @@
       }
     ],
     "updated": "2026-10-21"
+  },
+  {
+    "id": "product-analytics",
+    "name": "Product analytics events",
+    "category": "privacy",
+    "aliases": [
+      "event tracking",
+      "funnel tracking",
+      "PostHog",
+      "Umami events",
+      "conversion tracking",
+      "activation metrics"
+    ],
+    "needs": [
+      "I don't know where users drop off",
+      "track signups and conversions in my app",
+      "which features do people actually use"
+    ],
+    "keywords": [
+      "analytics",
+      "events",
+      "tracking",
+      "funnel",
+      "conversion",
+      "signup",
+      "activation",
+      "retention",
+      "posthog",
+      "umami",
+      "plausible",
+      "mixpanel",
+      "metrics",
+      "drop",
+      "off",
+      "usage"
+    ],
+    "summary": "Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.",
+    "need_when": [
+      "You want to know how many visitors sign up, activate and pay.",
+      "You are deciding what to build next and want usage, not guesses."
+    ],
+    "skip_when": [
+      "You have a handful of users you can just talk to. A few queries on your own database may answer the question."
+    ],
+    "ways": [
+      {
+        "title": "Privacy-friendly page analytics with custom events",
+        "cost": "$0 self-hosted, paid hosted",
+        "how": "Umami or Plausible, with a few custom events on the buttons and forms that matter.",
+        "tradeoff": "Light, cookieless and easy. Basic funnels only."
+      },
+      {
+        "title": "A product analytics tool",
+        "cost": "Free tier",
+        "how": "PostHog or Mixpanel, with server-side events for signups and payments and a user id that is not an email.",
+        "tradeoff": "Real funnels, retention and cohorts. More setup and more privacy work."
+      },
+      {
+        "title": "Your own events table",
+        "cost": "$0",
+        "how": "Write a row per important event to your database and query it.",
+        "tradeoff": "You own the data and it never leaves. You build the charts yourself."
+      }
+    ],
+    "prompt": "Add product analytics events for this funnel: [landing view, signup, first key action, upgrade, paid].\n\nRequirements:\n- Write down an event list first: snake_case names, when each fires, and its properties. Keep it under [10] events.\n- Send signup and payment events from the server, after the database write succeeds, so ad blockers and refreshes don't change the counts.\n- Use an id that is not personal, like a hash of the user id. Never send emails, names, or text the user typed.\n- Respect the existing consent setting. If consent is declined, send nothing to third parties.\n- Make each event fire once per real action, not once per page render or retry.\n- Use [Umami / Plausible / PostHog / an events table] and put the tracking calls in one small helper module.\n\nAcceptance checks (run each and show me the result):\n1. Signing up in staging creates exactly one sign_up event with the agreed properties.\n2. A funnel from landing page view to paid shows a count for every step.\n3. No event payload contains an email, name or free text the user typed.\n4. With analytics consent declined, the network tab shows no requests to the analytics provider.",
+    "acceptance_checks": [
+      "Signing up in staging creates exactly one sign_up event with the agreed properties.",
+      "A funnel from landing page view to paid shows a count for every step.",
+      "No event payload contains an email, name or free text the user typed.",
+      "With analytics consent declined, the network tab shows no requests to the analytics provider."
+    ],
+    "if_you_skip_it": "You guess where users get stuck, ship features nobody uses, and can't tell whether a change helped. Tracked carelessly, you leak personal data into a third party.",
+    "how_derek_runs_it": "Custody Journal saves a fixed list of funnel events, from signup intent through subscription started, to its own database. It sends events to PostHog only for signed-out visitors on the home, start and pricing pages after they accept analytics, and uses a hashed id instead of the account id or email.",
+    "links": [
+      {
+        "title": "PostHog: product analytics",
+        "url": "https://posthog.com/docs/product-analytics"
+      },
+      {
+        "title": "Umami: track events",
+        "url": "https://umami.is/docs/track-events"
+      },
+      {
+        "title": "Plausible: custom event goals",
+        "url": "https://plausible.io/docs/custom-event-goals"
+      }
+    ],
+    "updated": "2026-10-28",
+    "derek_checked": "2026-10-28"
   }
 ]

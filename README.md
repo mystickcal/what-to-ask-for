@@ -28,7 +28,7 @@ python3 build.py --out site                       # regenerate
 git -C site status --short                        # review what changed
 python3 checks/sitecheck.py what-to-ask-for --local site --expect N
 python3 checks/browsercheck.py what-to-ask-for --local site
-git -C site commit -am "..." && git -C site push  # only after both pass
+git -C site add -A && git -C site commit -m "..." && git -C site push  # only after both pass
 python3 checks/sitecheck.py what-to-ask-for --live --expect N --compare-dir site
 python3 checks/browsercheck.py what-to-ask-for --live
 ```

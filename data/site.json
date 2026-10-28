@@ -1,6 +1,6 @@
 {
   "name": "What To Ask For",
-  "updated": "2026-10-21",
+  "updated": "2026-10-28",
   "categories": [
     {
       "id": "background",
@@ -72,5 +72,6 @@
       "name": "Analytics and privacy",
       "short": "Privacy"
     }
-  ]
+  ],
+  "sitemap": true
 }
