@@ -1,0 +1,76 @@
+{
+  "name": "What To Ask For",
+  "updated": "2026-10-21",
+  "categories": [
+    {
+      "id": "background",
+      "name": "Background work and scheduling",
+      "short": "Background jobs"
+    },
+    {
+      "id": "payments",
+      "name": "Payments and billing",
+      "short": "Payments"
+    },
+    {
+      "id": "auth",
+      "name": "Auth and accounts",
+      "short": "Auth"
+    },
+    {
+      "id": "email",
+      "name": "Email and notifications",
+      "short": "Email"
+    },
+    {
+      "id": "files",
+      "name": "Files and uploads",
+      "short": "Files"
+    },
+    {
+      "id": "data",
+      "name": "Data and databases",
+      "short": "Data"
+    },
+    {
+      "id": "api",
+      "name": "APIs and integrations",
+      "short": "APIs"
+    },
+    {
+      "id": "security",
+      "name": "Security and abuse",
+      "short": "Security"
+    },
+    {
+      "id": "deploys",
+      "name": "Deploys, uptime and monitoring",
+      "short": "Deploys"
+    },
+    {
+      "id": "ai",
+      "name": "AI features",
+      "short": "AI"
+    },
+    {
+      "id": "performance",
+      "name": "Performance and caching",
+      "short": "Performance"
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "short": "Search"
+    },
+    {
+      "id": "features",
+      "name": "Common app features",
+      "short": "Features"
+    },
+    {
+      "id": "privacy",
+      "name": "Analytics and privacy",
+      "short": "Privacy"
+    }
+  ]
+}
