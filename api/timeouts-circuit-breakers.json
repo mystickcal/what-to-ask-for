@@ -1,0 +1,94 @@
+{
+  "id": "timeouts-circuit-breakers",
+  "name": "Timeouts and circuit breakers",
+  "category": "api",
+  "category_name": "APIs and integrations",
+  "aliases": [
+    "request timeouts",
+    "circuit breaker",
+    "fail fast",
+    "slow third-party API",
+    "cascading failure"
+  ],
+  "needs": [
+    "my app hangs when a third-party API is slow",
+    "one slow service takes down my whole app",
+    "retries ran up a huge bill when an API was down"
+  ],
+  "keywords": [
+    "timeout",
+    "timeouts",
+    "circuit",
+    "breaker",
+    "hang",
+    "slow",
+    "third",
+    "party",
+    "api",
+    "retry",
+    "retries",
+    "fail",
+    "fast",
+    "cascade",
+    "outage",
+    "fallback"
+  ],
+  "summary": "A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.",
+  "need_when": [
+    "Your app calls payment, email, AI or other third-party APIs during a request.",
+    "You have retries, and a long outage could turn them into a flood of calls."
+  ],
+  "skip_when": [
+    "Calls that only happen in background jobs with their own timeout, where waiting longer is fine."
+  ],
+  "ways": [
+    {
+      "title": "Timeouts on every outbound call",
+      "cost": "$0",
+      "how": "Set a timeout in your HTTP client (requests timeout=, fetch with AbortSignal.timeout, SDK timeout options). Most clients wait forever by default.",
+      "tradeoff": "The biggest win for the least work. Pick numbers from how slow the service really gets."
+    },
+    {
+      "title": "A circuit breaker library",
+      "cost": "$0",
+      "how": "opossum (Node), pybreaker (Python) or resilience4j (Java) wrapped around the calls that matter.",
+      "tradeoff": "Stops hammering a service that is down. Another thing to tune and monitor."
+    },
+    {
+      "title": "Move slow calls off the request",
+      "cost": "$0",
+      "how": "Put the call in a background job, show a pending state, and let the job retry with backoff.",
+      "tradeoff": "Users never wait on a third party. Needs a job queue and a way to show results later."
+    }
+  ],
+  "prompt": "Add timeouts and a circuit breaker to this app's outbound calls to [Stripe / OpenAI / email provider / other APIs].\n\nRequirements:\n- Find every outbound HTTP or SDK call and give it an explicit timeout: [5] seconds for user-facing requests, longer only where the work needs it.\n- Cap retries at [2] with exponential backoff and jitter. Never retry inside a loop that is itself retried.\n- Wrap [the slow or flaky service] in a circuit breaker that opens after [5] failures in a row, fails fast for [30] seconds, then lets one test call through.\n- When the breaker is open, return a clear message or a fallback instead of an error page.\n- Log each timeout and every time the breaker opens or closes.\n- Use [opossum / pybreaker / the existing HTTP client's options].\n\nAcceptance checks (run each and show me the result):\n1. Pointing [service] at an address that never answers makes the call fail within the set timeout, not hang.\n2. A slow external service doesn't make unrelated pages slow, checked with a quick load test.\n3. After [5] failures in a row the breaker opens and calls fail fast without hitting the service.\n4. Once the service is back, the breaker closes again on its own and calls succeed.",
+  "acceptance_checks": [
+    "Pointing [service] at an address that never answers makes the call fail within the set timeout, not hang.",
+    "A slow external service doesn't make unrelated pages slow, checked with a quick load test.",
+    "After [5] failures in a row the breaker opens and calls fail fast without hitting the service.",
+    "Once the service is back, the breaker closes again on its own and calls succeed."
+  ],
+  "if_you_skip_it": "One slow API ties up every worker and your whole site goes down with it. Retries against a dead service can pile up into thousands of calls and a surprise bill.",
+  "how_derek_runs_it": "Custody Journal sets explicit timeouts on its outbound calls: 10 seconds for each webhook delivery, with the DNS lookup capped at 5 seconds, and 60 seconds with one retry for voice memo transcription, which then tells the user to try again or type instead. It does not use a circuit breaker.",
+  "links": [
+    {
+      "title": "Martin Fowler: CircuitBreaker",
+      "url": "https://martinfowler.com/bliki/CircuitBreaker.html"
+    },
+    {
+      "title": "AWS Builders' Library: timeouts, retries and backoff with jitter",
+      "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+    },
+    {
+      "title": "MDN: AbortSignal.timeout()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static"
+    },
+    {
+      "title": "opossum",
+      "url": "https://github.com/nodeshift/opossum"
+    }
+  ],
+  "page": "e/timeouts-circuit-breakers/index.html",
+  "json": "api/timeouts-circuit-breakers.json",
+  "updated": "2026-10-28"
+}

@@ -1,0 +1,94 @@
+{
+  "id": "autosave-drafts",
+  "name": "Autosave and drafts",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "autosave",
+    "auto save",
+    "save draft",
+    "unsaved changes",
+    "lost my work"
+  ],
+  "needs": [
+    "users lose what they typed when the page refreshes",
+    "save drafts automatically while people type",
+    "warn before leaving with unsaved changes"
+  ],
+  "keywords": [
+    "autosave",
+    "auto",
+    "save",
+    "draft",
+    "drafts",
+    "unsaved",
+    "lost",
+    "work",
+    "refresh",
+    "form",
+    "editor",
+    "localstorage",
+    "beforeunload",
+    "conflict",
+    "typing"
+  ],
+  "summary": "Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.",
+  "need_when": [
+    "Long forms, editors, or anything people type into for more than a minute.",
+    "Users write on phones, where tabs get killed in the background."
+  ],
+  "skip_when": [
+    "Short forms of a few fields. A warning before leaving the page is enough."
+  ],
+  "ways": [
+    {
+      "title": "Save to the browser",
+      "cost": "$0",
+      "how": "Write the form to localStorage on a short debounce and restore it on load. Clear it after a real save.",
+      "tradeoff": "No server changes and works offline. Lost if they switch devices or clear the browser."
+    },
+    {
+      "title": "Server-side draft",
+      "cost": "$0",
+      "how": "Post the content on a debounce to a draft endpoint that updates one draft row per user and record, then promote it on Save.",
+      "tradeoff": "Survives any device or crash. You must keep drafts out of every list, count and export."
+    },
+    {
+      "title": "An editor with built-in autosave",
+      "cost": "$0 to paid",
+      "how": "Rich text or form libraries that ship an autosave plugin, or collaborative editors that save every change.",
+      "tradeoff": "Least code. Ties you to that editor's storage model."
+    }
+  ],
+  "prompt": "Add autosave with drafts to [form / editor].\n\nRequirements:\n- Save the content [2] seconds after the user stops typing, and when the field loses focus or the page is hidden.\n- Store it as a draft, one draft per user per [record], updated in place instead of a new row each time.\n- Keep drafts out of normal lists, search, exports, notifications and usage limits until the user presses Save.\n- Show a small status near the form: Saving, Saved, or a clear error if it failed.\n- If the record changed somewhere else since it was loaded, stop autosaving and show a conflict message instead of overwriting.\n- Warn with beforeunload only when there are changes that have not been saved yet.\n\nAcceptance checks (run each and show me the result):\n1. Typing in the form, waiting 3 seconds and refreshing brings the text back.\n2. The save status changes from Saving to Saved, and to an error when the network is off.\n3. Autosaving 20 times leaves one draft, not 20 records.\n4. Drafts don't show in lists, search, exports or usage counts until the user presses Save.\n5. Editing the same record in two tabs shows a conflict message instead of silently overwriting.",
+  "acceptance_checks": [
+    "Typing in the form, waiting 3 seconds and refreshing brings the text back.",
+    "The save status changes from Saving to Saved, and to an error when the network is off.",
+    "Autosaving 20 times leaves one draft, not 20 records.",
+    "Drafts don't show in lists, search, exports or usage counts until the user presses Save.",
+    "Editing the same record in two tabs shows a conflict message instead of silently overwriting."
+  ],
+  "if_you_skip_it": "People lose long pieces of writing to a refresh or a dropped connection, and they rarely come back after that. Done carelessly, half-finished drafts show up as real records.",
+  "how_derek_runs_it": "The Custody Journal entry form autosaves about 2 seconds after typing stops. Each user gets one draft per custody case, drafts are hidden from every list and report and don't count against the free plan, and the draft becomes a real entry only when the user presses Save. Autosave stops with a warning if the entry changed elsewhere, and it never rewrites an entry that has already been sealed.",
+  "links": [
+    {
+      "title": "htmx: hx-trigger",
+      "url": "https://htmx.org/attributes/hx-trigger/"
+    },
+    {
+      "title": "MDN: localStorage",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+    },
+    {
+      "title": "MDN: visibilitychange event",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event"
+    },
+    {
+      "title": "MDN: beforeunload event",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event"
+    }
+  ],
+  "page": "e/autosave-drafts/index.html",
+  "json": "api/autosave-drafts.json",
+  "updated": "2026-10-28"
+}

@@ -80,6 +80,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [API versioning plan](e/api-versioning/index.html): A written rule for how your API changes over time: what counts as breaking, how a new version is chosen by callers, and how long old versions keep working. Adding fields is usually safe. Removing or renaming them is not. JSON: api/api-versioning.json
 - [Idempotency keys for your API](e/idempotency-keys/index.html): The caller sends a unique key with each create request. Your API saves the key with the result, and if the same key comes back it returns the saved result instead of doing the work again. Retrying after a timeout becomes safe. JSON: api/idempotency-keys.json
 - [API docs from an OpenAPI spec](e/api-docs-openapi/index.html): One machine-readable file that describes every endpoint, field and error of your API. Reference pages, client libraries and contract tests are generated from it, so the docs can't drift far from the code. JSON: api/api-docs-openapi.json
+- [Timeouts and circuit breakers](e/timeouts-circuit-breakers/index.html): A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill. JSON: api/timeouts-circuit-breakers.json
 
 ### Security and abuse
 
@@ -129,6 +130,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Database indexes](e/database-indexes/index.html): Lookup structures that let the database find rows without reading the whole table. Most slow pages in young apps come from a missing index on the columns a query filters and sorts by, or from N+1 queries that run one query per row. JSON: api/database-indexes.json
 - [Load testing](e/load-testing/index.html): Sending realistic fake traffic at a copy of your app to find where it slows down or breaks: requests per second, response times at the 95th percentile, errors, and which part (database, CPU, an outside API) gives out first. JSON: api/load-testing.json
 - [N+1 query fixes](e/n-plus-one-queries/index.html): A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead. JSON: api/n-plus-one-queries.json
+- [Debounce and throttle](e/debouncing/index.html): Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers. JSON: api/debouncing.json
 
 ### Search
 
@@ -143,15 +145,18 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Location and distance search](e/geolocation/index.html): Storing latitude and longitude for things, turning addresses into coordinates (geocoding), and querying by distance with a spatial index. The user's own location comes from the browser with permission, or from a typed address or postcode. JSON: api/geolocation.json
 - [Live updates (WebSockets, SSE or polling)](e/realtime-updates/index.html): Getting changes to the browser as they happen. Polling asks every few seconds. Server-sent events stream one way from server to browser. WebSockets go both ways. Pick the simplest one that meets the delay users will notice. JSON: api/realtime-updates.json
 - [Internal admin panel](e/admin-panel/index.html): A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log. JSON: api/admin-panel.json
+- [Optimistic updates](e/optimistic-updates/index.html): Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant. JSON: api/optimistic-updates.json
+- [Autosave and drafts](e/autosave-drafts/index.html): Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing. JSON: api/autosave-drafts.json
 
 ### Analytics and privacy
 
 - [Cookie consent and privacy-friendly analytics](e/cookie-consent/index.html): Asking before you set non-essential cookies or load trackers, where the law requires it, and not loading them until people agree. Many apps avoid most of the problem by using cookieless, privacy-focused analytics and keeping ad pixels off logged-in pages. JSON: api/cookie-consent.json
 - [Data export and account deletion](e/data-export-deletion/index.html): Self-serve tools for users to download their data in a usable format and to delete their account. Deleting means removing their records and files, cancelling their billing, and telling them what's kept and why, like backups that expire or legal records. JSON: api/data-export-deletion.json
 - [Data retention and cleanup](e/data-retention/index.html): A written list of what data you keep, for how long and why, plus scheduled jobs that delete or anonymize it when time is up. It covers logs, backups, temporary files, expired tokens and closed accounts. JSON: api/data-retention.json
+- [Product analytics events](e/product-analytics/index.html): Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working. JSON: api/product-analytics.json
 
 ## Data
 
 - [entries.json](entries.json): all entries with prompts and checks
 
-Updated 2026-10-21. Built by Derek Salyers (https://x.com/omgitsderek).
+Updated 2026-10-28. Built by Derek Salyers (https://x.com/omgitsderek).

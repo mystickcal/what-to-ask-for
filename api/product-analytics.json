@@ -1,0 +1,91 @@
+{
+  "id": "product-analytics",
+  "name": "Product analytics events",
+  "category": "privacy",
+  "category_name": "Analytics and privacy",
+  "aliases": [
+    "event tracking",
+    "funnel tracking",
+    "PostHog",
+    "Umami events",
+    "conversion tracking",
+    "activation metrics"
+  ],
+  "needs": [
+    "I don't know where users drop off",
+    "track signups and conversions in my app",
+    "which features do people actually use"
+  ],
+  "keywords": [
+    "analytics",
+    "events",
+    "tracking",
+    "funnel",
+    "conversion",
+    "signup",
+    "activation",
+    "retention",
+    "posthog",
+    "umami",
+    "plausible",
+    "mixpanel",
+    "metrics",
+    "drop",
+    "off",
+    "usage"
+  ],
+  "summary": "Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.",
+  "need_when": [
+    "You want to know how many visitors sign up, activate and pay.",
+    "You are deciding what to build next and want usage, not guesses."
+  ],
+  "skip_when": [
+    "You have a handful of users you can just talk to. A few queries on your own database may answer the question."
+  ],
+  "ways": [
+    {
+      "title": "Privacy-friendly page analytics with custom events",
+      "cost": "$0 self-hosted, paid hosted",
+      "how": "Umami or Plausible, with a few custom events on the buttons and forms that matter.",
+      "tradeoff": "Light, cookieless and easy. Basic funnels only."
+    },
+    {
+      "title": "A product analytics tool",
+      "cost": "Free tier",
+      "how": "PostHog or Mixpanel, with server-side events for signups and payments and a user id that is not an email.",
+      "tradeoff": "Real funnels, retention and cohorts. More setup and more privacy work."
+    },
+    {
+      "title": "Your own events table",
+      "cost": "$0",
+      "how": "Write a row per important event to your database and query it.",
+      "tradeoff": "You own the data and it never leaves. You build the charts yourself."
+    }
+  ],
+  "prompt": "Add product analytics events for this funnel: [landing view, signup, first key action, upgrade, paid].\n\nRequirements:\n- Write down an event list first: snake_case names, when each fires, and its properties. Keep it under [10] events.\n- Send signup and payment events from the server, after the database write succeeds, so ad blockers and refreshes don't change the counts.\n- Use an id that is not personal, like a hash of the user id. Never send emails, names, or text the user typed.\n- Respect the existing consent setting. If consent is declined, send nothing to third parties.\n- Make each event fire once per real action, not once per page render or retry.\n- Use [Umami / Plausible / PostHog / an events table] and put the tracking calls in one small helper module.\n\nAcceptance checks (run each and show me the result):\n1. Signing up in staging creates exactly one sign_up event with the agreed properties.\n2. A funnel from landing page view to paid shows a count for every step.\n3. No event payload contains an email, name or free text the user typed.\n4. With analytics consent declined, the network tab shows no requests to the analytics provider.",
+  "acceptance_checks": [
+    "Signing up in staging creates exactly one sign_up event with the agreed properties.",
+    "A funnel from landing page view to paid shows a count for every step.",
+    "No event payload contains an email, name or free text the user typed.",
+    "With analytics consent declined, the network tab shows no requests to the analytics provider."
+  ],
+  "if_you_skip_it": "You guess where users get stuck, ship features nobody uses, and can't tell whether a change helped. Tracked carelessly, you leak personal data into a third party.",
+  "how_derek_runs_it": "Custody Journal saves a fixed list of funnel events, from signup intent through subscription started, to its own database. It sends events to PostHog only for signed-out visitors on the home, start and pricing pages after they accept analytics, and uses a hashed id instead of the account id or email.",
+  "links": [
+    {
+      "title": "PostHog: product analytics",
+      "url": "https://posthog.com/docs/product-analytics"
+    },
+    {
+      "title": "Umami: track events",
+      "url": "https://umami.is/docs/track-events"
+    },
+    {
+      "title": "Plausible: custom event goals",
+      "url": "https://plausible.io/docs/custom-event-goals"
+    }
+  ],
+  "page": "e/product-analytics/index.html",
+  "json": "api/product-analytics.json",
+  "updated": "2026-10-28"
+}

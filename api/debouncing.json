@@ -1,0 +1,89 @@
+{
+  "id": "debouncing",
+  "name": "Debounce and throttle",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "debounce",
+    "throttle",
+    "search as you type",
+    "rate limit input",
+    "too many requests from typing"
+  ],
+  "needs": [
+    "my search box sends a request on every keystroke",
+    "my app hammers the API while the user types",
+    "scrolling makes my page lag"
+  ],
+  "keywords": [
+    "debounce",
+    "throttle",
+    "keystroke",
+    "typing",
+    "search",
+    "autocomplete",
+    "input",
+    "scroll",
+    "resize",
+    "requests",
+    "api",
+    "lag",
+    "delay",
+    "abort",
+    "stale"
+  ],
+  "summary": "Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.",
+  "need_when": [
+    "Search or autocomplete that calls an API or database as people type.",
+    "Handlers on scroll, resize, mouse move or drag that do real work."
+  ],
+  "skip_when": [
+    "Buttons and form submits. Disable the button while it runs instead, so a double click can't send twice."
+  ],
+  "ways": [
+    {
+      "title": "A small utility",
+      "cost": "$0",
+      "how": "lodash debounce and throttle, or a hook like use-debounce in React. A hand-written debounce is about ten lines.",
+      "tradeoff": "Simple and well tested. Remember to cancel pending calls when the component goes away."
+    },
+    {
+      "title": "Your framework's built-in delay",
+      "cost": "$0",
+      "how": "htmx hx-trigger with delay: (debounce) or throttle:, or the debounce option in your form or search library.",
+      "tradeoff": "No code to maintain. Less control over edge cases."
+    },
+    {
+      "title": "Debounce plus cancel the old request",
+      "cost": "$0",
+      "how": "Debounce the input and abort the previous fetch with AbortController when a new query starts.",
+      "tradeoff": "Fixes results arriving out of order. A little more code."
+    }
+  ],
+  "prompt": "Add debouncing to [search box / autocomplete / filter inputs] and throttling to [scroll / resize handlers].\n\nRequirements:\n- Debounce input-driven requests by [300] ms so one request goes out after the user pauses.\n- Cancel the previous in-flight request with AbortController when a new one starts, and ignore any response that is not for the latest query.\n- Throttle [scroll / resize / drag] handlers to at most once every [100] ms.\n- Show a small loading state while a debounced search is running.\n- Clean up timers and pending requests when the component unmounts or the page changes.\n- Use [lodash / use-debounce / htmx delay / a small helper] rather than a new dependency if one already exists.\n\nAcceptance checks (run each and show me the result):\n1. Typing a 10 letter word in the search box sends one request, not ten, in the network tab.\n2. Results still appear within about half a second after typing stops.\n3. Typing fast and then pausing never shows results for an older query on top of the newer one.\n4. Scrolling or resizing for 5 seconds runs the handler a bounded number of times, logged in the console.",
+  "acceptance_checks": [
+    "Typing a 10 letter word in the search box sends one request, not ten, in the network tab.",
+    "Results still appear within about half a second after typing stops.",
+    "Typing fast and then pausing never shows results for an older query on top of the newer one.",
+    "Scrolling or resizing for 5 seconds runs the handler a bounded number of times, logged in the console."
+  ],
+  "if_you_skip_it": "Your API and database bills grow with every keystroke, rate limits kick in, results flash in the wrong order, and scroll handlers make the page stutter.",
+  "how_derek_runs_it": "The Custody Journal entry editor autosaves through an htmx trigger of keyup changed delay:2s, which is a debounce. It posts once typing pauses for 2 seconds, and also on change.",
+  "links": [
+    {
+      "title": "MDN: Debounce",
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Debounce"
+    },
+    {
+      "title": "htmx: hx-trigger delay and throttle",
+      "url": "https://htmx.org/attributes/hx-trigger/"
+    },
+    {
+      "title": "MDN: AbortController",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController"
+    }
+  ],
+  "page": "e/debouncing/index.html",
+  "json": "api/debouncing.json",
+  "updated": "2026-10-28"
+}

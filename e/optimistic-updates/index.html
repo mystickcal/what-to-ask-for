@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optimistic updates: What To Ask For</title>
+<meta name="description" content="Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Optimistic updates: What To Ask For">
+<meta property="og:description" content="Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/optimistic-updates/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Optimistic updates: What To Ask For">
+<meta name="twitter:description" content="Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Optimistic updates</h1>
+  <p class="aka">Also called: optimistic UI, instant UI updates, useOptimistic, rollback on error, snappy UI</p>
+  <p class="lead">Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Small, common actions that almost always succeed, like toggles, likes, renames and reordering.</li><li>Users notice a delay between clicking and seeing the change.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Payments, deletes of important data, or anything where showing success and then taking it back would hurt or confuse people. Show a clear pending state there instead.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your data library&#x27;s optimistic option <span class="cost">$0</span></h3>
+<p>TanStack Query&#x27;s onMutate with rollback in onError, SWR&#x27;s optimisticData, or the cache update in Apollo or RTK Query.</p><p class="trade"><strong>Tradeoff:</strong> Handles caching, rollback and refetching for you. Each action still needs its own update code.</p></li>
+<li><h3>React useOptimistic <span class="cost">$0</span></h3>
+<p>Wrap the state you show in useOptimistic and set the new value before the server action runs.</p><p class="trade"><strong>Tradeoff:</strong> Built in and small. Works best with React server actions and forms.</p></li>
+<li><h3>Write it by hand <span class="cost">$0</span></h3>
+<p>Save the old value, set the new one, send the request, and put the old value back if it fails.</p><p class="trade"><strong>Tradeoff:</strong> No library needed. Easy to miss the out-of-order and double-click cases.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Make these actions update the UI optimistically: [like button / todo checkbox / rename / reorder].
+
+Requirements:
+- Update the screen immediately when the user acts, then send the request in the background.
+- Keep the previous value. If the request fails or times out, restore it and show a short error the user can see.
+- After the request settles, refetch or replace with the server&#x27;s version so the screen matches the database.
+- If the user clicks again before the first request finishes, the last click wins and the screen never flickers between old states.
+- Do not use optimistic updates for [payments / deletes / anything listed here]. Show a pending state there instead.
+- Use [TanStack Query / SWR / useOptimistic / the existing data layer] and follow its documented rollback pattern.
+
+Acceptance checks (run each and show me the result):
+1. Clicking like (or done) updates the screen right away, before the server answers.
+2. With the network throttled to Slow 3G in dev tools, the change still shows instantly.
+3. When the server returns an error, the screen goes back to the old value and shows a message.
+4. Clicking the same button five times fast ends with the right final state after a refresh.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Every click waits on a round trip, so the app feels sluggish even when the server is fine. Done badly, you get the opposite problem: changes that look saved but quietly were not.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my app feels slow every time I click a button&rdquo;</li><li>&ldquo;the like button waits for the server before it changes&rdquo;</li><li>&ldquo;make my UI feel instant&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates">TanStack Query: optimistic updates</a></li><li><a href="https://react.dev/reference/react/useOptimistic">React: useOptimistic</a></li><li><a href="https://swr.vercel.app/docs/mutation">SWR: mutation and optimistic data</a></li></ul></section>
+  <p class="meta">Checked 2026-10-28. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/optimistic-updates.json">api/optimistic-updates.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../admin-panel/index.html">&larr; Internal admin panel</a><a href="../autosave-drafts/index.html">Autosave and drafts &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

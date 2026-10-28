@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debounce and throttle: What To Ask For</title>
+<meta name="description" content="Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Debounce and throttle: What To Ask For">
+<meta property="og:description" content="Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/debouncing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Debounce and throttle: What To Ask For">
+<meta name="twitter:description" content="Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=performance">Performance and caching</a></p>
+  <h1>Debounce and throttle</h1>
+  <p class="aka">Also called: debounce, throttle, search as you type, rate limit input, too many requests from typing</p>
+  <p class="lead">Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Search or autocomplete that calls an API or database as people type.</li><li>Handlers on scroll, resize, mouse move or drag that do real work.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Buttons and form submits. Disable the button while it runs instead, so a double click can&#x27;t send twice.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A small utility <span class="cost">$0</span></h3>
+<p>lodash debounce and throttle, or a hook like use-debounce in React. A hand-written debounce is about ten lines.</p><p class="trade"><strong>Tradeoff:</strong> Simple and well tested. Remember to cancel pending calls when the component goes away.</p></li>
+<li><h3>Your framework&#x27;s built-in delay <span class="cost">$0</span></h3>
+<p>htmx hx-trigger with delay: (debounce) or throttle:, or the debounce option in your form or search library.</p><p class="trade"><strong>Tradeoff:</strong> No code to maintain. Less control over edge cases.</p></li>
+<li><h3>Debounce plus cancel the old request <span class="cost">$0</span></h3>
+<p>Debounce the input and abort the previous fetch with AbortController when a new query starts.</p><p class="trade"><strong>Tradeoff:</strong> Fixes results arriving out of order. A little more code.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add debouncing to [search box / autocomplete / filter inputs] and throttling to [scroll / resize handlers].
+
+Requirements:
+- Debounce input-driven requests by [300] ms so one request goes out after the user pauses.
+- Cancel the previous in-flight request with AbortController when a new one starts, and ignore any response that is not for the latest query.
+- Throttle [scroll / resize / drag] handlers to at most once every [100] ms.
+- Show a small loading state while a debounced search is running.
+- Clean up timers and pending requests when the component unmounts or the page changes.
+- Use [lodash / use-debounce / htmx delay / a small helper] rather than a new dependency if one already exists.
+
+Acceptance checks (run each and show me the result):
+1. Typing a 10 letter word in the search box sends one request, not ten, in the network tab.
+2. Results still appear within about half a second after typing stops.
+3. Typing fast and then pausing never shows results for an older query on top of the newer one.
+4. Scrolling or resizing for 5 seconds runs the handler a bounded number of times, logged in the console.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Your API and database bills grow with every keystroke, rate limits kick in, results flash in the wrong order, and scroll handlers make the page stutter.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>The Custody Journal entry editor autosaves through an htmx trigger of keyup changed delay:2s, which is a debounce. It posts once typing pauses for 2 seconds, and also on change.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-28.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my search box sends a request on every keystroke&rdquo;</li><li>&ldquo;my app hammers the API while the user types&rdquo;</li><li>&ldquo;scrolling makes my page lag&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Debounce">MDN: Debounce</a></li><li><a href="https://htmx.org/attributes/hx-trigger/">htmx: hx-trigger delay and throttle</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/AbortController">MDN: AbortController</a></li></ul></section>
+  <p class="meta">Checked 2026-10-28. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/debouncing.json">api/debouncing.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../n-plus-one-queries/index.html">&larr; N+1 query fixes</a><a href="../full-text-search/index.html">Full-text search &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

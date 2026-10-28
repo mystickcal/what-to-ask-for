@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timeouts and circuit breakers: What To Ask For</title>
+<meta name="description" content="A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Timeouts and circuit breakers: What To Ask For">
+<meta property="og:description" content="A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/timeouts-circuit-breakers/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Timeouts and circuit breakers: What To Ask For">
+<meta name="twitter:description" content="A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=api">APIs and integrations</a></p>
+  <h1>Timeouts and circuit breakers</h1>
+  <p class="aka">Also called: request timeouts, circuit breaker, fail fast, slow third-party API, cascading failure</p>
+  <p class="lead">A timeout puts a limit on how long you wait for another service. A circuit breaker watches for repeated failures and, once there are too many, stops calling that service for a while and fails right away. Together they keep one slow dependency from tying up your whole app or running up a bill.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Your app calls payment, email, AI or other third-party APIs during a request.</li><li>You have retries, and a long outage could turn them into a flood of calls.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Calls that only happen in background jobs with their own timeout, where waiting longer is fine.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Timeouts on every outbound call <span class="cost">$0</span></h3>
+<p>Set a timeout in your HTTP client (requests timeout=, fetch with AbortSignal.timeout, SDK timeout options). Most clients wait forever by default.</p><p class="trade"><strong>Tradeoff:</strong> The biggest win for the least work. Pick numbers from how slow the service really gets.</p></li>
+<li><h3>A circuit breaker library <span class="cost">$0</span></h3>
+<p>opossum (Node), pybreaker (Python) or resilience4j (Java) wrapped around the calls that matter.</p><p class="trade"><strong>Tradeoff:</strong> Stops hammering a service that is down. Another thing to tune and monitor.</p></li>
+<li><h3>Move slow calls off the request <span class="cost">$0</span></h3>
+<p>Put the call in a background job, show a pending state, and let the job retry with backoff.</p><p class="trade"><strong>Tradeoff:</strong> Users never wait on a third party. Needs a job queue and a way to show results later.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add timeouts and a circuit breaker to this app&#x27;s outbound calls to [Stripe / OpenAI / email provider / other APIs].
+
+Requirements:
+- Find every outbound HTTP or SDK call and give it an explicit timeout: [5] seconds for user-facing requests, longer only where the work needs it.
+- Cap retries at [2] with exponential backoff and jitter. Never retry inside a loop that is itself retried.
+- Wrap [the slow or flaky service] in a circuit breaker that opens after [5] failures in a row, fails fast for [30] seconds, then lets one test call through.
+- When the breaker is open, return a clear message or a fallback instead of an error page.
+- Log each timeout and every time the breaker opens or closes.
+- Use [opossum / pybreaker / the existing HTTP client&#x27;s options].
+
+Acceptance checks (run each and show me the result):
+1. Pointing [service] at an address that never answers makes the call fail within the set timeout, not hang.
+2. A slow external service doesn&#x27;t make unrelated pages slow, checked with a quick load test.
+3. After [5] failures in a row the breaker opens and calls fail fast without hitting the service.
+4. Once the service is back, the breaker closes again on its own and calls succeed.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>One slow API ties up every worker and your whole site goes down with it. Retries against a dead service can pile up into thousands of calls and a surprise bill.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal sets explicit timeouts on its outbound calls: 10 seconds for each webhook delivery, with the DNS lookup capped at 5 seconds, and 60 seconds with one retry for voice memo transcription, which then tells the user to try again or type instead. It does not use a circuit breaker.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-28.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;my app hangs when a third-party API is slow&rdquo;</li><li>&ldquo;one slow service takes down my whole app&rdquo;</li><li>&ldquo;retries ran up a huge bill when an API was down&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://martinfowler.com/bliki/CircuitBreaker.html">Martin Fowler: CircuitBreaker</a></li><li><a href="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/">AWS Builders&#x27; Library: timeouts, retries and backoff with jitter</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static">MDN: AbortSignal.timeout()</a></li><li><a href="https://github.com/nodeshift/opossum">opossum</a></li></ul></section>
+  <p class="meta">Checked 2026-10-28. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/timeouts-circuit-breakers.json">api/timeouts-circuit-breakers.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../api-docs-openapi/index.html">&larr; API docs from an OpenAPI spec</a><a href="../rate-limiting/index.html">Rate limiting &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

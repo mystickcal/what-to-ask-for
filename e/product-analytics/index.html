@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product analytics events: What To Ask For</title>
+<meta name="description" content="Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Product analytics events: What To Ask For">
+<meta property="og:description" content="Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/product-analytics/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Product analytics events: What To Ask For">
+<meta name="twitter:description" content="Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=privacy">Analytics and privacy</a></p>
+  <h1>Product analytics events</h1>
+  <p class="aka">Also called: event tracking, funnel tracking, PostHog, Umami events, conversion tracking, activation metrics</p>
+  <p class="lead">Sending a small named event when a user does something that matters, like signing up, finishing setup or upgrading, so you can count each step and see where people stop. Page views tell you traffic. Events tell you whether the product is working.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You want to know how many visitors sign up, activate and pay.</li><li>You are deciding what to build next and want usage, not guesses.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You have a handful of users you can just talk to. A few queries on your own database may answer the question.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Privacy-friendly page analytics with custom events <span class="cost">$0 self-hosted, paid hosted</span></h3>
+<p>Umami or Plausible, with a few custom events on the buttons and forms that matter.</p><p class="trade"><strong>Tradeoff:</strong> Light, cookieless and easy. Basic funnels only.</p></li>
+<li><h3>A product analytics tool <span class="cost">Free tier</span></h3>
+<p>PostHog or Mixpanel, with server-side events for signups and payments and a user id that is not an email.</p><p class="trade"><strong>Tradeoff:</strong> Real funnels, retention and cohorts. More setup and more privacy work.</p></li>
+<li><h3>Your own events table <span class="cost">$0</span></h3>
+<p>Write a row per important event to your database and query it.</p><p class="trade"><strong>Tradeoff:</strong> You own the data and it never leaves. You build the charts yourself.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add product analytics events for this funnel: [landing view, signup, first key action, upgrade, paid].
+
+Requirements:
+- Write down an event list first: snake_case names, when each fires, and its properties. Keep it under [10] events.
+- Send signup and payment events from the server, after the database write succeeds, so ad blockers and refreshes don&#x27;t change the counts.
+- Use an id that is not personal, like a hash of the user id. Never send emails, names, or text the user typed.
+- Respect the existing consent setting. If consent is declined, send nothing to third parties.
+- Make each event fire once per real action, not once per page render or retry.
+- Use [Umami / Plausible / PostHog / an events table] and put the tracking calls in one small helper module.
+
+Acceptance checks (run each and show me the result):
+1. Signing up in staging creates exactly one sign_up event with the agreed properties.
+2. A funnel from landing page view to paid shows a count for every step.
+3. No event payload contains an email, name or free text the user typed.
+4. With analytics consent declined, the network tab shows no requests to the analytics provider.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>You guess where users get stuck, ship features nobody uses, and can&#x27;t tell whether a change helped. Tracked carelessly, you leak personal data into a third party.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal saves a fixed list of funnel events, from signup intent through subscription started, to its own database. It sends events to PostHog only for signed-out visitors on the home, start and pricing pages after they accept analytics, and uses a hashed id instead of the account id or email.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-28.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;I don&#x27;t know where users drop off&rdquo;</li><li>&ldquo;track signups and conversions in my app&rdquo;</li><li>&ldquo;which features do people actually use&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://posthog.com/docs/product-analytics">PostHog: product analytics</a></li><li><a href="https://umami.is/docs/track-events">Umami: track events</a></li><li><a href="https://plausible.io/docs/custom-event-goals">Plausible: custom event goals</a></li></ul></section>
+  <p class="meta">Checked 2026-10-28. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/product-analytics.json">api/product-analytics.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../data-retention/index.html">&larr; Data retention and cleanup</a><a href="../scheduled-jobs/index.html">Scheduled job &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autosave and drafts: What To Ask For</title>
+<meta name="description" content="Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Autosave and drafts: What To Ask For">
+<meta property="og:description" content="Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/autosave-drafts/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Autosave and drafts: What To Ask For">
+<meta name="twitter:description" content="Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Autosave and drafts</h1>
+  <p class="aka">Also called: autosave, auto save, save draft, unsaved changes, lost my work</p>
+  <p class="lead">Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Long forms, editors, or anything people type into for more than a minute.</li><li>Users write on phones, where tabs get killed in the background.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Short forms of a few fields. A warning before leaving the page is enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Save to the browser <span class="cost">$0</span></h3>
+<p>Write the form to localStorage on a short debounce and restore it on load. Clear it after a real save.</p><p class="trade"><strong>Tradeoff:</strong> No server changes and works offline. Lost if they switch devices or clear the browser.</p></li>
+<li><h3>Server-side draft <span class="cost">$0</span></h3>
+<p>Post the content on a debounce to a draft endpoint that updates one draft row per user and record, then promote it on Save.</p><p class="trade"><strong>Tradeoff:</strong> Survives any device or crash. You must keep drafts out of every list, count and export.</p></li>
+<li><h3>An editor with built-in autosave <span class="cost">$0 to paid</span></h3>
+<p>Rich text or form libraries that ship an autosave plugin, or collaborative editors that save every change.</p><p class="trade"><strong>Tradeoff:</strong> Least code. Ties you to that editor&#x27;s storage model.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add autosave with drafts to [form / editor].
+
+Requirements:
+- Save the content [2] seconds after the user stops typing, and when the field loses focus or the page is hidden.
+- Store it as a draft, one draft per user per [record], updated in place instead of a new row each time.
+- Keep drafts out of normal lists, search, exports, notifications and usage limits until the user presses Save.
+- Show a small status near the form: Saving, Saved, or a clear error if it failed.
+- If the record changed somewhere else since it was loaded, stop autosaving and show a conflict message instead of overwriting.
+- Warn with beforeunload only when there are changes that have not been saved yet.
+
+Acceptance checks (run each and show me the result):
+1. Typing in the form, waiting 3 seconds and refreshing brings the text back.
+2. The save status changes from Saving to Saved, and to an error when the network is off.
+3. Autosaving 20 times leaves one draft, not 20 records.
+4. Drafts don&#x27;t show in lists, search, exports or usage counts until the user presses Save.
+5. Editing the same record in two tabs shows a conflict message instead of silently overwriting.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>People lose long pieces of writing to a refresh or a dropped connection, and they rarely come back after that. Done carelessly, half-finished drafts show up as real records.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>The Custody Journal entry form autosaves about 2 seconds after typing stops. Each user gets one draft per custody case, drafts are hidden from every list and report and don&#x27;t count against the free plan, and the draft becomes a real entry only when the user presses Save. Autosave stops with a warning if the entry changed elsewhere, and it never rewrites an entry that has already been sealed.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-10-28.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;users lose what they typed when the page refreshes&rdquo;</li><li>&ldquo;save drafts automatically while people type&rdquo;</li><li>&ldquo;warn before leaving with unsaved changes&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://htmx.org/attributes/hx-trigger/">htmx: hx-trigger</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage">MDN: localStorage</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event">MDN: visibilitychange event</a></li><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event">MDN: beforeunload event</a></li></ul></section>
+  <p class="meta">Checked 2026-10-28. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/autosave-drafts.json">api/autosave-drafts.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../optimistic-updates/index.html">&larr; Optimistic updates</a><a href="../cookie-consent/index.html">Cookie consent and privacy-friendly analytics &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

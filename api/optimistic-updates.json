@@ -1,0 +1,91 @@
+{
+  "id": "optimistic-updates",
+  "name": "Optimistic updates",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "optimistic UI",
+    "instant UI updates",
+    "useOptimistic",
+    "rollback on error",
+    "snappy UI"
+  ],
+  "needs": [
+    "my app feels slow every time I click a button",
+    "the like button waits for the server before it changes",
+    "make my UI feel instant"
+  ],
+  "keywords": [
+    "optimistic",
+    "instant",
+    "snappy",
+    "slow",
+    "lag",
+    "click",
+    "button",
+    "like",
+    "toggle",
+    "rollback",
+    "undo",
+    "mutation",
+    "spinner",
+    "usereducer",
+    "useoptimistic",
+    "react",
+    "query"
+  ],
+  "summary": "Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant.",
+  "need_when": [
+    "Small, common actions that almost always succeed, like toggles, likes, renames and reordering.",
+    "Users notice a delay between clicking and seeing the change."
+  ],
+  "skip_when": [
+    "Payments, deletes of important data, or anything where showing success and then taking it back would hurt or confuse people. Show a clear pending state there instead."
+  ],
+  "ways": [
+    {
+      "title": "Your data library's optimistic option",
+      "cost": "$0",
+      "how": "TanStack Query's onMutate with rollback in onError, SWR's optimisticData, or the cache update in Apollo or RTK Query.",
+      "tradeoff": "Handles caching, rollback and refetching for you. Each action still needs its own update code."
+    },
+    {
+      "title": "React useOptimistic",
+      "cost": "$0",
+      "how": "Wrap the state you show in useOptimistic and set the new value before the server action runs.",
+      "tradeoff": "Built in and small. Works best with React server actions and forms."
+    },
+    {
+      "title": "Write it by hand",
+      "cost": "$0",
+      "how": "Save the old value, set the new one, send the request, and put the old value back if it fails.",
+      "tradeoff": "No library needed. Easy to miss the out-of-order and double-click cases."
+    }
+  ],
+  "prompt": "Make these actions update the UI optimistically: [like button / todo checkbox / rename / reorder].\n\nRequirements:\n- Update the screen immediately when the user acts, then send the request in the background.\n- Keep the previous value. If the request fails or times out, restore it and show a short error the user can see.\n- After the request settles, refetch or replace with the server's version so the screen matches the database.\n- If the user clicks again before the first request finishes, the last click wins and the screen never flickers between old states.\n- Do not use optimistic updates for [payments / deletes / anything listed here]. Show a pending state there instead.\n- Use [TanStack Query / SWR / useOptimistic / the existing data layer] and follow its documented rollback pattern.\n\nAcceptance checks (run each and show me the result):\n1. Clicking like (or done) updates the screen right away, before the server answers.\n2. With the network throttled to Slow 3G in dev tools, the change still shows instantly.\n3. When the server returns an error, the screen goes back to the old value and shows a message.\n4. Clicking the same button five times fast ends with the right final state after a refresh.",
+  "acceptance_checks": [
+    "Clicking like (or done) updates the screen right away, before the server answers.",
+    "With the network throttled to Slow 3G in dev tools, the change still shows instantly.",
+    "When the server returns an error, the screen goes back to the old value and shows a message.",
+    "Clicking the same button five times fast ends with the right final state after a refresh."
+  ],
+  "if_you_skip_it": "Every click waits on a round trip, so the app feels sluggish even when the server is fine. Done badly, you get the opposite problem: changes that look saved but quietly were not.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "TanStack Query: optimistic updates",
+      "url": "https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates"
+    },
+    {
+      "title": "React: useOptimistic",
+      "url": "https://react.dev/reference/react/useOptimistic"
+    },
+    {
+      "title": "SWR: mutation and optimistic data",
+      "url": "https://swr.vercel.app/docs/mutation"
+    }
+  ],
+  "page": "e/optimistic-updates/index.html",
+  "json": "api/optimistic-updates.json",
+  "updated": "2026-10-28"
+}
