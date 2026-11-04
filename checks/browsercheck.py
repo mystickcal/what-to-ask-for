@@ -11,6 +11,7 @@ what-to-ask-for: search finds each entry from its first "need" phrase (top 3), t
 example buttons return matches, category chips filter, ?q= works.
 how-it-plays: every demo mounts; for every demo the on/off toggle measurably changes
 the simulated session (demo.simulate with scripted inputs, on vs off, deterministic);
+demos in EXPECT must also change it in the stated direction;
 sliders rewrite the prompt; Space on the canvas does not scroll; feel chips and search work.
 """
 import argparse, json, pathlib, sys
@@ -41,6 +42,15 @@ DRIVERS = {
     "roll_spam": "function(d,f){return {dash:(f%20)<1};}",
     "roll_walk": "function(d,f){return {right:(f%120)<60, left:(f%120)>=60, dash:(f%15)<1};}",
     "jump_short": "function(d,f){return {right:(f%120)<70, jump:(f%60)<5};}",
+    "attack_hold": "function(d,f){return {attack:(f%90)<75};}",
+}
+
+# Direction checks: for these demos the toggle must change behavior the way the page says.
+# id -> (driver, JS condition on the on/off simulate() results)
+EXPECT = {
+    "running-jump": ("run_jump_hold", "on.extra.best > off.extra.best + 10"),
+    "charge-shot": ("attack_hold", "on.extra.charged > 0 && off.extra.charged === 0 && on.extra.damage > off.extra.damage"),
+    "hitstun": ("attack_spam", "on.stats.hitsTaken < off.stats.hitsTaken && on.extra.swings < off.extra.swings"),
 }
 
 
@@ -173,6 +183,19 @@ def main():
                 changed_by[i] = by
                 if not by:
                     fails.append(f"{i}: toggle made no measurable difference (deterministic={det})")
+                if i in EXPECT:
+                    drv_name, cond = EXPECT[i]
+                    r = page.evaluate("""([src, cond]) => {
+                      const h = window.__hip, d = window.__demo, drv = eval('(' + src + ')');
+                      h.cfg.apply(d.p, true, h.vals); const on = d.simulate(drv, 600);
+                      h.cfg.apply(d.p, false, h.vals); const off = d.simulate(drv, 600);
+                      h.cfg.apply(d.p, h.isOn(), h.vals);
+                      return {ok: !!eval(cond), on: on.extra, off: off.extra, onHurt: on.stats.hitsTaken, offHurt: off.stats.hitsTaken};
+                    }""", [DRIVERS[drv_name], cond])
+                    if not r["ok"]:
+                        fails.append(f"{i}: direction check failed ({cond}): {r}")
+                    else:
+                        notes.append(f"{i}: direction ok, on {r['on']} hurt {r['onHurt']} vs off {r['off']} hurt {r['offHurt']}")
                 # sliders rewrite the prompt
                 sl = page.query_selector_all("#sliders input[type=range]")
                 if sl:
