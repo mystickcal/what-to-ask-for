@@ -1,0 +1,94 @@
+{
+  "id": "llm-observability",
+  "name": "LLM observability",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "LLM tracing",
+    "AI logging",
+    "token usage tracking",
+    "LLM monitoring",
+    "prompt logging",
+    "AI cost tracking"
+  ],
+  "needs": [
+    "I can't see what my AI feature is doing or why it gave that answer",
+    "my OpenAI bill went up and I don't know which feature caused it",
+    "log every LLM call with tokens and cost"
+  ],
+  "keywords": [
+    "llm",
+    "ai",
+    "observability",
+    "tracing",
+    "trace",
+    "logging",
+    "tokens",
+    "cost",
+    "openai",
+    "anthropic",
+    "langfuse",
+    "helicone",
+    "opentelemetry",
+    "prompt",
+    "latency",
+    "monitoring",
+    "debug",
+    "bill"
+  ],
+  "summary": "Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.",
+  "need_when": [
+    "Real users are using an AI feature and you can't reproduce what they saw.",
+    "Your AI provider bill is growing and you can't tell which feature or user drives it.",
+    "You change prompts or models and want to know if things got better or worse."
+  ],
+  "skip_when": [
+    "You're still testing an AI feature by yourself and can read the responses in your terminal."
+  ],
+  "ways": [
+    {
+      "title": "Hosted tracing tool",
+      "cost": "Free tier, then paid by volume",
+      "how": "Langfuse Cloud, Helicone or a similar service, added through their SDK or as a proxy in front of your provider.",
+      "tradeoff": "Fast to set up with a ready dashboard. Your prompts and answers are stored by another company."
+    },
+    {
+      "title": "Self-hosted tracing",
+      "cost": "$0 plus a server",
+      "how": "Run open source Langfuse yourself, or send OpenTelemetry traces to a backend you already run.",
+      "tradeoff": "The data stays with you. You maintain and back it up."
+    },
+    {
+      "title": "Your own log table",
+      "cost": "$0",
+      "how": "Save model, token counts, cost, time taken and status for each call in your database, with the user and feature it came from.",
+      "tradeoff": "Simple and private. No trace view, and you build any reporting yourself."
+    }
+  ],
+  "prompt": "Add observability to every AI model call in this app.\n\nRequirements:\n- Wrap every call to [OpenAI / Anthropic / our provider] in one shared helper so nothing calls the provider directly.\n- For each call record: feature name, user or account ID, model, input and output tokens, cost, time taken, and success or error.\n- Send traces to [Langfuse / Helicone / OpenTelemetry / a database table]. Make prompt and response logging a setting I can turn off.\n- Never log API keys, passwords, payment details or [other sensitive fields]. Remove them before anything is saved.\n- Show users a plain error message when the provider fails. Don't pass the provider's raw error to the browser.\n- Add a simple daily total of tokens and cost per feature.\n\nAcceptance checks (run each and show me the result):\n1. Make one AI request in the app and find it in the trace view with the model, prompt, response, token counts, cost and time taken.\n2. Force the provider to fail (for example a bad API key in a test environment) and confirm the failure is logged and the user sees a plain error message.\n3. A per-day cost total can be shown for the last 7 days.\n4. Search the logs for an API key or a test password you typed into a prompt and confirm it doesn't appear.",
+  "acceptance_checks": [
+    "Make one AI request in the app and find it in the trace view with the model, prompt, response, token counts, cost and time taken.",
+    "Force the provider to fail (for example a bad API key in a test environment) and confirm the failure is logged and the user sees a plain error message.",
+    "A per-day cost total can be shown for the last 7 days.",
+    "Search the logs for an API key or a test password you typed into a prompt and confirm it doesn't appear."
+  ],
+  "if_you_skip_it": "When the AI says something wrong to a customer you have no record of what it was asked, and the first sign of a runaway loop or an abused endpoint is the invoice.",
+  "how_derek_runs_it": "Custody Journal saves the total token count on every AI reply and keeps a running total for each conversation. The model call runs in a separate worker process, and if the provider fails the app shows a general error instead of the provider's message, because that message can contain document text.",
+  "links": [
+    {
+      "title": "Langfuse documentation",
+      "url": "https://langfuse.com/docs"
+    },
+    {
+      "title": "Helicone documentation",
+      "url": "https://docs.helicone.ai"
+    },
+    {
+      "title": "OpenTelemetry: generative AI conventions",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    }
+  ],
+  "page": "e/llm-observability/index.html",
+  "json": "api/llm-observability.json",
+  "updated": "2026-11-04"
+}

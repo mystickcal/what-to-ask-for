@@ -1,7 +1,7 @@
 {
   "name": "What To Ask For",
-  "updated": "2026-10-28",
-  "count": 105,
+  "updated": "2026-11-04",
+  "count": 110,
   "categories": [
     {
       "id": "background",
@@ -11,7 +11,7 @@
     {
       "id": "payments",
       "name": "Payments and billing",
-      "count": 9
+      "count": 10
     },
     {
       "id": "auth",
@@ -51,12 +51,12 @@
     {
       "id": "ai",
       "name": "AI features",
-      "count": 10
+      "count": 12
     },
     {
       "id": "performance",
       "name": "Performance and caching",
-      "count": 6
+      "count": 7
     },
     {
       "id": "search",
@@ -66,7 +66,7 @@
     {
       "id": "features",
       "name": "Common app features",
-      "count": 7
+      "count": 8
     },
     {
       "id": "privacy",
@@ -1427,6 +1427,106 @@
       "page": "e/refunds-disputes/index.html",
       "json": "api/refunds-disputes.json",
       "updated": "2026-10-21"
+    },
+    {
+      "id": "sales-tax",
+      "name": "Sales tax and VAT",
+      "category": "payments",
+      "category_name": "Payments and billing",
+      "aliases": [
+        "VAT",
+        "GST",
+        "tax compliance",
+        "merchant of record",
+        "Stripe Tax",
+        "digital services tax"
+      ],
+      "needs": [
+        "do I need to charge sales tax or VAT on my SaaS",
+        "customers from Europe are buying and I don't know about VAT",
+        "how do I handle tax on digital product sales"
+      ],
+      "keywords": [
+        "tax",
+        "sales",
+        "vat",
+        "gst",
+        "eu",
+        "oss",
+        "nexus",
+        "merchant",
+        "record",
+        "mor",
+        "invoice",
+        "reverse",
+        "charge",
+        "stripe",
+        "paddle",
+        "lemon",
+        "squeezy",
+        "digital",
+        "compliance",
+        "country"
+      ],
+      "summary": "Charging, recording and paying the tax that applies where each customer lives. Selling software or digital products to other countries can mean collecting VAT or GST from the first sale, and US states have their own sales tax rules once you pass their limits. You either use a tax engine on top of your own payments or a merchant of record that sells on your behalf and handles the tax.",
+      "need_when": [
+        "You take payments from customers outside your own state or country.",
+        "You sell to consumers in the EU, UK or other places that tax digital services.",
+        "Your sales are growing and you've never checked where you owe tax."
+      ],
+      "skip_when": [
+        "You only sell to businesses in your own country and an accountant already handles your tax. Check with them before skipping."
+      ],
+      "ways": [
+        {
+          "title": "Merchant of record",
+          "cost": "About 5% plus a fee per sale",
+          "how": "Paddle, Lemon Squeezy or Stripe's managed payments sell to the customer for you, collect the tax and file it.",
+          "tradeoff": "The least tax work for you. Higher fees, and the checkout and payouts run through them."
+        },
+        {
+          "title": "Tax engine on your own payments",
+          "cost": "A small percentage of each taxed sale",
+          "how": "Turn on Stripe Tax (or a service like TaxJar) so tax is worked out at checkout, then file and pay it yourself or through a filing service.",
+          "tradeoff": "You keep your own checkout. You still register in each place you owe and file the returns."
+        },
+        {
+          "title": "Register and file yourself",
+          "cost": "$0 plus your time",
+          "how": "Track sales by customer location, register where you pass the limits, and use the EU One Stop Shop to file EU VAT in one return.",
+          "tradeoff": "Cheapest. Easy to get wrong as rules change, and mistakes can mean back taxes and penalties."
+        }
+      ],
+      "prompt": "Set up sales tax and VAT handling for my checkout. We sell [what you sell] to [consumers / businesses] in [countries or states].\n\nRequirements:\n- Use [Stripe Tax / Paddle / Lemon Squeezy / our existing tax provider] to calculate tax at checkout from the customer's location. Don't hardcode rates.\n- Collect the billing address details the provider needs, and an optional VAT or tax ID field for business customers.\n- Validate VAT numbers through the provider and apply the reverse charge when it's valid.\n- Show the tax as its own line on the checkout page, the receipt and the invoice.\n- Store the tax amount, rate, country and tax ID on each order so it can be reported later.\n- Don't change prices or what customers have already paid. Add tax to new orders only after I approve the switch.\n\nAcceptance checks (run each and show me the result):\n1. A test checkout with a US address and one with an EU address each show the tax line before payment, and the totals match the tax provider's own calculator.\n2. Every paid invoice or receipt shows the tax amount, the rate and the seller details.\n3. An EU business customer who enters a valid VAT number is charged no VAT, and the invoice says the reverse charge applies.\n4. A report of tax collected per country for last month can be exported in one step.",
+      "acceptance_checks": [
+        "A test checkout with a US address and one with an EU address each show the tax line before payment, and the totals match the tax provider's own calculator.",
+        "Every paid invoice or receipt shows the tax amount, the rate and the seller details.",
+        "An EU business customer who enters a valid VAT number is charged no VAT, and the invoice says the reverse charge applies.",
+        "A report of tax collected per country for last month can be exported in one step."
+      ],
+      "if_you_skip_it": "Tax you should have collected doesn't go away. It becomes a bill you pay out of your own pocket later, sometimes with penalties, and a buyer or investor will find it when they look at your books.",
+      "how_derek_runs_it": null,
+      "links": [
+        {
+          "title": "Stripe Tax documentation",
+          "url": "https://docs.stripe.com/tax"
+        },
+        {
+          "title": "Stripe managed payments: tax compliance",
+          "url": "https://docs.stripe.com/payments/managed-payments/tax-compliance"
+        },
+        {
+          "title": "EU VAT One Stop Shop",
+          "url": "https://vat-one-stop-shop.ec.europa.eu/index_en"
+        },
+        {
+          "title": "Paddle: what is a merchant of record",
+          "url": "https://www.paddle.com/blog/what-is-merchant-of-record"
+        }
+      ],
+      "page": "e/sales-tax/index.html",
+      "json": "api/sales-tax.json",
+      "updated": "2026-11-04"
     },
     {
       "id": "password-reset",
@@ -7689,6 +7789,194 @@
       "updated": "2026-10-21"
     },
     {
+      "id": "llm-observability",
+      "name": "LLM observability",
+      "category": "ai",
+      "category_name": "AI features",
+      "aliases": [
+        "LLM tracing",
+        "AI logging",
+        "token usage tracking",
+        "LLM monitoring",
+        "prompt logging",
+        "AI cost tracking"
+      ],
+      "needs": [
+        "I can't see what my AI feature is doing or why it gave that answer",
+        "my OpenAI bill went up and I don't know which feature caused it",
+        "log every LLM call with tokens and cost"
+      ],
+      "keywords": [
+        "llm",
+        "ai",
+        "observability",
+        "tracing",
+        "trace",
+        "logging",
+        "tokens",
+        "cost",
+        "openai",
+        "anthropic",
+        "langfuse",
+        "helicone",
+        "opentelemetry",
+        "prompt",
+        "latency",
+        "monitoring",
+        "debug",
+        "bill"
+      ],
+      "summary": "Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.",
+      "need_when": [
+        "Real users are using an AI feature and you can't reproduce what they saw.",
+        "Your AI provider bill is growing and you can't tell which feature or user drives it.",
+        "You change prompts or models and want to know if things got better or worse."
+      ],
+      "skip_when": [
+        "You're still testing an AI feature by yourself and can read the responses in your terminal."
+      ],
+      "ways": [
+        {
+          "title": "Hosted tracing tool",
+          "cost": "Free tier, then paid by volume",
+          "how": "Langfuse Cloud, Helicone or a similar service, added through their SDK or as a proxy in front of your provider.",
+          "tradeoff": "Fast to set up with a ready dashboard. Your prompts and answers are stored by another company."
+        },
+        {
+          "title": "Self-hosted tracing",
+          "cost": "$0 plus a server",
+          "how": "Run open source Langfuse yourself, or send OpenTelemetry traces to a backend you already run.",
+          "tradeoff": "The data stays with you. You maintain and back it up."
+        },
+        {
+          "title": "Your own log table",
+          "cost": "$0",
+          "how": "Save model, token counts, cost, time taken and status for each call in your database, with the user and feature it came from.",
+          "tradeoff": "Simple and private. No trace view, and you build any reporting yourself."
+        }
+      ],
+      "prompt": "Add observability to every AI model call in this app.\n\nRequirements:\n- Wrap every call to [OpenAI / Anthropic / our provider] in one shared helper so nothing calls the provider directly.\n- For each call record: feature name, user or account ID, model, input and output tokens, cost, time taken, and success or error.\n- Send traces to [Langfuse / Helicone / OpenTelemetry / a database table]. Make prompt and response logging a setting I can turn off.\n- Never log API keys, passwords, payment details or [other sensitive fields]. Remove them before anything is saved.\n- Show users a plain error message when the provider fails. Don't pass the provider's raw error to the browser.\n- Add a simple daily total of tokens and cost per feature.\n\nAcceptance checks (run each and show me the result):\n1. Make one AI request in the app and find it in the trace view with the model, prompt, response, token counts, cost and time taken.\n2. Force the provider to fail (for example a bad API key in a test environment) and confirm the failure is logged and the user sees a plain error message.\n3. A per-day cost total can be shown for the last 7 days.\n4. Search the logs for an API key or a test password you typed into a prompt and confirm it doesn't appear.",
+      "acceptance_checks": [
+        "Make one AI request in the app and find it in the trace view with the model, prompt, response, token counts, cost and time taken.",
+        "Force the provider to fail (for example a bad API key in a test environment) and confirm the failure is logged and the user sees a plain error message.",
+        "A per-day cost total can be shown for the last 7 days.",
+        "Search the logs for an API key or a test password you typed into a prompt and confirm it doesn't appear."
+      ],
+      "if_you_skip_it": "When the AI says something wrong to a customer you have no record of what it was asked, and the first sign of a runaway loop or an abused endpoint is the invoice.",
+      "how_derek_runs_it": "Custody Journal saves the total token count on every AI reply and keeps a running total for each conversation. The model call runs in a separate worker process, and if the provider fails the app shows a general error instead of the provider's message, because that message can contain document text.",
+      "links": [
+        {
+          "title": "Langfuse documentation",
+          "url": "https://langfuse.com/docs"
+        },
+        {
+          "title": "Helicone documentation",
+          "url": "https://docs.helicone.ai"
+        },
+        {
+          "title": "OpenTelemetry: generative AI conventions",
+          "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+        }
+      ],
+      "page": "e/llm-observability/index.html",
+      "json": "api/llm-observability.json",
+      "updated": "2026-11-04"
+    },
+    {
+      "id": "speech-to-text",
+      "name": "Speech to text",
+      "category": "ai",
+      "category_name": "AI features",
+      "aliases": [
+        "voice input",
+        "dictation",
+        "transcription",
+        "Whisper",
+        "voice notes",
+        "Web Speech API"
+      ],
+      "needs": [
+        "let users talk instead of typing",
+        "transcribe voice notes or audio uploads in my app",
+        "add a microphone button to my text box"
+      ],
+      "keywords": [
+        "speech",
+        "voice",
+        "dictation",
+        "transcribe",
+        "transcription",
+        "audio",
+        "whisper",
+        "microphone",
+        "mic",
+        "talk",
+        "record",
+        "speak",
+        "notes",
+        "webspeech",
+        "recognition",
+        "mp3",
+        "m4a",
+        "wav"
+      ],
+      "summary": "Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser's built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.",
+      "need_when": [
+        "Users write long notes, often on a phone, where typing is slow.",
+        "People already have recordings, like voice memos or calls, they want as text.",
+        "Accessibility matters for your users."
+      ],
+      "skip_when": [
+        "Short form fields where typing is quicker, or anywhere a wrong word could change the meaning and nobody will check it."
+      ],
+      "ways": [
+        {
+          "title": "Browser speech recognition",
+          "cost": "$0",
+          "how": "The Web Speech API's SpeechRecognition turns microphone input into text live.",
+          "tradeoff": "Free and instant. Support varies by browser, and some browsers send audio to their own servers."
+        },
+        {
+          "title": "Transcription API",
+          "cost": "Paid by the minute of audio",
+          "how": "Send uploaded or recorded audio from your server to OpenAI's speech to text API or a similar service.",
+          "tradeoff": "Accurate and works with files. Costs money, has file size limits, and the audio goes to the provider."
+        },
+        {
+          "title": "Run Whisper yourself",
+          "cost": "$0 plus compute",
+          "how": "Run the open source Whisper model (or a faster port of it) on your own server or the user's device.",
+          "tradeoff": "Audio stays with you. Slow without a decent machine, and you maintain it."
+        }
+      ],
+      "prompt": "Add speech to text to [the notes field / this form].\n\nRequirements:\n- Add a microphone button that uses [the browser's SpeechRecognition / recording plus our transcription API]. Hide or disable it in browsers that don't support it.\n- For uploads, accept [MP3, WAV, M4A] up to [25 MB] and check type and size before sending anything.\n- Call the transcription service from the server with a timeout, never with an API key in the browser.\n- Put the text into the field so the user can edit it before saving. Never save it automatically.\n- Delete uploaded audio after transcription unless the user chooses to keep it.\n- Show a clear message when transcription fails, and keep whatever the user already typed.\n\nAcceptance checks (run each and show me the result):\n1. Record 30 seconds of speech on a phone and on a laptop. The text appears and can be edited before saving.\n2. Upload an audio file over the size limit. The app refuses it with a clear message before sending it anywhere.\n3. With the transcription service turned off or failing, the user sees a plain error and what they already typed is still there.\n4. The audio file isn't kept after transcription unless the user chose to save it.",
+      "acceptance_checks": [
+        "Record 30 seconds of speech on a phone and on a laptop. The text appears and can be edited before saving.",
+        "Upload an audio file over the size limit. The app refuses it with a clear message before sending it anywhere.",
+        "With the transcription service turned off or failing, the user sees a plain error and what they already typed is still there.",
+        "The audio file isn't kept after transcription unless the user chose to save it."
+      ],
+      "if_you_skip_it": "Users who'd rather talk give up on long entries, or type into another app and paste. Done carelessly, audio piles up on your server or an API key ends up in the browser.",
+      "how_derek_runs_it": "Custody Journal has two ways in. Speak to type uses the browser's built-in speech recognition, which the app says works in Chrome and Edge. Uploads of MP3, WAV or M4A files up to 25 MB go from the server to OpenAI's whisper-1 model with a 60 second timeout and one retry, and the transcript is added to the entry so the user can edit it.",
+      "links": [
+        {
+          "title": "MDN: Web Speech API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API"
+        },
+        {
+          "title": "OpenAI: speech to text",
+          "url": "https://platform.openai.com/docs/guides/speech-to-text"
+        },
+        {
+          "title": "Whisper on GitHub",
+          "url": "https://github.com/openai/whisper"
+        }
+      ],
+      "page": "e/speech-to-text/index.html",
+      "json": "api/speech-to-text.json",
+      "updated": "2026-11-04"
+    },
+    {
       "id": "caching-invalidation",
       "name": "Caching and invalidation",
       "category": "performance",
@@ -8239,6 +8527,101 @@
       "page": "e/debouncing/index.html",
       "json": "api/debouncing.json",
       "updated": "2026-10-28"
+    },
+    {
+      "id": "server-rendering-seo",
+      "name": "Server rendering for SEO",
+      "category": "performance",
+      "category_name": "Performance and caching",
+      "aliases": [
+        "SSR",
+        "server-side rendering",
+        "static site generation",
+        "prerendering",
+        "SPA SEO",
+        "Lovable SEO"
+      ],
+      "needs": [
+        "Google isn't indexing my React app",
+        "my Lovable site doesn't show up in search",
+        "my pages look blank to search engines"
+      ],
+      "keywords": [
+        "ssr",
+        "seo",
+        "google",
+        "index",
+        "indexing",
+        "render",
+        "prerender",
+        "static",
+        "spa",
+        "react",
+        "vite",
+        "lovable",
+        "next",
+        "nextjs",
+        "astro",
+        "crawler",
+        "search",
+        "blank",
+        "sitemap"
+      ],
+      "summary": "Sending finished HTML from the server, so the page's text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don't run JavaScript at all.",
+      "need_when": [
+        "You want public pages like the homepage, pricing, blog or docs to show up in search.",
+        "Viewing the page source shows an empty div and a script tag instead of your text.",
+        "Pages are listed in Search Console as discovered or crawled but not indexed."
+      ],
+      "skip_when": [
+        "Pages behind a login. Search engines can't see them anyway, so a JavaScript app is fine there."
+      ],
+      "ways": [
+        {
+          "title": "A framework that renders on the server",
+          "cost": "$0",
+          "how": "Next.js, Astro, Remix, SvelteKit or Lovable's TanStack Start upgrade render or pre-build pages as HTML.",
+          "tradeoff": "The proper fix. Moving an existing app takes real work and testing."
+        },
+        {
+          "title": "Pre-build only the public pages",
+          "cost": "$0",
+          "how": "Make the marketing pages static HTML (a static site generator or a prerender plugin) and keep the app as is behind login.",
+          "tradeoff": "Less to change. You now look after two parts of the site."
+        },
+        {
+          "title": "Prerender service",
+          "cost": "Free tier, then paid",
+          "how": "A service like Prerender.io serves a rendered copy to crawlers.",
+          "tradeoff": "Works without changing the app. Another bill and another moving part, and the copy can go stale."
+        }
+      ],
+      "prompt": "Make the public pages of this app render on the server so search engines see the full content.\n\nRequirements:\n- Public pages: [home / pricing / blog / docs / list them]. Leave pages behind login as they are.\n- Use [Next.js / Astro / our framework's server rendering or static generation]. Keep the current design and URLs.\n- Each public page gets its own title, meta description and canonical link in the HTML sent from the server.\n- Generate /sitemap.xml with every public page and reference it in /robots.txt.\n- Keep every existing URL working. If any URL must change, add a permanent redirect.\n\nAcceptance checks (run each and show me the result):\n1. Load each public page with JavaScript turned off in the browser. The main text, title and links are all there.\n2. View the page source (not the inspector) of three public pages. Each has its own title, description and canonical link.\n3. Google Search Console's URL Inspection shows the rendered page with its content for at least one page.\n4. Open /sitemap.xml and /robots.txt. The sitemap lists every public page and robots.txt points to it.",
+      "acceptance_checks": [
+        "Load each public page with JavaScript turned off in the browser. The main text, title and links are all there.",
+        "View the page source (not the inspector) of three public pages. Each has its own title, description and canonical link.",
+        "Google Search Console's URL Inspection shows the rendered page with its content for at least one page.",
+        "Open /sitemap.xml and /robots.txt. The sitemap lists every public page and robots.txt points to it."
+      ],
+      "if_you_skip_it": "Your pages can sit unindexed for months while you wonder why nobody finds you, and when they're shared the preview shows a blank title.",
+      "how_derek_runs_it": "Custody Journal's public pages are rendered on the server by Django. /sitemap.xml is built with Django's sitemap framework, public pages carry canonical links, and the app strips the X-Robots-Tag header from the sitemap so search engines will read it.",
+      "links": [
+        {
+          "title": "Google: JavaScript SEO basics",
+          "url": "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+        },
+        {
+          "title": "web.dev: Rendering on the web",
+          "url": "https://web.dev/articles/rendering-on-the-web"
+        },
+        {
+          "title": "Lovable: upgrade to TanStack Start",
+          "url": "https://docs.lovable.dev/features/upgrade-to-tanstack-start"
+        }
+      ],
+      "page": "e/server-rendering-seo/index.html",
+      "json": "api/server-rendering-seo.json",
+      "updated": "2026-11-04"
     },
     {
       "id": "full-text-search",
@@ -9166,6 +9549,99 @@
       "page": "e/autosave-drafts/index.html",
       "json": "api/autosave-drafts.json",
       "updated": "2026-10-28"
+    },
+    {
+      "id": "link-previews",
+      "name": "Link previews (Open Graph)",
+      "category": "features",
+      "category_name": "Common app features",
+      "aliases": [
+        "Open Graph tags",
+        "og:image",
+        "social cards",
+        "Twitter cards",
+        "share preview",
+        "unfurl"
+      ],
+      "needs": [
+        "when I share my link it shows no image",
+        "my site looks bad when posted on X or in iMessage",
+        "add a preview image when people share my pages"
+      ],
+      "keywords": [
+        "open",
+        "graph",
+        "og",
+        "image",
+        "preview",
+        "card",
+        "twitter",
+        "share",
+        "social",
+        "unfurl",
+        "meta",
+        "tags",
+        "slack",
+        "discord",
+        "imessage",
+        "facebook",
+        "linkedin",
+        "thumbnail"
+      ],
+      "summary": "The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page's HTML. Without them, the app guesses, and you often get a bare link or the wrong text.",
+      "need_when": [
+        "People share your pages in chats, social posts or emails.",
+        "You're about to launch or post your site anywhere public."
+      ],
+      "skip_when": [
+        "Internal tools nobody will ever share a link to."
+      ],
+      "ways": [
+        {
+          "title": "One site-wide card",
+          "cost": "$0",
+          "how": "Make one 1200 by 630 image and add the same og:image to every page, with each page's own title and description.",
+          "tradeoff": "Done in an hour. Every shared page looks the same."
+        },
+        {
+          "title": "Framework metadata",
+          "cost": "$0",
+          "how": "Use your framework's metadata feature, such as Next.js generateMetadata, to set tags per page.",
+          "tradeoff": "Per page titles and images with little code. Needs server rendering or static pages to work."
+        },
+        {
+          "title": "Generated images per page",
+          "cost": "$0",
+          "how": "Draw an image per page from its title, with Next.js ImageResponse or a script that runs at build time.",
+          "tradeoff": "Every page gets a custom card. More code, and the images need caching."
+        }
+      ],
+      "prompt": "Add link preview tags to every public page.\n\nRequirements:\n- Set og:title, og:description, og:url, og:type and og:image on every public page, plus twitter:card set to summary_large_image.\n- Use each page's own title and description. Fall back to the site-wide ones only when a page has none.\n- og:image and og:url must be full https URLs built from one configured site address, not hardcoded hosts.\n- Use [one site-wide 1200 by 630 image / generated images per page]. Set og:image:width and og:image:height.\n- Tags must be in the HTML the server sends. Don't add them with JavaScript after load.\n- Don't include private user data in tags on pages behind login.\n\nAcceptance checks (run each and show me the result):\n1. Paste three page links into a link preview tester (or a private message to yourself). Each shows the right title, description and image.\n2. The page source of each page has og:title, og:description, og:image and og:url, and og:image is a full https URL.\n3. The image loads in a private window without logging in, and it's 1200 by 630 pixels or close to it.\n4. Pages behind login don't leak private details in their tags.",
+      "acceptance_checks": [
+        "Paste three page links into a link preview tester (or a private message to yourself). Each shows the right title, description and image.",
+        "The page source of each page has og:title, og:description, og:image and og:url, and og:image is a full https URL.",
+        "The image loads in a private window without logging in, and it's 1200 by 630 pixels or close to it.",
+        "Pages behind login don't leak private details in their tags."
+      ],
+      "if_you_skip_it": "Your launch post shows a plain link or a random image from the page, and fewer people click it. Some apps cache the first preview they see, so a fix later can take a while to show.",
+      "how_derek_runs_it": "Custody Journal's homepage sets Open Graph and Twitter card tags, including the image width and height, all built from one configured site address. It uses one static card image rather than generating one per page.",
+      "links": [
+        {
+          "title": "The Open Graph protocol",
+          "url": "https://ogp.me/"
+        },
+        {
+          "title": "X: cards markup reference",
+          "url": "https://developer.x.com/en/docs/x-for-websites/cards/overview/markup"
+        },
+        {
+          "title": "Next.js: metadata and OG images",
+          "url": "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+        }
+      ],
+      "page": "e/link-previews/index.html",
+      "json": "api/link-previews.json",
+      "updated": "2026-11-04"
     },
     {
       "id": "cookie-consent",

@@ -1,0 +1,100 @@
+{
+  "id": "sales-tax",
+  "name": "Sales tax and VAT",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "VAT",
+    "GST",
+    "tax compliance",
+    "merchant of record",
+    "Stripe Tax",
+    "digital services tax"
+  ],
+  "needs": [
+    "do I need to charge sales tax or VAT on my SaaS",
+    "customers from Europe are buying and I don't know about VAT",
+    "how do I handle tax on digital product sales"
+  ],
+  "keywords": [
+    "tax",
+    "sales",
+    "vat",
+    "gst",
+    "eu",
+    "oss",
+    "nexus",
+    "merchant",
+    "record",
+    "mor",
+    "invoice",
+    "reverse",
+    "charge",
+    "stripe",
+    "paddle",
+    "lemon",
+    "squeezy",
+    "digital",
+    "compliance",
+    "country"
+  ],
+  "summary": "Charging, recording and paying the tax that applies where each customer lives. Selling software or digital products to other countries can mean collecting VAT or GST from the first sale, and US states have their own sales tax rules once you pass their limits. You either use a tax engine on top of your own payments or a merchant of record that sells on your behalf and handles the tax.",
+  "need_when": [
+    "You take payments from customers outside your own state or country.",
+    "You sell to consumers in the EU, UK or other places that tax digital services.",
+    "Your sales are growing and you've never checked where you owe tax."
+  ],
+  "skip_when": [
+    "You only sell to businesses in your own country and an accountant already handles your tax. Check with them before skipping."
+  ],
+  "ways": [
+    {
+      "title": "Merchant of record",
+      "cost": "About 5% plus a fee per sale",
+      "how": "Paddle, Lemon Squeezy or Stripe's managed payments sell to the customer for you, collect the tax and file it.",
+      "tradeoff": "The least tax work for you. Higher fees, and the checkout and payouts run through them."
+    },
+    {
+      "title": "Tax engine on your own payments",
+      "cost": "A small percentage of each taxed sale",
+      "how": "Turn on Stripe Tax (or a service like TaxJar) so tax is worked out at checkout, then file and pay it yourself or through a filing service.",
+      "tradeoff": "You keep your own checkout. You still register in each place you owe and file the returns."
+    },
+    {
+      "title": "Register and file yourself",
+      "cost": "$0 plus your time",
+      "how": "Track sales by customer location, register where you pass the limits, and use the EU One Stop Shop to file EU VAT in one return.",
+      "tradeoff": "Cheapest. Easy to get wrong as rules change, and mistakes can mean back taxes and penalties."
+    }
+  ],
+  "prompt": "Set up sales tax and VAT handling for my checkout. We sell [what you sell] to [consumers / businesses] in [countries or states].\n\nRequirements:\n- Use [Stripe Tax / Paddle / Lemon Squeezy / our existing tax provider] to calculate tax at checkout from the customer's location. Don't hardcode rates.\n- Collect the billing address details the provider needs, and an optional VAT or tax ID field for business customers.\n- Validate VAT numbers through the provider and apply the reverse charge when it's valid.\n- Show the tax as its own line on the checkout page, the receipt and the invoice.\n- Store the tax amount, rate, country and tax ID on each order so it can be reported later.\n- Don't change prices or what customers have already paid. Add tax to new orders only after I approve the switch.\n\nAcceptance checks (run each and show me the result):\n1. A test checkout with a US address and one with an EU address each show the tax line before payment, and the totals match the tax provider's own calculator.\n2. Every paid invoice or receipt shows the tax amount, the rate and the seller details.\n3. An EU business customer who enters a valid VAT number is charged no VAT, and the invoice says the reverse charge applies.\n4. A report of tax collected per country for last month can be exported in one step.",
+  "acceptance_checks": [
+    "A test checkout with a US address and one with an EU address each show the tax line before payment, and the totals match the tax provider's own calculator.",
+    "Every paid invoice or receipt shows the tax amount, the rate and the seller details.",
+    "An EU business customer who enters a valid VAT number is charged no VAT, and the invoice says the reverse charge applies.",
+    "A report of tax collected per country for last month can be exported in one step."
+  ],
+  "if_you_skip_it": "Tax you should have collected doesn't go away. It becomes a bill you pay out of your own pocket later, sometimes with penalties, and a buyer or investor will find it when they look at your books.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe Tax documentation",
+      "url": "https://docs.stripe.com/tax"
+    },
+    {
+      "title": "Stripe managed payments: tax compliance",
+      "url": "https://docs.stripe.com/payments/managed-payments/tax-compliance"
+    },
+    {
+      "title": "EU VAT One Stop Shop",
+      "url": "https://vat-one-stop-shop.ec.europa.eu/index_en"
+    },
+    {
+      "title": "Paddle: what is a merchant of record",
+      "url": "https://www.paddle.com/blog/what-is-merchant-of-record"
+    }
+  ],
+  "page": "e/sales-tax/index.html",
+  "json": "api/sales-tax.json",
+  "updated": "2026-11-04"
+}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech to text: What To Ask For</title>
+<meta name="description" content="Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser&#x27;s built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Speech to text: What To Ask For">
+<meta property="og:description" content="Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser&#x27;s built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/speech-to-text/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Speech to text: What To Ask For">
+<meta name="twitter:description" content="Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser&#x27;s built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>Speech to text</h1>
+  <p class="aka">Also called: voice input, dictation, transcription, Whisper, voice notes, Web Speech API</p>
+  <p class="lead">Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser&#x27;s built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users write long notes, often on a phone, where typing is slow.</li><li>People already have recordings, like voice memos or calls, they want as text.</li><li>Accessibility matters for your users.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Short form fields where typing is quicker, or anywhere a wrong word could change the meaning and nobody will check it.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Browser speech recognition <span class="cost">$0</span></h3>
+<p>The Web Speech API&#x27;s SpeechRecognition turns microphone input into text live.</p><p class="trade"><strong>Tradeoff:</strong> Free and instant. Support varies by browser, and some browsers send audio to their own servers.</p></li>
+<li><h3>Transcription API <span class="cost">Paid by the minute of audio</span></h3>
+<p>Send uploaded or recorded audio from your server to OpenAI&#x27;s speech to text API or a similar service.</p><p class="trade"><strong>Tradeoff:</strong> Accurate and works with files. Costs money, has file size limits, and the audio goes to the provider.</p></li>
+<li><h3>Run Whisper yourself <span class="cost">$0 plus compute</span></h3>
+<p>Run the open source Whisper model (or a faster port of it) on your own server or the user&#x27;s device.</p><p class="trade"><strong>Tradeoff:</strong> Audio stays with you. Slow without a decent machine, and you maintain it.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add speech to text to [the notes field / this form].
+
+Requirements:
+- Add a microphone button that uses [the browser&#x27;s SpeechRecognition / recording plus our transcription API]. Hide or disable it in browsers that don&#x27;t support it.
+- For uploads, accept [MP3, WAV, M4A] up to [25 MB] and check type and size before sending anything.
+- Call the transcription service from the server with a timeout, never with an API key in the browser.
+- Put the text into the field so the user can edit it before saving. Never save it automatically.
+- Delete uploaded audio after transcription unless the user chooses to keep it.
+- Show a clear message when transcription fails, and keep whatever the user already typed.
+
+Acceptance checks (run each and show me the result):
+1. Record 30 seconds of speech on a phone and on a laptop. The text appears and can be edited before saving.
+2. Upload an audio file over the size limit. The app refuses it with a clear message before sending it anywhere.
+3. With the transcription service turned off or failing, the user sees a plain error and what they already typed is still there.
+4. The audio file isn&#x27;t kept after transcription unless the user chose to save it.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Users who&#x27;d rather talk give up on long entries, or type into another app and paste. Done carelessly, audio piles up on your server or an API key ends up in the browser.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal has two ways in. Speak to type uses the browser&#x27;s built-in speech recognition, which the app says works in Chrome and Edge. Uploads of MP3, WAV or M4A files up to 25 MB go from the server to OpenAI&#x27;s whisper-1 model with a 60 second timeout and one retry, and the transcript is added to the entry so the user can edit it.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-11-04.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users talk instead of typing&rdquo;</li><li>&ldquo;transcribe voice notes or audio uploads in my app&rdquo;</li><li>&ldquo;add a microphone button to my text box&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API">MDN: Web Speech API</a></li><li><a href="https://platform.openai.com/docs/guides/speech-to-text">OpenAI: speech to text</a></li><li><a href="https://github.com/openai/whisper">Whisper on GitHub</a></li></ul></section>
+  <p class="meta">Checked 2026-11-04. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/speech-to-text.json">api/speech-to-text.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../llm-observability/index.html">&larr; LLM observability</a><a href="../caching-invalidation/index.html">Caching and invalidation &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

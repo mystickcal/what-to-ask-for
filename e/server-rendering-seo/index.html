@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server rendering for SEO: What To Ask For</title>
+<meta name="description" content="Sending finished HTML from the server, so the page&#x27;s text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don&#x27;t run JavaScript at all.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Server rendering for SEO: What To Ask For">
+<meta property="og:description" content="Sending finished HTML from the server, so the page&#x27;s text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don&#x27;t run JavaScript at all.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/server-rendering-seo/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Server rendering for SEO: What To Ask For">
+<meta name="twitter:description" content="Sending finished HTML from the server, so the page&#x27;s text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don&#x27;t run JavaScript at all.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=performance">Performance and caching</a></p>
+  <h1>Server rendering for SEO</h1>
+  <p class="aka">Also called: SSR, server-side rendering, static site generation, prerendering, SPA SEO, Lovable SEO</p>
+  <p class="lead">Sending finished HTML from the server, so the page&#x27;s text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don&#x27;t run JavaScript at all.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You want public pages like the homepage, pricing, blog or docs to show up in search.</li><li>Viewing the page source shows an empty div and a script tag instead of your text.</li><li>Pages are listed in Search Console as discovered or crawled but not indexed.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Pages behind a login. Search engines can&#x27;t see them anyway, so a JavaScript app is fine there.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>A framework that renders on the server <span class="cost">$0</span></h3>
+<p>Next.js, Astro, Remix, SvelteKit or Lovable&#x27;s TanStack Start upgrade render or pre-build pages as HTML.</p><p class="trade"><strong>Tradeoff:</strong> The proper fix. Moving an existing app takes real work and testing.</p></li>
+<li><h3>Pre-build only the public pages <span class="cost">$0</span></h3>
+<p>Make the marketing pages static HTML (a static site generator or a prerender plugin) and keep the app as is behind login.</p><p class="trade"><strong>Tradeoff:</strong> Less to change. You now look after two parts of the site.</p></li>
+<li><h3>Prerender service <span class="cost">Free tier, then paid</span></h3>
+<p>A service like Prerender.io serves a rendered copy to crawlers.</p><p class="trade"><strong>Tradeoff:</strong> Works without changing the app. Another bill and another moving part, and the copy can go stale.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Make the public pages of this app render on the server so search engines see the full content.
+
+Requirements:
+- Public pages: [home / pricing / blog / docs / list them]. Leave pages behind login as they are.
+- Use [Next.js / Astro / our framework&#x27;s server rendering or static generation]. Keep the current design and URLs.
+- Each public page gets its own title, meta description and canonical link in the HTML sent from the server.
+- Generate /sitemap.xml with every public page and reference it in /robots.txt.
+- Keep every existing URL working. If any URL must change, add a permanent redirect.
+
+Acceptance checks (run each and show me the result):
+1. Load each public page with JavaScript turned off in the browser. The main text, title and links are all there.
+2. View the page source (not the inspector) of three public pages. Each has its own title, description and canonical link.
+3. Google Search Console&#x27;s URL Inspection shows the rendered page with its content for at least one page.
+4. Open /sitemap.xml and /robots.txt. The sitemap lists every public page and robots.txt points to it.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Your pages can sit unindexed for months while you wonder why nobody finds you, and when they&#x27;re shared the preview shows a blank title.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s public pages are rendered on the server by Django. /sitemap.xml is built with Django&#x27;s sitemap framework, public pages carry canonical links, and the app strips the X-Robots-Tag header from the sitemap so search engines will read it.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-11-04.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;Google isn&#x27;t indexing my React app&rdquo;</li><li>&ldquo;my Lovable site doesn&#x27;t show up in search&rdquo;</li><li>&ldquo;my pages look blank to search engines&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics">Google: JavaScript SEO basics</a></li><li><a href="https://web.dev/articles/rendering-on-the-web">web.dev: Rendering on the web</a></li><li><a href="https://docs.lovable.dev/features/upgrade-to-tanstack-start">Lovable: upgrade to TanStack Start</a></li></ul></section>
+  <p class="meta">Checked 2026-11-04. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/server-rendering-seo.json">api/server-rendering-seo.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../debouncing/index.html">&larr; Debounce and throttle</a><a href="../full-text-search/index.html">Full-text search &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

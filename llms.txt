@@ -28,6 +28,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Per-seat team billing](e/seat-billing/index.html): A team subscription whose quantity equals the number of paid members. Adding or removing a member changes the quantity, the payment provider prorates the difference, and your app blocks invites past the paid count if you want hard limits. JSON: api/seat-billing.json
 - [Plan limits and entitlements](e/plan-limits/index.html): One place in your code that answers "is this account allowed to do this, and how much is left?" based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard. JSON: api/plan-limits.json
 - [Refunds and chargebacks](e/refunds-disputes/index.html): The flow for giving money back, and for answering when a customer's bank pulls it back for you. Your app listens for refund and dispute events, updates access, and keeps the records you need to respond to a dispute before the deadline. JSON: api/refunds-disputes.json
+- [Sales tax and VAT](e/sales-tax/index.html): Charging, recording and paying the tax that applies where each customer lives. Selling software or digital products to other countries can mean collecting VAT or GST from the first sale, and US states have their own sales tax rules once you pass their limits. You either use a tax engine on top of your own payments or a merchant of record that sells on your behalf and handles the tax. JSON: api/sales-tax.json
 
 ### Auth and accounts
 
@@ -122,6 +123,8 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Content moderation](e/content-moderation/index.html): Checking what users post or generate for abuse, and having a way for people to report it and for you to act. Combine an automatic classifier, user reports, a review queue and clear actions like hide, warn and ban. JSON: api/content-moderation.json
 - [LLM tool calling](e/tool-calling/index.html): Giving the model a list of functions it may ask you to run, each with a name, description and input schema. Your code checks permissions, runs the function, and sends back the result. The model never touches your systems directly. JSON: api/tool-calling.json
 - [AI chat history storage](e/chat-history/index.html): Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane. JSON: api/chat-history.json
+- [LLM observability](e/llm-observability/index.html): Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing. JSON: api/llm-observability.json
+- [Speech to text](e/speech-to-text/index.html): Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser's built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself. JSON: api/speech-to-text.json
 
 ### Performance and caching
 
@@ -131,6 +134,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Load testing](e/load-testing/index.html): Sending realistic fake traffic at a copy of your app to find where it slows down or breaks: requests per second, response times at the 95th percentile, errors, and which part (database, CPU, an outside API) gives out first. JSON: api/load-testing.json
 - [N+1 query fixes](e/n-plus-one-queries/index.html): A common ORM slowdown: one query loads a list, then one more query runs for each item to fetch related data. Load the related data in one or two queries up front (eager loading or batching) instead. JSON: api/n-plus-one-queries.json
 - [Debounce and throttle](e/debouncing/index.html): Two ways to stop a fast stream of events from doing work every time. Debounce waits until the user pauses, then runs once, which suits search boxes and autosave. Throttle runs at most once every so often, which suits scroll, resize and drag handlers. JSON: api/debouncing.json
+- [Server rendering for SEO](e/server-rendering-seo/index.html): Sending finished HTML from the server, so the page's text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don't run JavaScript at all. JSON: api/server-rendering-seo.json
 
 ### Search
 
@@ -147,6 +151,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Internal admin panel](e/admin-panel/index.html): A private part of your app for you and your staff to find users, see their records, and fix common problems with buttons instead of raw SQL. Every action checks staff roles and lands in the audit log. JSON: api/admin-panel.json
 - [Optimistic updates](e/optimistic-updates/index.html): Showing the result of an action on screen the moment the user clicks, then sending it to the server in the background. If the server says no, you put the old value back and tell the user. It makes small actions like likes, checkboxes and reordering feel instant. JSON: api/optimistic-updates.json
 - [Autosave and drafts](e/autosave-drafts/index.html): Saving what a user is writing every few seconds without them pressing Save, usually as a draft that only becomes the real record when they finish. A refresh, crash or dead battery then costs them a few seconds of typing, not the whole thing. JSON: api/autosave-drafts.json
+- [Link previews (Open Graph)](e/link-previews/index.html): The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page's HTML. Without them, the app guesses, and you often get a bare link or the wrong text. JSON: api/link-previews.json
 
 ### Analytics and privacy
 
@@ -159,4 +164,4 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 
 - [entries.json](entries.json): all entries with prompts and checks
 
-Updated 2026-10-28. Built by Derek Salyers (https://x.com/omgitsderek).
+Updated 2026-11-04. Built by Derek Salyers (https://x.com/omgitsderek).

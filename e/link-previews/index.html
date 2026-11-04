@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link previews (Open Graph): What To Ask For</title>
+<meta name="description" content="The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page&#x27;s HTML. Without them, the app guesses, and you often get a bare link or the wrong text.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Link previews (Open Graph): What To Ask For">
+<meta property="og:description" content="The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page&#x27;s HTML. Without them, the app guesses, and you often get a bare link or the wrong text.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/link-previews/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Link previews (Open Graph): What To Ask For">
+<meta name="twitter:description" content="The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page&#x27;s HTML. Without them, the app guesses, and you often get a bare link or the wrong text.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=features">Common app features</a></p>
+  <h1>Link previews (Open Graph)</h1>
+  <p class="aka">Also called: Open Graph tags, og:image, social cards, Twitter cards, share preview, unfurl</p>
+  <p class="lead">The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page&#x27;s HTML. Without them, the app guesses, and you often get a bare link or the wrong text.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>People share your pages in chats, social posts or emails.</li><li>You&#x27;re about to launch or post your site anywhere public.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Internal tools nobody will ever share a link to.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>One site-wide card <span class="cost">$0</span></h3>
+<p>Make one 1200 by 630 image and add the same og:image to every page, with each page&#x27;s own title and description.</p><p class="trade"><strong>Tradeoff:</strong> Done in an hour. Every shared page looks the same.</p></li>
+<li><h3>Framework metadata <span class="cost">$0</span></h3>
+<p>Use your framework&#x27;s metadata feature, such as Next.js generateMetadata, to set tags per page.</p><p class="trade"><strong>Tradeoff:</strong> Per page titles and images with little code. Needs server rendering or static pages to work.</p></li>
+<li><h3>Generated images per page <span class="cost">$0</span></h3>
+<p>Draw an image per page from its title, with Next.js ImageResponse or a script that runs at build time.</p><p class="trade"><strong>Tradeoff:</strong> Every page gets a custom card. More code, and the images need caching.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add link preview tags to every public page.
+
+Requirements:
+- Set og:title, og:description, og:url, og:type and og:image on every public page, plus twitter:card set to summary_large_image.
+- Use each page&#x27;s own title and description. Fall back to the site-wide ones only when a page has none.
+- og:image and og:url must be full https URLs built from one configured site address, not hardcoded hosts.
+- Use [one site-wide 1200 by 630 image / generated images per page]. Set og:image:width and og:image:height.
+- Tags must be in the HTML the server sends. Don&#x27;t add them with JavaScript after load.
+- Don&#x27;t include private user data in tags on pages behind login.
+
+Acceptance checks (run each and show me the result):
+1. Paste three page links into a link preview tester (or a private message to yourself). Each shows the right title, description and image.
+2. The page source of each page has og:title, og:description, og:image and og:url, and og:image is a full https URL.
+3. The image loads in a private window without logging in, and it&#x27;s 1200 by 630 pixels or close to it.
+4. Pages behind login don&#x27;t leak private details in their tags.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Your launch post shows a plain link or a random image from the page, and fewer people click it. Some apps cache the first preview they see, so a fix later can take a while to show.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal&#x27;s homepage sets Open Graph and Twitter card tags, including the image width and height, all built from one configured site address. It uses one static card image rather than generating one per page.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-11-04.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;when I share my link it shows no image&rdquo;</li><li>&ldquo;my site looks bad when posted on X or in iMessage&rdquo;</li><li>&ldquo;add a preview image when people share my pages&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://ogp.me/">The Open Graph protocol</a></li><li><a href="https://developer.x.com/en/docs/x-for-websites/cards/overview/markup">X: cards markup reference</a></li><li><a href="https://nextjs.org/docs/app/getting-started/metadata-and-og-images">Next.js: metadata and OG images</a></li></ul></section>
+  <p class="meta">Checked 2026-11-04. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/link-previews.json">api/link-previews.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../autosave-drafts/index.html">&larr; Autosave and drafts</a><a href="../cookie-consent/index.html">Cookie consent and privacy-friendly analytics &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

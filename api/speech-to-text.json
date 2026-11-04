@@ -1,0 +1,94 @@
+{
+  "id": "speech-to-text",
+  "name": "Speech to text",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "voice input",
+    "dictation",
+    "transcription",
+    "Whisper",
+    "voice notes",
+    "Web Speech API"
+  ],
+  "needs": [
+    "let users talk instead of typing",
+    "transcribe voice notes or audio uploads in my app",
+    "add a microphone button to my text box"
+  ],
+  "keywords": [
+    "speech",
+    "voice",
+    "dictation",
+    "transcribe",
+    "transcription",
+    "audio",
+    "whisper",
+    "microphone",
+    "mic",
+    "talk",
+    "record",
+    "speak",
+    "notes",
+    "webspeech",
+    "recognition",
+    "mp3",
+    "m4a",
+    "wav"
+  ],
+  "summary": "Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser's built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself.",
+  "need_when": [
+    "Users write long notes, often on a phone, where typing is slow.",
+    "People already have recordings, like voice memos or calls, they want as text.",
+    "Accessibility matters for your users."
+  ],
+  "skip_when": [
+    "Short form fields where typing is quicker, or anywhere a wrong word could change the meaning and nobody will check it."
+  ],
+  "ways": [
+    {
+      "title": "Browser speech recognition",
+      "cost": "$0",
+      "how": "The Web Speech API's SpeechRecognition turns microphone input into text live.",
+      "tradeoff": "Free and instant. Support varies by browser, and some browsers send audio to their own servers."
+    },
+    {
+      "title": "Transcription API",
+      "cost": "Paid by the minute of audio",
+      "how": "Send uploaded or recorded audio from your server to OpenAI's speech to text API or a similar service.",
+      "tradeoff": "Accurate and works with files. Costs money, has file size limits, and the audio goes to the provider."
+    },
+    {
+      "title": "Run Whisper yourself",
+      "cost": "$0 plus compute",
+      "how": "Run the open source Whisper model (or a faster port of it) on your own server or the user's device.",
+      "tradeoff": "Audio stays with you. Slow without a decent machine, and you maintain it."
+    }
+  ],
+  "prompt": "Add speech to text to [the notes field / this form].\n\nRequirements:\n- Add a microphone button that uses [the browser's SpeechRecognition / recording plus our transcription API]. Hide or disable it in browsers that don't support it.\n- For uploads, accept [MP3, WAV, M4A] up to [25 MB] and check type and size before sending anything.\n- Call the transcription service from the server with a timeout, never with an API key in the browser.\n- Put the text into the field so the user can edit it before saving. Never save it automatically.\n- Delete uploaded audio after transcription unless the user chooses to keep it.\n- Show a clear message when transcription fails, and keep whatever the user already typed.\n\nAcceptance checks (run each and show me the result):\n1. Record 30 seconds of speech on a phone and on a laptop. The text appears and can be edited before saving.\n2. Upload an audio file over the size limit. The app refuses it with a clear message before sending it anywhere.\n3. With the transcription service turned off or failing, the user sees a plain error and what they already typed is still there.\n4. The audio file isn't kept after transcription unless the user chose to save it.",
+  "acceptance_checks": [
+    "Record 30 seconds of speech on a phone and on a laptop. The text appears and can be edited before saving.",
+    "Upload an audio file over the size limit. The app refuses it with a clear message before sending it anywhere.",
+    "With the transcription service turned off or failing, the user sees a plain error and what they already typed is still there.",
+    "The audio file isn't kept after transcription unless the user chose to save it."
+  ],
+  "if_you_skip_it": "Users who'd rather talk give up on long entries, or type into another app and paste. Done carelessly, audio piles up on your server or an API key ends up in the browser.",
+  "how_derek_runs_it": "Custody Journal has two ways in. Speak to type uses the browser's built-in speech recognition, which the app says works in Chrome and Edge. Uploads of MP3, WAV or M4A files up to 25 MB go from the server to OpenAI's whisper-1 model with a 60 second timeout and one retry, and the transcript is added to the entry so the user can edit it.",
+  "links": [
+    {
+      "title": "MDN: Web Speech API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API"
+    },
+    {
+      "title": "OpenAI: speech to text",
+      "url": "https://platform.openai.com/docs/guides/speech-to-text"
+    },
+    {
+      "title": "Whisper on GitHub",
+      "url": "https://github.com/openai/whisper"
+    }
+  ],
+  "page": "e/speech-to-text/index.html",
+  "json": "api/speech-to-text.json",
+  "updated": "2026-11-04"
+}

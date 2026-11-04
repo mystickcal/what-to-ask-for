@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM observability: What To Ask For</title>
+<meta name="description" content="Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="LLM observability: What To Ask For">
+<meta property="og:description" content="Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/llm-observability/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LLM observability: What To Ask For">
+<meta name="twitter:description" content="Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>LLM observability</h1>
+  <p class="aka">Also called: LLM tracing, AI logging, token usage tracking, LLM monitoring, prompt logging, AI cost tracking</p>
+  <p class="lead">Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Real users are using an AI feature and you can&#x27;t reproduce what they saw.</li><li>Your AI provider bill is growing and you can&#x27;t tell which feature or user drives it.</li><li>You change prompts or models and want to know if things got better or worse.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You&#x27;re still testing an AI feature by yourself and can read the responses in your terminal.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Hosted tracing tool <span class="cost">Free tier, then paid by volume</span></h3>
+<p>Langfuse Cloud, Helicone or a similar service, added through their SDK or as a proxy in front of your provider.</p><p class="trade"><strong>Tradeoff:</strong> Fast to set up with a ready dashboard. Your prompts and answers are stored by another company.</p></li>
+<li><h3>Self-hosted tracing <span class="cost">$0 plus a server</span></h3>
+<p>Run open source Langfuse yourself, or send OpenTelemetry traces to a backend you already run.</p><p class="trade"><strong>Tradeoff:</strong> The data stays with you. You maintain and back it up.</p></li>
+<li><h3>Your own log table <span class="cost">$0</span></h3>
+<p>Save model, token counts, cost, time taken and status for each call in your database, with the user and feature it came from.</p><p class="trade"><strong>Tradeoff:</strong> Simple and private. No trace view, and you build any reporting yourself.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add observability to every AI model call in this app.
+
+Requirements:
+- Wrap every call to [OpenAI / Anthropic / our provider] in one shared helper so nothing calls the provider directly.
+- For each call record: feature name, user or account ID, model, input and output tokens, cost, time taken, and success or error.
+- Send traces to [Langfuse / Helicone / OpenTelemetry / a database table]. Make prompt and response logging a setting I can turn off.
+- Never log API keys, passwords, payment details or [other sensitive fields]. Remove them before anything is saved.
+- Show users a plain error message when the provider fails. Don&#x27;t pass the provider&#x27;s raw error to the browser.
+- Add a simple daily total of tokens and cost per feature.
+
+Acceptance checks (run each and show me the result):
+1. Make one AI request in the app and find it in the trace view with the model, prompt, response, token counts, cost and time taken.
+2. Force the provider to fail (for example a bad API key in a test environment) and confirm the failure is logged and the user sees a plain error message.
+3. A per-day cost total can be shown for the last 7 days.
+4. Search the logs for an API key or a test password you typed into a prompt and confirm it doesn&#x27;t appear.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>When the AI says something wrong to a customer you have no record of what it was asked, and the first sign of a runaway loop or an abused endpoint is the invoice.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal saves the total token count on every AI reply and keeps a running total for each conversation. The model call runs in a separate worker process, and if the provider fails the app shows a general error instead of the provider&#x27;s message, because that message can contain document text.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-11-04.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;I can&#x27;t see what my AI feature is doing or why it gave that answer&rdquo;</li><li>&ldquo;my OpenAI bill went up and I don&#x27;t know which feature caused it&rdquo;</li><li>&ldquo;log every LLM call with tokens and cost&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://langfuse.com/docs">Langfuse documentation</a></li><li><a href="https://docs.helicone.ai">Helicone documentation</a></li><li><a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">OpenTelemetry: generative AI conventions</a></li></ul></section>
+  <p class="meta">Checked 2026-11-04. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/llm-observability.json">api/llm-observability.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../chat-history/index.html">&larr; AI chat history storage</a><a href="../speech-to-text/index.html">Speech to text &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

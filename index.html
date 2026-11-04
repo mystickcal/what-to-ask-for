@@ -39,10 +39,10 @@
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
-<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>105</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>9</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>6</span></a><a class="cat" href="#c-data" data-c="data">Data <span>8</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>6</span></a><a class="cat" href="#c-security" data-c="security">Security <span>12</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>10</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>10</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>6</span></a><a class="cat" href="#c-search" data-c="search">Search <span>3</span></a><a class="cat" href="#c-features" data-c="features">Features <span>7</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>4</span></a></nav>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>110</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>10</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>6</span></a><a class="cat" href="#c-data" data-c="data">Data <span>8</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>6</span></a><a class="cat" href="#c-security" data-c="security">Security <span>12</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>10</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>12</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>7</span></a><a class="cat" href="#c-search" data-c="search">Search <span>3</span></a><a class="cat" href="#c-features" data-c="features">Features <span>8</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>4</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">105 entries in 14 categories</p>
+  <p class="count" id="count" aria-live="polite">110 entries in 14 categories</p>
   <ol class="results" id="results" hidden></ol>
   <div id="browse">
 <section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">6</span></h3>
@@ -54,7 +54,7 @@
 <li><a href="e/outbox-pattern/index.html"><span class="r-name">Transactional outbox</span><span class="r-need">&ldquo;the order saved but the email never went out&rdquo;</span></a></li>
 <li><a href="e/job-progress-ui/index.html"><span class="r-name">Job status and progress UI</span><span class="r-need">&ldquo;show a progress bar while the export runs&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-payments" data-c="payments" aria-labelledby="h-payments"><h3 class="group-h" id="h-payments">Payments and billing <span class="group-n">9</span></h3>
+<section class="group" id="c-payments" data-c="payments" aria-labelledby="h-payments"><h3 class="group-h" id="h-payments">Payments and billing <span class="group-n">10</span></h3>
 <ol class="results">
 <li><a href="e/webhook-signature-verification/index.html"><span class="r-name">Webhook signature verification</span><span class="r-need">&ldquo;Stripe calls my server when someone pays&rdquo;</span></a></li>
 <li><a href="e/idempotent-webhooks/index.html"><span class="r-name">Idempotent webhook handling</span><span class="r-need">&ldquo;a customer paid once but got upgraded twice&rdquo;</span></a></li>
@@ -65,6 +65,7 @@
 <li><a href="e/seat-billing/index.html"><span class="r-name">Per-seat team billing</span><span class="r-need">&ldquo;charge teams per member&rdquo;</span></a></li>
 <li><a href="e/plan-limits/index.html"><span class="r-name">Plan limits and entitlements</span><span class="r-need">&ldquo;free users get 10 projects and paid users get unlimited&rdquo;</span></a></li>
 <li><a href="e/refunds-disputes/index.html"><span class="r-name">Refunds and chargebacks</span><span class="r-need">&ldquo;a customer wants their money back&rdquo;</span></a></li>
+<li><a href="e/sales-tax/index.html"><span class="r-name">Sales tax and VAT</span><span class="r-need">&ldquo;do I need to charge sales tax or VAT on my SaaS&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-auth" data-c="auth" aria-labelledby="h-auth"><h3 class="group-h" id="h-auth">Auth and accounts <span class="group-n">11</span></h3>
 <ol class="results">
@@ -147,7 +148,7 @@
 <li><a href="e/ci-pipeline/index.html"><span class="r-name">CI checks on every push</span><span class="r-need">&ldquo;run my tests automatically before I deploy&rdquo;</span></a></li>
 <li><a href="e/customer-custom-domains/index.html"><span class="r-name">Custom domains for customers</span><span class="r-need">&ldquo;let customers use their own domain for their page&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">10</span></h3>
+<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">12</span></h3>
 <ol class="results">
 <li><a href="e/streaming-ai-responses/index.html"><span class="r-name">Streaming AI responses</span><span class="r-need">&ldquo;show the AI answer as it&#x27;s being written&rdquo;</span></a></li>
 <li><a href="e/llm-retries-fallbacks/index.html"><span class="r-name">LLM retries, timeouts and fallbacks</span><span class="r-need">&ldquo;the AI call fails sometimes with 429 or 500&rdquo;</span></a></li>
@@ -159,8 +160,10 @@
 <li><a href="e/content-moderation/index.html"><span class="r-name">Content moderation</span><span class="r-need">&ldquo;users can post anything on my site&rdquo;</span></a></li>
 <li><a href="e/tool-calling/index.html"><span class="r-name">LLM tool calling</span><span class="r-need">&ldquo;let the AI look things up in my database&rdquo;</span></a></li>
 <li><a href="e/chat-history/index.html"><span class="r-name">AI chat history storage</span><span class="r-need">&ldquo;save chatbot conversations so users can come back&rdquo;</span></a></li>
+<li><a href="e/llm-observability/index.html"><span class="r-name">LLM observability</span><span class="r-need">&ldquo;I can&#x27;t see what my AI feature is doing or why it gave that answer&rdquo;</span></a></li>
+<li><a href="e/speech-to-text/index.html"><span class="r-name">Speech to text</span><span class="r-need">&ldquo;let users talk instead of typing&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">6</span></h3>
+<section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">7</span></h3>
 <ol class="results">
 <li><a href="e/caching-invalidation/index.html"><span class="r-name">Caching and invalidation</span><span class="r-need">&ldquo;the same slow query runs on every page load&rdquo;</span></a></li>
 <li><a href="e/cdn/index.html"><span class="r-name">CDN and static asset caching</span><span class="r-need">&ldquo;my site is slow for people in other countries&rdquo;</span></a></li>
@@ -168,6 +171,7 @@
 <li><a href="e/load-testing/index.html"><span class="r-name">Load testing</span><span class="r-need">&ldquo;will my app survive a launch on Product Hunt&rdquo;</span></a></li>
 <li><a href="e/n-plus-one-queries/index.html"><span class="r-name">N+1 query fixes</span><span class="r-need">&ldquo;my list page runs hundreds of database queries&rdquo;</span></a></li>
 <li><a href="e/debouncing/index.html"><span class="r-name">Debounce and throttle</span><span class="r-need">&ldquo;my search box sends a request on every keystroke&rdquo;</span></a></li>
+<li><a href="e/server-rendering-seo/index.html"><span class="r-name">Server rendering for SEO</span><span class="r-need">&ldquo;Google isn&#x27;t indexing my React app&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-search" data-c="search" aria-labelledby="h-search"><h3 class="group-h" id="h-search">Search <span class="group-n">3</span></h3>
 <ol class="results">
@@ -175,7 +179,7 @@
 <li><a href="e/semantic-search/index.html"><span class="r-name">Semantic search and RAG</span><span class="r-need">&ldquo;find documents by meaning, not exact words&rdquo;</span></a></li>
 <li><a href="e/search-index-sync/index.html"><span class="r-name">Keeping a search index in sync</span><span class="r-need">&ldquo;search results show things I already deleted&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-features" data-c="features" aria-labelledby="h-features"><h3 class="group-h" id="h-features">Common app features <span class="group-n">7</span></h3>
+<section class="group" id="c-features" data-c="features" aria-labelledby="h-features"><h3 class="group-h" id="h-features">Common app features <span class="group-n">8</span></h3>
 <ol class="results">
 <li><a href="e/i18n/index.html"><span class="r-name">Translations and localization (i18n)</span><span class="r-need">&ldquo;translate my app into Spanish&rdquo;</span></a></li>
 <li><a href="e/calendar-feeds/index.html"><span class="r-name">Calendar feeds and invites (ICS)</span><span class="r-need">&ldquo;let users see my app&#x27;s events in Google Calendar&rdquo;</span></a></li>
@@ -184,6 +188,7 @@
 <li><a href="e/admin-panel/index.html"><span class="r-name">Internal admin panel</span><span class="r-need">&ldquo;I need a way to look up and fix customer records&rdquo;</span></a></li>
 <li><a href="e/optimistic-updates/index.html"><span class="r-name">Optimistic updates</span><span class="r-need">&ldquo;my app feels slow every time I click a button&rdquo;</span></a></li>
 <li><a href="e/autosave-drafts/index.html"><span class="r-name">Autosave and drafts</span><span class="r-need">&ldquo;users lose what they typed when the page refreshes&rdquo;</span></a></li>
+<li><a href="e/link-previews/index.html"><span class="r-name">Link previews (Open Graph)</span><span class="r-need">&ldquo;when I share my link it shows no image&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-privacy" data-c="privacy" aria-labelledby="h-privacy"><h3 class="group-h" id="h-privacy">Analytics and privacy <span class="group-n">4</span></h3>
 <ol class="results">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://mystickcal.github.io/what-to-ask-for/</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/scheduled-jobs/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/background-job-queue/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/retries-and-dead-letter-queue/</loc><lastmod>2026-10-21</lastmod></url>
@@ -16,6 +16,7 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/seat-billing/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/plan-limits/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/refunds-disputes/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/sales-tax/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/password-reset/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/magic-links/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/social-login/</loc><lastmod>2026-10-21</lastmod></url>
@@ -86,12 +87,15 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/content-moderation/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/tool-calling/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/chat-history/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/llm-observability/</loc><lastmod>2026-11-04</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/speech-to-text/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/caching-invalidation/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/cdn/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/database-indexes/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/load-testing/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/n-plus-one-queries/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/debouncing/</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/server-rendering-seo/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/full-text-search/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/semantic-search/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/search-index-sync/</loc><lastmod>2026-10-21</lastmod></url>
@@ -102,6 +106,7 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/admin-panel/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/optimistic-updates/</loc><lastmod>2026-10-28</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/autosave-drafts/</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/link-previews/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/cookie-consent/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/data-export-deletion/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/data-retention/</loc><lastmod>2026-10-21</lastmod></url>

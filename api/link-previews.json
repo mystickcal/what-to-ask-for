@@ -1,0 +1,93 @@
+{
+  "id": "link-previews",
+  "name": "Link previews (Open Graph)",
+  "category": "features",
+  "category_name": "Common app features",
+  "aliases": [
+    "Open Graph tags",
+    "og:image",
+    "social cards",
+    "Twitter cards",
+    "share preview",
+    "unfurl"
+  ],
+  "needs": [
+    "when I share my link it shows no image",
+    "my site looks bad when posted on X or in iMessage",
+    "add a preview image when people share my pages"
+  ],
+  "keywords": [
+    "open",
+    "graph",
+    "og",
+    "image",
+    "preview",
+    "card",
+    "twitter",
+    "share",
+    "social",
+    "unfurl",
+    "meta",
+    "tags",
+    "slack",
+    "discord",
+    "imessage",
+    "facebook",
+    "linkedin",
+    "thumbnail"
+  ],
+  "summary": "The title, description and image that show up when someone pastes your link into a chat or a post. They come from Open Graph and Twitter card tags in the page's HTML. Without them, the app guesses, and you often get a bare link or the wrong text.",
+  "need_when": [
+    "People share your pages in chats, social posts or emails.",
+    "You're about to launch or post your site anywhere public."
+  ],
+  "skip_when": [
+    "Internal tools nobody will ever share a link to."
+  ],
+  "ways": [
+    {
+      "title": "One site-wide card",
+      "cost": "$0",
+      "how": "Make one 1200 by 630 image and add the same og:image to every page, with each page's own title and description.",
+      "tradeoff": "Done in an hour. Every shared page looks the same."
+    },
+    {
+      "title": "Framework metadata",
+      "cost": "$0",
+      "how": "Use your framework's metadata feature, such as Next.js generateMetadata, to set tags per page.",
+      "tradeoff": "Per page titles and images with little code. Needs server rendering or static pages to work."
+    },
+    {
+      "title": "Generated images per page",
+      "cost": "$0",
+      "how": "Draw an image per page from its title, with Next.js ImageResponse or a script that runs at build time.",
+      "tradeoff": "Every page gets a custom card. More code, and the images need caching."
+    }
+  ],
+  "prompt": "Add link preview tags to every public page.\n\nRequirements:\n- Set og:title, og:description, og:url, og:type and og:image on every public page, plus twitter:card set to summary_large_image.\n- Use each page's own title and description. Fall back to the site-wide ones only when a page has none.\n- og:image and og:url must be full https URLs built from one configured site address, not hardcoded hosts.\n- Use [one site-wide 1200 by 630 image / generated images per page]. Set og:image:width and og:image:height.\n- Tags must be in the HTML the server sends. Don't add them with JavaScript after load.\n- Don't include private user data in tags on pages behind login.\n\nAcceptance checks (run each and show me the result):\n1. Paste three page links into a link preview tester (or a private message to yourself). Each shows the right title, description and image.\n2. The page source of each page has og:title, og:description, og:image and og:url, and og:image is a full https URL.\n3. The image loads in a private window without logging in, and it's 1200 by 630 pixels or close to it.\n4. Pages behind login don't leak private details in their tags.",
+  "acceptance_checks": [
+    "Paste three page links into a link preview tester (or a private message to yourself). Each shows the right title, description and image.",
+    "The page source of each page has og:title, og:description, og:image and og:url, and og:image is a full https URL.",
+    "The image loads in a private window without logging in, and it's 1200 by 630 pixels or close to it.",
+    "Pages behind login don't leak private details in their tags."
+  ],
+  "if_you_skip_it": "Your launch post shows a plain link or a random image from the page, and fewer people click it. Some apps cache the first preview they see, so a fix later can take a while to show.",
+  "how_derek_runs_it": "Custody Journal's homepage sets Open Graph and Twitter card tags, including the image width and height, all built from one configured site address. It uses one static card image rather than generating one per page.",
+  "links": [
+    {
+      "title": "The Open Graph protocol",
+      "url": "https://ogp.me/"
+    },
+    {
+      "title": "X: cards markup reference",
+      "url": "https://developer.x.com/en/docs/x-for-websites/cards/overview/markup"
+    },
+    {
+      "title": "Next.js: metadata and OG images",
+      "url": "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+    }
+  ],
+  "page": "e/link-previews/index.html",
+  "json": "api/link-previews.json",
+  "updated": "2026-11-04"
+}

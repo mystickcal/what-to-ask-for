@@ -1,0 +1,95 @@
+{
+  "id": "server-rendering-seo",
+  "name": "Server rendering for SEO",
+  "category": "performance",
+  "category_name": "Performance and caching",
+  "aliases": [
+    "SSR",
+    "server-side rendering",
+    "static site generation",
+    "prerendering",
+    "SPA SEO",
+    "Lovable SEO"
+  ],
+  "needs": [
+    "Google isn't indexing my React app",
+    "my Lovable site doesn't show up in search",
+    "my pages look blank to search engines"
+  ],
+  "keywords": [
+    "ssr",
+    "seo",
+    "google",
+    "index",
+    "indexing",
+    "render",
+    "prerender",
+    "static",
+    "spa",
+    "react",
+    "vite",
+    "lovable",
+    "next",
+    "nextjs",
+    "astro",
+    "crawler",
+    "search",
+    "blank",
+    "sitemap"
+  ],
+  "summary": "Sending finished HTML from the server, so the page's text and links are there before any JavaScript runs. Apps built as a single page with JavaScript, which is what many AI builders produce, send an almost empty page first. Search engines and link previews can miss the content, and AI crawlers often don't run JavaScript at all.",
+  "need_when": [
+    "You want public pages like the homepage, pricing, blog or docs to show up in search.",
+    "Viewing the page source shows an empty div and a script tag instead of your text.",
+    "Pages are listed in Search Console as discovered or crawled but not indexed."
+  ],
+  "skip_when": [
+    "Pages behind a login. Search engines can't see them anyway, so a JavaScript app is fine there."
+  ],
+  "ways": [
+    {
+      "title": "A framework that renders on the server",
+      "cost": "$0",
+      "how": "Next.js, Astro, Remix, SvelteKit or Lovable's TanStack Start upgrade render or pre-build pages as HTML.",
+      "tradeoff": "The proper fix. Moving an existing app takes real work and testing."
+    },
+    {
+      "title": "Pre-build only the public pages",
+      "cost": "$0",
+      "how": "Make the marketing pages static HTML (a static site generator or a prerender plugin) and keep the app as is behind login.",
+      "tradeoff": "Less to change. You now look after two parts of the site."
+    },
+    {
+      "title": "Prerender service",
+      "cost": "Free tier, then paid",
+      "how": "A service like Prerender.io serves a rendered copy to crawlers.",
+      "tradeoff": "Works without changing the app. Another bill and another moving part, and the copy can go stale."
+    }
+  ],
+  "prompt": "Make the public pages of this app render on the server so search engines see the full content.\n\nRequirements:\n- Public pages: [home / pricing / blog / docs / list them]. Leave pages behind login as they are.\n- Use [Next.js / Astro / our framework's server rendering or static generation]. Keep the current design and URLs.\n- Each public page gets its own title, meta description and canonical link in the HTML sent from the server.\n- Generate /sitemap.xml with every public page and reference it in /robots.txt.\n- Keep every existing URL working. If any URL must change, add a permanent redirect.\n\nAcceptance checks (run each and show me the result):\n1. Load each public page with JavaScript turned off in the browser. The main text, title and links are all there.\n2. View the page source (not the inspector) of three public pages. Each has its own title, description and canonical link.\n3. Google Search Console's URL Inspection shows the rendered page with its content for at least one page.\n4. Open /sitemap.xml and /robots.txt. The sitemap lists every public page and robots.txt points to it.",
+  "acceptance_checks": [
+    "Load each public page with JavaScript turned off in the browser. The main text, title and links are all there.",
+    "View the page source (not the inspector) of three public pages. Each has its own title, description and canonical link.",
+    "Google Search Console's URL Inspection shows the rendered page with its content for at least one page.",
+    "Open /sitemap.xml and /robots.txt. The sitemap lists every public page and robots.txt points to it."
+  ],
+  "if_you_skip_it": "Your pages can sit unindexed for months while you wonder why nobody finds you, and when they're shared the preview shows a blank title.",
+  "how_derek_runs_it": "Custody Journal's public pages are rendered on the server by Django. /sitemap.xml is built with Django's sitemap framework, public pages carry canonical links, and the app strips the X-Robots-Tag header from the sitemap so search engines will read it.",
+  "links": [
+    {
+      "title": "Google: JavaScript SEO basics",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+    },
+    {
+      "title": "web.dev: Rendering on the web",
+      "url": "https://web.dev/articles/rendering-on-the-web"
+    },
+    {
+      "title": "Lovable: upgrade to TanStack Start",
+      "url": "https://docs.lovable.dev/features/upgrade-to-tanstack-start"
+    }
+  ],
+  "page": "e/server-rendering-seo/index.html",
+  "json": "api/server-rendering-seo.json",
+  "updated": "2026-11-04"
+}
