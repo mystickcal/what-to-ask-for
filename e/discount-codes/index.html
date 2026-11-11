@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discount codes: What To Ask For</title>
+<meta name="description" content="Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can&#x27;t be faked from the browser.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Discount codes: What To Ask For">
+<meta property="og:description" content="Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can&#x27;t be faked from the browser.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/discount-codes/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Discount codes: What To Ask For">
+<meta name="twitter:description" content="Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can&#x27;t be faked from the browser.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=payments">Payments and billing</a></p>
+  <h1>Discount codes</h1>
+  <p class="aka">Also called: coupon codes, promo codes, promotion codes, coupons, launch discount, voucher codes</p>
+  <p class="lead">Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can&#x27;t be faked from the browser.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>You&#x27;re launching and want to reward early buyers.</li><li>You give creators or partners their own codes and want to see what each one brings in.</li><li>Your sales team gives some customers a special price.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You don&#x27;t plan to offer discounts. Then leave the code box off your checkout.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Your payment platform&#x27;s promo codes <span class="cost">$0 extra</span></h3>
+<p>Create coupons and promotion codes in Stripe, Paddle or Lemon Squeezy and turn on the code field in their checkout. Stripe&#x27;s allow_promotion_codes adds the box.</p><p class="trade"><strong>Tradeoff:</strong> Limits, expiry and first order rules are built in. You&#x27;re tied to their checkout and their rules.</p></li>
+<li><h3>Discounts applied by your server <span class="cost">$0 extra</span></h3>
+<p>Your code decides who gets a deal and applies a coupon to their subscription or checkout, so the customer never types anything.</p><p class="trade"><strong>Tradeoff:</strong> Good for sales deals and win back offers. No shareable code, so it doesn&#x27;t help with promotions.</p></li>
+<li><h3>Your own discount table <span class="cost">$0</span></h3>
+<p>Store codes, amounts, expiry, use limits and redemptions in your database and work out the price yourself.</p><p class="trade"><strong>Tradeoff:</strong> Full control. Easy to get rounding, stacking and race conditions wrong, and the payment record has to match your math.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add discount codes to checkout.
+
+Requirements:
+- Use [Stripe promotion codes / Paddle discounts / Lemon Squeezy discounts]. Keep every rule on the payment platform or the server, never in the browser.
+- Codes can be a percentage or a fixed amount, last [once / for N months / forever], expire on a date and have a total use limit.
+- Support a first order only rule and codes tied to one customer.
+- Show a clear message for codes that are wrong, expired or used up, and don&#x27;t change the price.
+- Save the code and the amount it took off on each order, so I can report sales per code.
+- Two people using the last remaining use of a code at the same moment: only one gets it.
+
+Acceptance checks (run each and show me the result):
+1. Enter a valid code at checkout. The total drops by the right amount before payment.
+2. Enter an expired code, a used up code and a made up code. Each one is refused with a clear message and the price doesn&#x27;t change.
+3. A code limited to first orders is refused for a customer who has bought before.
+4. The order or invoice shows which code was used and how much it took off.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Launch deals and partner codes turn into manual refunds after the sale, and a code shared too widely can&#x27;t be shut off or tracked.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add a coupon code box to my checkout&rdquo;</li><li>&ldquo;give a launch discount for the first 100 customers&rdquo;</li><li>&ldquo;make a promo code for an influencer&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://docs.stripe.com/billing/subscriptions/coupons">Stripe: coupons and promotion codes</a></li><li><a href="https://docs.stripe.com/payments/checkout/discounts">Stripe Checkout: add discounts</a></li><li><a href="https://docs.lemonsqueezy.com/api/discounts">Lemon Squeezy API: discounts</a></li></ul></section>
+  <p class="meta">Checked 2026-11-11. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/discount-codes.json">api/discount-codes.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../marketplace-payouts/index.html">&larr; Marketplace payouts</a><a href="../password-reset/index.html">Password reset tokens &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

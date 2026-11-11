@@ -1,0 +1,94 @@
+{
+  "id": "discount-codes",
+  "name": "Discount codes",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "coupon codes",
+    "promo codes",
+    "promotion codes",
+    "coupons",
+    "launch discount",
+    "voucher codes"
+  ],
+  "needs": [
+    "add a coupon code box to my checkout",
+    "give a launch discount for the first 100 customers",
+    "make a promo code for an influencer"
+  ],
+  "keywords": [
+    "coupon",
+    "coupons",
+    "discount",
+    "promo",
+    "promotion",
+    "code",
+    "codes",
+    "voucher",
+    "sale",
+    "percent",
+    "off",
+    "launch",
+    "influencer",
+    "affiliate",
+    "checkout",
+    "redeem",
+    "expire",
+    "limit"
+  ],
+  "summary": "Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can't be faked from the browser.",
+  "need_when": [
+    "You're launching and want to reward early buyers.",
+    "You give creators or partners their own codes and want to see what each one brings in.",
+    "Your sales team gives some customers a special price."
+  ],
+  "skip_when": [
+    "You don't plan to offer discounts. Then leave the code box off your checkout."
+  ],
+  "ways": [
+    {
+      "title": "Your payment platform's promo codes",
+      "cost": "$0 extra",
+      "how": "Create coupons and promotion codes in Stripe, Paddle or Lemon Squeezy and turn on the code field in their checkout. Stripe's allow_promotion_codes adds the box.",
+      "tradeoff": "Limits, expiry and first order rules are built in. You're tied to their checkout and their rules."
+    },
+    {
+      "title": "Discounts applied by your server",
+      "cost": "$0 extra",
+      "how": "Your code decides who gets a deal and applies a coupon to their subscription or checkout, so the customer never types anything.",
+      "tradeoff": "Good for sales deals and win back offers. No shareable code, so it doesn't help with promotions."
+    },
+    {
+      "title": "Your own discount table",
+      "cost": "$0",
+      "how": "Store codes, amounts, expiry, use limits and redemptions in your database and work out the price yourself.",
+      "tradeoff": "Full control. Easy to get rounding, stacking and race conditions wrong, and the payment record has to match your math."
+    }
+  ],
+  "prompt": "Add discount codes to checkout.\n\nRequirements:\n- Use [Stripe promotion codes / Paddle discounts / Lemon Squeezy discounts]. Keep every rule on the payment platform or the server, never in the browser.\n- Codes can be a percentage or a fixed amount, last [once / for N months / forever], expire on a date and have a total use limit.\n- Support a first order only rule and codes tied to one customer.\n- Show a clear message for codes that are wrong, expired or used up, and don't change the price.\n- Save the code and the amount it took off on each order, so I can report sales per code.\n- Two people using the last remaining use of a code at the same moment: only one gets it.\n\nAcceptance checks (run each and show me the result):\n1. Enter a valid code at checkout. The total drops by the right amount before payment.\n2. Enter an expired code, a used up code and a made up code. Each one is refused with a clear message and the price doesn't change.\n3. A code limited to first orders is refused for a customer who has bought before.\n4. The order or invoice shows which code was used and how much it took off.",
+  "acceptance_checks": [
+    "Enter a valid code at checkout. The total drops by the right amount before payment.",
+    "Enter an expired code, a used up code and a made up code. Each one is refused with a clear message and the price doesn't change.",
+    "A code limited to first orders is refused for a customer who has bought before.",
+    "The order or invoice shows which code was used and how much it took off."
+  ],
+  "if_you_skip_it": "Launch deals and partner codes turn into manual refunds after the sale, and a code shared too widely can't be shut off or tracked.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: coupons and promotion codes",
+      "url": "https://docs.stripe.com/billing/subscriptions/coupons"
+    },
+    {
+      "title": "Stripe Checkout: add discounts",
+      "url": "https://docs.stripe.com/payments/checkout/discounts"
+    },
+    {
+      "title": "Lemon Squeezy API: discounts",
+      "url": "https://docs.lemonsqueezy.com/api/discounts"
+    }
+  ],
+  "page": "e/discount-codes/index.html",
+  "json": "api/discount-codes.json",
+  "updated": "2026-11-11"
+}

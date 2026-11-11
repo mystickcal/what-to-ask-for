@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text to speech: What To Ask For</title>
+<meta name="description" content="Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Text to speech: What To Ask For">
+<meta property="og:description" content="Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/text-to-speech/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Text to speech: What To Ask For">
+<meta name="twitter:description" content="Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>Text to speech</h1>
+  <p class="aka">Also called: TTS, read aloud, AI voice, voice generation, speech synthesis, narration</p>
+  <p class="lead">Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>People want to listen to articles, lessons or replies instead of reading.</li><li>You&#x27;re adding a voice to an AI assistant.</li><li>Accessibility matters for your users.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>Short labels and buttons. Screen readers already handle those.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Browser speech <span class="cost">$0</span></h3>
+<p>The Web Speech API&#x27;s speechSynthesis reads text aloud with the voices on the user&#x27;s device.</p><p class="trade"><strong>Tradeoff:</strong> Free and instant. Voices differ by device and can sound robotic, and there&#x27;s no file to save.</p></li>
+<li><h3>Voice API <span class="cost">Paid per character or per minute</span></h3>
+<p>Send text from your server to OpenAI&#x27;s speech endpoint, ElevenLabs or a similar service, save the audio and play it.</p><p class="trade"><strong>Tradeoff:</strong> Natural voices. Costs grow with every new piece of text, and models and voices get retired, so check before you build on one.</p></li>
+<li><h3>Open model on your server <span class="cost">$0 plus compute</span></h3>
+<p>Run an open text to speech model such as Piper on your own machine.</p><p class="trade"><strong>Tradeoff:</strong> No per use bill and text stays with you. Lower quality than the best APIs, and you maintain it.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add text to speech to [articles / assistant replies].
+
+Requirements:
+- Use [the browser&#x27;s speechSynthesis / OpenAI&#x27;s speech API / ElevenLabs]. Call any paid API from the server only, never with a key in the browser.
+- Save generated audio in [object storage] keyed by a hash of the text, voice and model. Play the saved file when it exists.
+- Make new audio when the text changes, and delete audio that&#x27;s no longer used.
+- Stream or start playback before the whole file is done for long text, or split long text into parts.
+- Limit how much text one user can turn into audio per day.
+- Tell listeners the voice is AI generated.
+
+Acceptance checks (run each and show me the result):
+1. Press play on a 500 word article. Audio starts within a few seconds and sounds right in the chosen voice.
+2. Play the same article twice. The second time comes from the saved file and makes no new API call.
+3. Edit the text and play it again. It makes new audio instead of reading the old version.
+4. With the voice service failing, the user sees a plain error and can still read the text.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Each play of the same article costs you again, a busy day turns into a surprise bill, and listeners may not know the voice isn&#x27;t a person, which some providers&#x27; rules require you to say.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;add a listen button that reads my articles out loud&rdquo;</li><li>&ldquo;turn text into speech in my app&rdquo;</li><li>&ldquo;give my AI assistant a voice&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN: SpeechSynthesis</a></li><li><a href="https://platform.openai.com/docs/guides/text-to-speech">OpenAI: text to speech</a></li><li><a href="https://elevenlabs.io/docs">ElevenLabs documentation</a></li><li><a href="https://github.com/OHF-Voice/piper1-gpl">Piper text to speech</a></li></ul></section>
+  <p class="meta">Checked 2026-11-11. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/text-to-speech.json">api/text-to-speech.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../document-text-extraction/index.html">&larr; Text from PDFs and scans</a><a href="../caching-invalidation/index.html">Caching and invalidation &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

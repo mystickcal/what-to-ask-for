@@ -1,0 +1,98 @@
+{
+  "id": "text-to-speech",
+  "name": "Text to speech",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "TTS",
+    "read aloud",
+    "AI voice",
+    "voice generation",
+    "speech synthesis",
+    "narration"
+  ],
+  "needs": [
+    "add a listen button that reads my articles out loud",
+    "turn text into speech in my app",
+    "give my AI assistant a voice"
+  ],
+  "keywords": [
+    "tts",
+    "speech",
+    "voice",
+    "voices",
+    "read",
+    "aloud",
+    "listen",
+    "audio",
+    "narrate",
+    "narration",
+    "speak",
+    "elevenlabs",
+    "openai",
+    "synthesis",
+    "speechsynthesis",
+    "mp3",
+    "podcast",
+    "accessibility"
+  ],
+  "summary": "Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.",
+  "need_when": [
+    "People want to listen to articles, lessons or replies instead of reading.",
+    "You're adding a voice to an AI assistant.",
+    "Accessibility matters for your users."
+  ],
+  "skip_when": [
+    "Short labels and buttons. Screen readers already handle those."
+  ],
+  "ways": [
+    {
+      "title": "Browser speech",
+      "cost": "$0",
+      "how": "The Web Speech API's speechSynthesis reads text aloud with the voices on the user's device.",
+      "tradeoff": "Free and instant. Voices differ by device and can sound robotic, and there's no file to save."
+    },
+    {
+      "title": "Voice API",
+      "cost": "Paid per character or per minute",
+      "how": "Send text from your server to OpenAI's speech endpoint, ElevenLabs or a similar service, save the audio and play it.",
+      "tradeoff": "Natural voices. Costs grow with every new piece of text, and models and voices get retired, so check before you build on one."
+    },
+    {
+      "title": "Open model on your server",
+      "cost": "$0 plus compute",
+      "how": "Run an open text to speech model such as Piper on your own machine.",
+      "tradeoff": "No per use bill and text stays with you. Lower quality than the best APIs, and you maintain it."
+    }
+  ],
+  "prompt": "Add text to speech to [articles / assistant replies].\n\nRequirements:\n- Use [the browser's speechSynthesis / OpenAI's speech API / ElevenLabs]. Call any paid API from the server only, never with a key in the browser.\n- Save generated audio in [object storage] keyed by a hash of the text, voice and model. Play the saved file when it exists.\n- Make new audio when the text changes, and delete audio that's no longer used.\n- Stream or start playback before the whole file is done for long text, or split long text into parts.\n- Limit how much text one user can turn into audio per day.\n- Tell listeners the voice is AI generated.\n\nAcceptance checks (run each and show me the result):\n1. Press play on a 500 word article. Audio starts within a few seconds and sounds right in the chosen voice.\n2. Play the same article twice. The second time comes from the saved file and makes no new API call.\n3. Edit the text and play it again. It makes new audio instead of reading the old version.\n4. With the voice service failing, the user sees a plain error and can still read the text.",
+  "acceptance_checks": [
+    "Press play on a 500 word article. Audio starts within a few seconds and sounds right in the chosen voice.",
+    "Play the same article twice. The second time comes from the saved file and makes no new API call.",
+    "Edit the text and play it again. It makes new audio instead of reading the old version.",
+    "With the voice service failing, the user sees a plain error and can still read the text."
+  ],
+  "if_you_skip_it": "Each play of the same article costs you again, a busy day turns into a surprise bill, and listeners may not know the voice isn't a person, which some providers' rules require you to say.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "MDN: SpeechSynthesis",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis"
+    },
+    {
+      "title": "OpenAI: text to speech",
+      "url": "https://platform.openai.com/docs/guides/text-to-speech"
+    },
+    {
+      "title": "ElevenLabs documentation",
+      "url": "https://elevenlabs.io/docs"
+    },
+    {
+      "title": "Piper text to speech",
+      "url": "https://github.com/OHF-Voice/piper1-gpl"
+    }
+  ],
+  "page": "e/text-to-speech/index.html",
+  "json": "api/text-to-speech.json",
+  "updated": "2026-11-11"
+}

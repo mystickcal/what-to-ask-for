@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text from PDFs and scans: What To Ask For</title>
+<meta name="description" content="Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Text from PDFs and scans: What To Ask For">
+<meta property="og:description" content="Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/document-text-extraction/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Text from PDFs and scans: What To Ask For">
+<meta name="twitter:description" content="Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=ai">AI features</a></p>
+  <h1>Text from PDFs and scans</h1>
+  <p class="aka">Also called: OCR, PDF parsing, document parsing, PDF text extraction, read invoices, document AI</p>
+  <p class="lead">Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users upload documents and expect the app or the AI to understand them.</li><li>You want to pull out fields like dates, totals or names.</li><li>Some uploads are scans or phone photos.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>You only store files and show them back. Nobody needs the text.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Read the text layer <span class="cost">$0</span></h3>
+<p>pypdf or pdfplumber for PDFs and the document XML for Word files.</p><p class="trade"><strong>Tradeoff:</strong> Fast, free and exact. Gets nothing from scans, and tables come out jumbled.</p></li>
+<li><h3>OCR <span class="cost">$0 with Tesseract, or paid per page with cloud OCR</span></h3>
+<p>Run Tesseract yourself, or send pages to AWS Textract or Google Document AI, which also find tables and form fields.</p><p class="trade"><strong>Tradeoff:</strong> Reads scans. Makes mistakes on bad photos, and cloud OCR means the document leaves your servers.</p></li>
+<li><h3>Send the file to a vision model <span class="cost">Paid per page or token</span></h3>
+<p>OpenAI and Anthropic models accept PDFs and images directly. Ask for structured output with the fields you need.</p><p class="trade"><strong>Tradeoff:</strong> Handles messy layouts and pulls out fields in one step. Costs more, can misread, and the file goes to the provider.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add text extraction for uploaded documents.
+
+Requirements:
+- Support [PDF, DOCX, TXT, JPG, PNG]. Check the real file type, not just the extension.
+- For PDFs, read the text layer first. If a page has no text, [send it to OCR with Tesseract / send it to our vision model / tell the user it looks like a scan].
+- Run extraction in a background job or a separate process with a time limit, a memory limit and a size limit. Stop at [50] pages or [12,000] characters and say when the text was cut off.
+- Refuse encrypted PDFs and broken files with a plain message. Never put document text in error logs.
+- Never change the original file. Store the extracted text separately with the page count and method used.
+- If I ask for fields, return them as JSON that matches a schema, and keep the raw text so a person can check it.
+
+Acceptance checks (run each and show me the result):
+1. Upload a normal PDF, a scanned PDF, a phone photo of a page and a Word file. Each one gives readable text or a clear message.
+2. A scanned PDF with no text layer is either sent to OCR or refused with a message that says why. It never comes back as empty text with no warning.
+3. A 300 page PDF stops at the page or size limit and says the text was cut off.
+4. An encrypted or broken file is refused without crashing the worker, and the error log has no document text in it.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Your AI quietly answers from empty text when someone uploads a scan, and one huge or booby trapped PDF can tie up a worker or crash your app.</p></section>
+  <aside class="derek" aria-label="How Derek runs it">
+<h2>How Derek runs it</h2>
+<p>Custody Journal reads attachments for its AI assistant in a separate worker process with memory and CPU limits and a time limit of at most 8 seconds. It reads PDFs, Word files, plain text and CSV, takes up to 50 pages of a PDF with pypdf, keeps the first 12,000 characters and marks the text as cut off, and refuses encrypted PDFs. Images are shrunk to 2048 pixels and sent to the model as images. Its agreement compare tool tells users a scanned PDF may need OCR first.</p>
+<p class="src">From the Custody Journal code and release runbook, read 2026-11-11.</p>
+</aside>
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;get the text out of uploaded PDFs so the AI can read them&rdquo;</li><li>&ldquo;my AI can&#x27;t read scanned documents&rdquo;</li><li>&ldquo;pull fields out of invoices and receipts&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://pypdf.readthedocs.io/en/stable/user/extract-text.html">pypdf: extract text from a PDF</a></li><li><a href="https://github.com/tesseract-ocr/tesseract">Tesseract OCR</a></li><li><a href="https://platform.openai.com/docs/guides/pdf-files">OpenAI: file inputs</a></li><li><a href="https://aws.amazon.com/textract/">AWS Textract</a></li></ul></section>
+  <p class="meta">Checked 2026-11-11. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/document-text-extraction.json">api/document-text-extraction.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../speech-to-text/index.html">&larr; Speech to text</a><a href="../text-to-speech/index.html">Text to speech &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

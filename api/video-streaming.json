@@ -1,0 +1,95 @@
+{
+  "id": "video-streaming",
+  "name": "Video upload and streaming",
+  "category": "files",
+  "category_name": "Files and uploads",
+  "aliases": [
+    "video hosting",
+    "HLS",
+    "transcoding",
+    "adaptive streaming",
+    "Mux",
+    "Cloudflare Stream"
+  ],
+  "needs": [
+    "let users upload videos and play them back smoothly",
+    "my videos buffer and take forever to load",
+    "host course videos in my app"
+  ],
+  "keywords": [
+    "video",
+    "videos",
+    "stream",
+    "streaming",
+    "hls",
+    "dash",
+    "m3u8",
+    "transcode",
+    "transcoding",
+    "encode",
+    "ffmpeg",
+    "mux",
+    "cloudflare",
+    "bunny",
+    "player",
+    "buffer",
+    "course",
+    "mp4",
+    "thumbnail"
+  ],
+  "summary": "Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn't stall.",
+  "need_when": [
+    "Users upload their own videos, or you host lessons, demos or recordings.",
+    "Videos are longer than a minute or two, or people watch on phones.",
+    "Some videos should only be watched by people who paid or logged in."
+  ],
+  "skip_when": [
+    "A few public marketing videos. An unlisted YouTube or Vimeo embed is free and good enough."
+  ],
+  "ways": [
+    {
+      "title": "Video API",
+      "cost": "Per minute stored and watched. Cloudflare Stream lists $5 per 1,000 minutes stored and $1 per 1,000 delivered",
+      "how": "Mux, Cloudflare Stream or Bunny Stream take the upload, encode it, and give you a playback ID and a player.",
+      "tradeoff": "Quickest to do well. Costs grow with every minute watched, and your videos live with them."
+    },
+    {
+      "title": "Encode it yourself",
+      "cost": "$0 plus servers and bandwidth",
+      "how": "A background job runs ffmpeg to make HLS renditions, stores them in object storage and serves them through a CDN.",
+      "tradeoff": "Cheapest at scale and fully yours. Encoding is slow and heavy, and you own every playback bug."
+    },
+    {
+      "title": "Embed from a video site",
+      "cost": "$0",
+      "how": "Upload to YouTube or Vimeo as unlisted and embed their player.",
+      "tradeoff": "Free and simple. Their branding and suggestions, weak privacy, and no fit for user uploads."
+    }
+  ],
+  "prompt": "Add video upload and streaming.\n\nRequirements:\n- Use [Mux / Cloudflare Stream / ffmpeg to HLS on our own storage]. Upload from the browser straight to the provider or storage, not through my server.\n- Accept [MP4, MOV, WebM] up to [2 GB] and [60 minutes]. Check type and size before the upload starts.\n- Save a video record with owner, status (uploading, processing, ready, failed), duration and provider ID. Update it from the provider's webhook.\n- Show a processing state, then the player when ready. Show a clear message if processing fails.\n- Private videos use signed playback URLs that expire. Only the owner and people allowed by [rule] can get one.\n- Deleting a video in the app deletes it from the provider or storage.\n\nAcceptance checks (run each and show me the result):\n1. Upload a 1 GB test video from a phone on a slow connection. It finishes, and the page shows processing, then ready.\n2. Play it on a phone and a laptop. Quality changes with the connection without the video stopping for long.\n3. A private video's link stops working for a logged out user or after it expires.\n4. Delete a video in the app. It's gone from storage and the player too, and stops counting toward storage costs.",
+  "acceptance_checks": [
+    "Upload a 1 GB test video from a phone on a slow connection. It finishes, and the page shows processing, then ready.",
+    "Play it on a phone and a laptop. Quality changes with the connection without the video stopping for long.",
+    "A private video's link stops working for a logged out user or after it expires.",
+    "Delete a video in the app. It's gone from storage and the player too, and stops counting toward storage costs."
+  ],
+  "if_you_skip_it": "Big uploads time out on your server, viewers on phones sit through buffering, and private videos end up on a public link anyone can share.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Mux: stream video files",
+      "url": "https://www.mux.com/docs/guides/stream-video-files"
+    },
+    {
+      "title": "Cloudflare Stream pricing",
+      "url": "https://developers.cloudflare.com/stream/pricing/"
+    },
+    {
+      "title": "Apple: HTTP Live Streaming",
+      "url": "https://developer.apple.com/streaming/"
+    }
+  ],
+  "page": "e/video-streaming/index.html",
+  "json": "api/video-streaming.json",
+  "updated": "2026-11-11"
+}

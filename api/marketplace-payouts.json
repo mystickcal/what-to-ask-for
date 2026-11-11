@@ -1,0 +1,95 @@
+{
+  "id": "marketplace-payouts",
+  "name": "Marketplace payouts",
+  "category": "payments",
+  "category_name": "Payments and billing",
+  "aliases": [
+    "Stripe Connect",
+    "split payments",
+    "pay sellers",
+    "platform fees",
+    "seller payouts",
+    "connected accounts"
+  ],
+  "needs": [
+    "pay the sellers on my marketplace and keep a cut",
+    "split a payment between my platform and a creator",
+    "how do I send money to users of my app"
+  ],
+  "keywords": [
+    "marketplace",
+    "payout",
+    "payouts",
+    "seller",
+    "sellers",
+    "vendor",
+    "creator",
+    "split",
+    "connect",
+    "stripe",
+    "platform",
+    "fee",
+    "commission",
+    "cut",
+    "transfer",
+    "onboarding",
+    "kyc",
+    "1099",
+    "contractor"
+  ],
+  "summary": "Taking a payment from a buyer, keeping your fee and sending the rest to the seller, creator or contractor who earned it. A payment platform onboards each seller, checks who they are and sends them their money, so you don't hold other people's funds yourself.",
+  "need_when": [
+    "Buyers pay on your site for something another person or business provides.",
+    "You want to take a percentage or a flat fee from each sale.",
+    "Sellers ask when and how they get paid."
+  ],
+  "skip_when": [
+    "You sell only your own product. Normal payments are enough."
+  ],
+  "ways": [
+    {
+      "title": "Payments to the platform, then a transfer",
+      "cost": "Payment fees plus Connect fees, depending on the setup",
+      "how": "With Stripe Connect destination charges the buyer pays your platform, and part of the money moves to the seller's connected account right away.",
+      "tradeoff": "You control checkout and the fee. Refunds and chargebacks come out of your balance first."
+    },
+    {
+      "title": "Payments straight to the seller",
+      "cost": "Payment fees, and you choose who pays them",
+      "how": "With Stripe Connect direct charges the payment lands in the seller's account and you take an application fee.",
+      "tradeoff": "Fits software where sellers run their own business. Each seller's account has to be able to take card payments."
+    },
+    {
+      "title": "Collect and pay out by hand",
+      "cost": "$0 in tools",
+      "how": "Take payments into your own account and send sellers money by bank transfer on a schedule.",
+      "tradeoff": "Fine for a handful of people you know. Holding money for others can bring licensing rules in many places, and tax forms are on you."
+    }
+  ],
+  "prompt": "Add marketplace payouts so sellers on my platform get paid and I keep a fee.\n\nRequirements:\n- Use Stripe Connect with [destination charges / direct charges]. Sellers onboard through Stripe's hosted onboarding.\n- My fee is [10%] of each order, worked out on the server. Never trust a price or fee sent from the browser.\n- Store each seller's connected account ID and their onboarding status. Don't let sellers list items for sale until onboarding is complete.\n- Save the payment ID, transfer ID and fee on every order.\n- Handle Connect webhooks for account updates and payouts, with signature checks, and process each event once.\n- Decide how refunds work: give back the seller's share, my fee, or both, and write it down in the code.\n\nAcceptance checks (run each and show me the result):\n1. A test buyer pays a test seller. The seller's balance shows the price minus your fee, and your balance shows the fee.\n2. A seller who hasn't finished onboarding can't be paid out, and the app shows them what's missing.\n3. Refund one test order in full. The seller's share and your fee are both taken back the way you chose.\n4. Each order in your database links to its payment and transfer IDs, so you can trace where the money went.",
+  "acceptance_checks": [
+    "A test buyer pays a test seller. The seller's balance shows the price minus your fee, and your balance shows the fee.",
+    "A seller who hasn't finished onboarding can't be paid out, and the app shows them what's missing.",
+    "Refund one test order in full. The seller's share and your fee are both taken back the way you chose.",
+    "Each order in your database links to its payment and transfer IDs, so you can trace where the money went."
+  ],
+  "if_you_skip_it": "You end up holding buyers' money in your own account and paying sellers by hand, which gets messy fast and can bring legal and tax problems you didn't plan for.",
+  "how_derek_runs_it": null,
+  "links": [
+    {
+      "title": "Stripe: how charges work in Connect",
+      "url": "https://docs.stripe.com/connect/charges"
+    },
+    {
+      "title": "Stripe Connect documentation",
+      "url": "https://docs.stripe.com/connect"
+    },
+    {
+      "title": "Stripe Connect: tax reporting",
+      "url": "https://docs.stripe.com/connect/tax-reporting"
+    }
+  ],
+  "page": "e/marketplace-payouts/index.html",
+  "json": "api/marketplace-payouts.json",
+  "updated": "2026-11-11"
+}

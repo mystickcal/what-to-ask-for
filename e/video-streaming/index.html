@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video upload and streaming: What To Ask For</title>
+<meta name="description" content="Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn&#x27;t stall.">
+<meta property="og:site_name" content="What To Ask For">
+<meta property="og:title" content="Video upload and streaming: What To Ask For">
+<meta property="og:description" content="Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn&#x27;t stall.">
+<meta property="og:url" content="https://mystickcal.github.io/what-to-ask-for/e/video-streaming/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Video upload and streaming: What To Ask For">
+<meta name="twitter:description" content="Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn&#x27;t stall.">
+<meta name="twitter:image" content="https://mystickcal.github.io/what-to-ask-for/og.png">
+<meta name="twitter:image:alt" content="What To Ask For: say what your app needs, get the name of the piece and a prompt for your coding agent. By @omgitsderek.">
+<link rel="stylesheet" href="../../style.css">
+<link rel="alternate" type="text/plain" href="../../llms.txt" title="llms.txt">
+<script defer src="https://newsletter.clickconsultants.com/u/script.js" data-website-id="65149a71-ae1c-4a4c-8e7f-010028241f58" data-domains="mystickcal.github.io" data-auto-track="false" onload="window.umami&&umami.track()"></script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><a class="brand" href="../../index.html">What To Ask For</a></header>
+<main id="main">
+
+<article class="entry">
+  <p class="crumb"><a href="../../index.html">All entries</a> / <a href="../../index.html?c=files">Files and uploads</a></p>
+  <h1>Video upload and streaming</h1>
+  <p class="aka">Also called: video hosting, HLS, transcoding, adaptive streaming, Mux, Cloudflare Stream</p>
+  <p class="lead">Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn&#x27;t stall.</p>
+  <div class="when">
+    <section><h2>You need it when</h2><ul><li>Users upload their own videos, or you host lessons, demos or recordings.</li><li>Videos are longer than a minute or two, or people watch on phones.</li><li>Some videos should only be watched by people who paid or logged in.</li></ul></section>
+    <section><h2>Skip it when</h2><ul><li>A few public marketing videos. An unlisted YouTube or Vimeo embed is free and good enough.</li></ul></section>
+  </div>
+  <section><h2>Ways to build it</h2><ol class="ways"><li><h3>Video API <span class="cost">Per minute stored and watched. Cloudflare Stream lists $5 per 1,000 minutes stored and $1 per 1,000 delivered</span></h3>
+<p>Mux, Cloudflare Stream or Bunny Stream take the upload, encode it, and give you a playback ID and a player.</p><p class="trade"><strong>Tradeoff:</strong> Quickest to do well. Costs grow with every minute watched, and your videos live with them.</p></li>
+<li><h3>Encode it yourself <span class="cost">$0 plus servers and bandwidth</span></h3>
+<p>A background job runs ffmpeg to make HLS renditions, stores them in object storage and serves them through a CDN.</p><p class="trade"><strong>Tradeoff:</strong> Cheapest at scale and fully yours. Encoding is slow and heavy, and you own every playback bug.</p></li>
+<li><h3>Embed from a video site <span class="cost">$0</span></h3>
+<p>Upload to YouTube or Vimeo as unlisted and embed their player.</p><p class="trade"><strong>Tradeoff:</strong> Free and simple. Their branding and suggestions, weak privacy, and no fit for user uploads.</p></li></ol></section>
+  <section class="prompt-box">
+    <div class="prompt-head"><h2 id="prompt-h">Prompt for your coding agent</h2><button type="button" class="copy" data-copy="prompt">Copy prompt</button></div>
+    <p class="hint">Replace the [bracketed] parts. Works in Claude Code, Cursor or Codex.</p>
+    <pre id="prompt" tabindex="0" aria-labelledby="prompt-h">Add video upload and streaming.
+
+Requirements:
+- Use [Mux / Cloudflare Stream / ffmpeg to HLS on our own storage]. Upload from the browser straight to the provider or storage, not through my server.
+- Accept [MP4, MOV, WebM] up to [2 GB] and [60 minutes]. Check type and size before the upload starts.
+- Save a video record with owner, status (uploading, processing, ready, failed), duration and provider ID. Update it from the provider&#x27;s webhook.
+- Show a processing state, then the player when ready. Show a clear message if processing fails.
+- Private videos use signed playback URLs that expire. Only the owner and people allowed by [rule] can get one.
+- Deleting a video in the app deletes it from the provider or storage.
+
+Acceptance checks (run each and show me the result):
+1. Upload a 1 GB test video from a phone on a slow connection. It finishes, and the page shows processing, then ready.
+2. Play it on a phone and a laptop. Quality changes with the connection without the video stopping for long.
+3. A private video&#x27;s link stops working for a logged out user or after it expires.
+4. Delete a video in the app. It&#x27;s gone from storage and the player too, and stops counting toward storage costs.</pre>
+  </section>
+  <section><h2>If you skip it</h2><p>Big uploads time out on your server, viewers on phones sit through buffering, and private videos end up on a public link anyone can share.</p></section>
+  
+  <section><h2>People describe this as</h2><ul class="needs"><li>&ldquo;let users upload videos and play them back smoothly&rdquo;</li><li>&ldquo;my videos buffer and take forever to load&rdquo;</li><li>&ldquo;host course videos in my app&rdquo;</li></ul></section>
+  <section><h2>Further reading</h2><ul class="links"><li><a href="https://www.mux.com/docs/guides/stream-video-files">Mux: stream video files</a></li><li><a href="https://developers.cloudflare.com/stream/pricing/">Cloudflare Stream pricing</a></li><li><a href="https://developer.apple.com/streaming/">Apple: HTTP Live Streaming</a></li></ul></section>
+  <p class="meta">Checked 2026-11-11. Prices and free tiers change, so check the provider before you rely on one. JSON: <a href="../../api/video-streaming.json">api/video-streaming.json</a></p>
+  <nav class="pn" aria-label="More entries"><a href="../pdf-generation/index.html">&larr; PDF generation</a><a href="../backups-tested-restore/index.html">Backups with a tested restore &rarr;</a></nav>
+</article>
+
+</main>
+<footer class="foot">
+  <form class="signup" id="signup" method="post" action="https://newsletter.clickconsultants.com/v1/subscriptions" data-brand="what-to-ask-for" data-source="what-to-ask-for-web" novalidate>
+    <label for="signup-email">One building block a week, by email</label>
+    <label class="hp" aria-hidden="true">Leave this blank <input name="company" type="text" tabindex="-1" autocomplete="off" maxlength="200"></label>
+    <div class="signup-row">
+      <input id="signup-email" type="email" name="email" maxlength="254" placeholder="you@example.com" autocomplete="email" required>
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="signup-check"><input name="consent" type="checkbox" value="true" required> <span>Weekly email about one new backend building block. Unsubscribe any time.</span></label>
+    <p class="signup-note" id="signup-note" role="status" aria-live="polite"></p>
+    <noscript><p class="signup-note">JavaScript is required to sign up on this page. <a href="https://newsletter.clickconsultants.com/subscription/form">Open the hosted form</a> and choose What To Ask For.</p></noscript>
+  </form>
+  <p class="made">Built by Derek Salyers &middot; <a href="https://x.com/omgitsderek">@omgitsderek on X</a> &middot; <a href="../../llms.txt">llms.txt</a> &middot; <a href="../../entries.json">entries.json</a></p>
+</footer>
+<script src="../../app.js" defer></script>
+</body>
+</html>

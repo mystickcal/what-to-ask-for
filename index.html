@@ -39,10 +39,10 @@
   </form>
   <p class="examples"><span>Try:</span> <button type="button" class="ex" data-q="the AI step takes 40 seconds">the AI step takes 40 seconds</button> <button type="button" class="ex" data-q="Stripe sent the event twice">Stripe sent the event twice</button> <button type="button" class="ex" data-q="emails go to spam">emails go to spam</button> <button type="button" class="ex" data-q="limit generations per user">limit generations per user</button></p>
 </section>
-<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>110</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>10</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>6</span></a><a class="cat" href="#c-data" data-c="data">Data <span>8</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>6</span></a><a class="cat" href="#c-security" data-c="security">Security <span>12</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>10</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>12</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>7</span></a><a class="cat" href="#c-search" data-c="search">Search <span>3</span></a><a class="cat" href="#c-features" data-c="features">Features <span>8</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>4</span></a></nav>
+<nav class="cats" id="cats" aria-label="Browse by category"><a class="cat" href="#browse" data-c="" aria-current="true">All <span>115</span></a><a class="cat" href="#c-background" data-c="background">Background jobs <span>6</span></a><a class="cat" href="#c-payments" data-c="payments">Payments <span>12</span></a><a class="cat" href="#c-auth" data-c="auth">Auth <span>11</span></a><a class="cat" href="#c-email" data-c="email">Email <span>7</span></a><a class="cat" href="#c-files" data-c="files">Files <span>7</span></a><a class="cat" href="#c-data" data-c="data">Data <span>8</span></a><a class="cat" href="#c-api" data-c="api">APIs <span>6</span></a><a class="cat" href="#c-security" data-c="security">Security <span>12</span></a><a class="cat" href="#c-deploys" data-c="deploys">Deploys <span>10</span></a><a class="cat" href="#c-ai" data-c="ai">AI <span>14</span></a><a class="cat" href="#c-performance" data-c="performance">Performance <span>7</span></a><a class="cat" href="#c-search" data-c="search">Search <span>3</span></a><a class="cat" href="#c-features" data-c="features">Features <span>8</span></a><a class="cat" href="#c-privacy" data-c="privacy">Privacy <span>4</span></a></nav>
 <section aria-labelledby="results-h">
   <h2 id="results-h" class="vh">Entries</h2>
-  <p class="count" id="count" aria-live="polite">110 entries in 14 categories</p>
+  <p class="count" id="count" aria-live="polite">115 entries in 14 categories</p>
   <ol class="results" id="results" hidden></ol>
   <div id="browse">
 <section class="group" id="c-background" data-c="background" aria-labelledby="h-background"><h3 class="group-h" id="h-background">Background work and scheduling <span class="group-n">6</span></h3>
@@ -54,7 +54,7 @@
 <li><a href="e/outbox-pattern/index.html"><span class="r-name">Transactional outbox</span><span class="r-need">&ldquo;the order saved but the email never went out&rdquo;</span></a></li>
 <li><a href="e/job-progress-ui/index.html"><span class="r-name">Job status and progress UI</span><span class="r-need">&ldquo;show a progress bar while the export runs&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-payments" data-c="payments" aria-labelledby="h-payments"><h3 class="group-h" id="h-payments">Payments and billing <span class="group-n">10</span></h3>
+<section class="group" id="c-payments" data-c="payments" aria-labelledby="h-payments"><h3 class="group-h" id="h-payments">Payments and billing <span class="group-n">12</span></h3>
 <ol class="results">
 <li><a href="e/webhook-signature-verification/index.html"><span class="r-name">Webhook signature verification</span><span class="r-need">&ldquo;Stripe calls my server when someone pays&rdquo;</span></a></li>
 <li><a href="e/idempotent-webhooks/index.html"><span class="r-name">Idempotent webhook handling</span><span class="r-need">&ldquo;a customer paid once but got upgraded twice&rdquo;</span></a></li>
@@ -66,6 +66,8 @@
 <li><a href="e/plan-limits/index.html"><span class="r-name">Plan limits and entitlements</span><span class="r-need">&ldquo;free users get 10 projects and paid users get unlimited&rdquo;</span></a></li>
 <li><a href="e/refunds-disputes/index.html"><span class="r-name">Refunds and chargebacks</span><span class="r-need">&ldquo;a customer wants their money back&rdquo;</span></a></li>
 <li><a href="e/sales-tax/index.html"><span class="r-name">Sales tax and VAT</span><span class="r-need">&ldquo;do I need to charge sales tax or VAT on my SaaS&rdquo;</span></a></li>
+<li><a href="e/marketplace-payouts/index.html"><span class="r-name">Marketplace payouts</span><span class="r-need">&ldquo;pay the sellers on my marketplace and keep a cut&rdquo;</span></a></li>
+<li><a href="e/discount-codes/index.html"><span class="r-name">Discount codes</span><span class="r-need">&ldquo;add a coupon code box to my checkout&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-auth" data-c="auth" aria-labelledby="h-auth"><h3 class="group-h" id="h-auth">Auth and accounts <span class="group-n">11</span></h3>
 <ol class="results">
@@ -91,7 +93,7 @@
 <li><a href="e/sms-messages/index.html"><span class="r-name">SMS text messages</span><span class="r-need">&ldquo;text a reminder before an appointment&rdquo;</span></a></li>
 <li><a href="e/notification-preferences/index.html"><span class="r-name">Notification preferences and inbox</span><span class="r-need">&ldquo;let users choose which emails they get&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-files" data-c="files" aria-labelledby="h-files"><h3 class="group-h" id="h-files">Files and uploads <span class="group-n">6</span></h3>
+<section class="group" id="c-files" data-c="files" aria-labelledby="h-files"><h3 class="group-h" id="h-files">Files and uploads <span class="group-n">7</span></h3>
 <ol class="results">
 <li><a href="e/signed-download-links/index.html"><span class="r-name">Signed download link</span><span class="r-need">&ldquo;let a user download their file without making it public&rdquo;</span></a></li>
 <li><a href="e/direct-uploads/index.html"><span class="r-name">Direct-to-storage uploads</span><span class="r-need">&ldquo;large uploads time out on my server&rdquo;</span></a></li>
@@ -99,6 +101,7 @@
 <li><a href="e/upload-validation-scanning/index.html"><span class="r-name">Upload validation and scanning</span><span class="r-need">&ldquo;someone could upload a virus or a script as a profile picture&rdquo;</span></a></li>
 <li><a href="e/csv-import/index.html"><span class="r-name">CSV import</span><span class="r-need">&ldquo;let users upload a spreadsheet of their contacts&rdquo;</span></a></li>
 <li><a href="e/pdf-generation/index.html"><span class="r-name">PDF generation</span><span class="r-need">&ldquo;generate invoices as PDF&rdquo;</span></a></li>
+<li><a href="e/video-streaming/index.html"><span class="r-name">Video upload and streaming</span><span class="r-need">&ldquo;let users upload videos and play them back smoothly&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-data" data-c="data" aria-labelledby="h-data"><h3 class="group-h" id="h-data">Data and databases <span class="group-n">8</span></h3>
 <ol class="results">
@@ -148,7 +151,7 @@
 <li><a href="e/ci-pipeline/index.html"><span class="r-name">CI checks on every push</span><span class="r-need">&ldquo;run my tests automatically before I deploy&rdquo;</span></a></li>
 <li><a href="e/customer-custom-domains/index.html"><span class="r-name">Custom domains for customers</span><span class="r-need">&ldquo;let customers use their own domain for their page&rdquo;</span></a></li>
 </ol></section>
-<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">12</span></h3>
+<section class="group" id="c-ai" data-c="ai" aria-labelledby="h-ai"><h3 class="group-h" id="h-ai">AI features <span class="group-n">14</span></h3>
 <ol class="results">
 <li><a href="e/streaming-ai-responses/index.html"><span class="r-name">Streaming AI responses</span><span class="r-need">&ldquo;show the AI answer as it&#x27;s being written&rdquo;</span></a></li>
 <li><a href="e/llm-retries-fallbacks/index.html"><span class="r-name">LLM retries, timeouts and fallbacks</span><span class="r-need">&ldquo;the AI call fails sometimes with 429 or 500&rdquo;</span></a></li>
@@ -162,6 +165,8 @@
 <li><a href="e/chat-history/index.html"><span class="r-name">AI chat history storage</span><span class="r-need">&ldquo;save chatbot conversations so users can come back&rdquo;</span></a></li>
 <li><a href="e/llm-observability/index.html"><span class="r-name">LLM observability</span><span class="r-need">&ldquo;I can&#x27;t see what my AI feature is doing or why it gave that answer&rdquo;</span></a></li>
 <li><a href="e/speech-to-text/index.html"><span class="r-name">Speech to text</span><span class="r-need">&ldquo;let users talk instead of typing&rdquo;</span></a></li>
+<li><a href="e/document-text-extraction/index.html"><span class="r-name">Text from PDFs and scans</span><span class="r-need">&ldquo;get the text out of uploaded PDFs so the AI can read them&rdquo;</span></a></li>
+<li><a href="e/text-to-speech/index.html"><span class="r-name">Text to speech</span><span class="r-need">&ldquo;add a listen button that reads my articles out loud&rdquo;</span></a></li>
 </ol></section>
 <section class="group" id="c-performance" data-c="performance" aria-labelledby="h-performance"><h3 class="group-h" id="h-performance">Performance and caching <span class="group-n">7</span></h3>
 <ol class="results">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://mystickcal.github.io/what-to-ask-for/</loc><lastmod>2026-11-04</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/scheduled-jobs/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/background-job-queue/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/retries-and-dead-letter-queue/</loc><lastmod>2026-10-21</lastmod></url>
@@ -17,6 +17,8 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/plan-limits/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/refunds-disputes/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/sales-tax/</loc><lastmod>2026-11-04</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/marketplace-payouts/</loc><lastmod>2026-11-11</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/discount-codes/</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/password-reset/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/magic-links/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/social-login/</loc><lastmod>2026-10-21</lastmod></url>
@@ -41,6 +43,7 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/upload-validation-scanning/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/csv-import/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/pdf-generation/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/video-streaming/</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/backups-tested-restore/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/database-migrations/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/connection-pooling/</loc><lastmod>2026-10-21</lastmod></url>
@@ -89,6 +92,8 @@
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/chat-history/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/llm-observability/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/speech-to-text/</loc><lastmod>2026-11-04</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/document-text-extraction/</loc><lastmod>2026-11-11</lastmod></url>
+  <url><loc>https://mystickcal.github.io/what-to-ask-for/e/text-to-speech/</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/caching-invalidation/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/cdn/</loc><lastmod>2026-10-21</lastmod></url>
   <url><loc>https://mystickcal.github.io/what-to-ask-for/e/database-indexes/</loc><lastmod>2026-10-21</lastmod></url>

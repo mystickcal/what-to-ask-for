@@ -29,6 +29,8 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Plan limits and entitlements](e/plan-limits/index.html): One place in your code that answers "is this account allowed to do this, and how much is left?" based on its plan. Every feature asks it instead of checking plan names itself, and limit checks happen in the same transaction as the work they guard. JSON: api/plan-limits.json
 - [Refunds and chargebacks](e/refunds-disputes/index.html): The flow for giving money back, and for answering when a customer's bank pulls it back for you. Your app listens for refund and dispute events, updates access, and keeps the records you need to respond to a dispute before the deadline. JSON: api/refunds-disputes.json
 - [Sales tax and VAT](e/sales-tax/index.html): Charging, recording and paying the tax that applies where each customer lives. Selling software or digital products to other countries can mean collecting VAT or GST from the first sale, and US states have their own sales tax rules once you pass their limits. You either use a tax engine on top of your own payments or a merchant of record that sells on your behalf and handles the tax. JSON: api/sales-tax.json
+- [Marketplace payouts](e/marketplace-payouts/index.html): Taking a payment from a buyer, keeping your fee and sending the rest to the seller, creator or contractor who earned it. A payment platform onboards each seller, checks who they are and sends them their money, so you don't hold other people's funds yourself. JSON: api/marketplace-payouts.json
+- [Discount codes](e/discount-codes/index.html): Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can't be faked from the browser. JSON: api/discount-codes.json
 
 ### Auth and accounts
 
@@ -62,6 +64,7 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [Upload validation and scanning](e/upload-validation-scanning/index.html): Checking every uploaded file on the server before you keep it: its real type from its bytes, its size, and its contents where that matters. Then store it under a name you choose and serve it so the browser can't run it as a page. JSON: api/upload-validation-scanning.json
 - [CSV import](e/csv-import/index.html): Taking a user's spreadsheet and turning rows into records. The safe shape is upload, map columns, preview with row-level errors, then commit all at once, with a row limit and the same validation as your forms. JSON: api/csv-import.json
 - [PDF generation](e/pdf-generation/index.html): Turning your data into a PDF file users can download, print or send. Either render HTML with a headless browser or a print-CSS engine, or draw the document directly with a PDF library. Big documents go to a background job. JSON: api/pdf-generation.json
+- [Video upload and streaming](e/video-streaming/index.html): Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn't stall. JSON: api/video-streaming.json
 
 ### Data and databases
 
@@ -125,6 +128,8 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 - [AI chat history storage](e/chat-history/index.html): Tables for conversations and messages, plus a rule for how much history goes back to the model each turn. Older turns get trimmed or summarized so long chats stay inside the context window and the cost stays sane. JSON: api/chat-history.json
 - [LLM observability](e/llm-observability/index.html): Recording every call your app makes to an AI model: the prompt, the answer, which model, how many tokens, what it cost and how long it took. When an answer is wrong or the bill jumps, you can look up exactly what happened instead of guessing. JSON: api/llm-observability.json
 - [Speech to text](e/speech-to-text/index.html): Turning spoken words into text, either live while the user talks or from an uploaded recording. You can use the browser's built-in speech recognition for free, send audio to a transcription API, or run an open model like Whisper yourself. JSON: api/speech-to-text.json
+- [Text from PDFs and scans](e/document-text-extraction/index.html): Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile. JSON: api/document-text-extraction.json
+- [Text to speech](e/text-to-speech/index.html): Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that. JSON: api/text-to-speech.json
 
 ### Performance and caching
 
@@ -164,4 +169,4 @@ Each entry in entries.json has a category field. Categories: background (Backgro
 
 - [entries.json](entries.json): all entries with prompts and checks
 
-Updated 2026-11-04. Built by Derek Salyers (https://x.com/omgitsderek).
+Updated 2026-11-11. Built by Derek Salyers (https://x.com/omgitsderek).

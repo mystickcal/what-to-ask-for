@@ -1,0 +1,100 @@
+{
+  "id": "document-text-extraction",
+  "name": "Text from PDFs and scans",
+  "category": "ai",
+  "category_name": "AI features",
+  "aliases": [
+    "OCR",
+    "PDF parsing",
+    "document parsing",
+    "PDF text extraction",
+    "read invoices",
+    "document AI"
+  ],
+  "needs": [
+    "get the text out of uploaded PDFs so the AI can read them",
+    "my AI can't read scanned documents",
+    "pull fields out of invoices and receipts"
+  ],
+  "keywords": [
+    "pdf",
+    "pdfs",
+    "ocr",
+    "scan",
+    "scanned",
+    "extract",
+    "extraction",
+    "parse",
+    "parsing",
+    "document",
+    "documents",
+    "invoice",
+    "receipt",
+    "tesseract",
+    "textract",
+    "pypdf",
+    "docx",
+    "word",
+    "image",
+    "photo"
+  ],
+  "summary": "Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.",
+  "need_when": [
+    "Users upload documents and expect the app or the AI to understand them.",
+    "You want to pull out fields like dates, totals or names.",
+    "Some uploads are scans or phone photos."
+  ],
+  "skip_when": [
+    "You only store files and show them back. Nobody needs the text."
+  ],
+  "ways": [
+    {
+      "title": "Read the text layer",
+      "cost": "$0",
+      "how": "pypdf or pdfplumber for PDFs and the document XML for Word files.",
+      "tradeoff": "Fast, free and exact. Gets nothing from scans, and tables come out jumbled."
+    },
+    {
+      "title": "OCR",
+      "cost": "$0 with Tesseract, or paid per page with cloud OCR",
+      "how": "Run Tesseract yourself, or send pages to AWS Textract or Google Document AI, which also find tables and form fields.",
+      "tradeoff": "Reads scans. Makes mistakes on bad photos, and cloud OCR means the document leaves your servers."
+    },
+    {
+      "title": "Send the file to a vision model",
+      "cost": "Paid per page or token",
+      "how": "OpenAI and Anthropic models accept PDFs and images directly. Ask for structured output with the fields you need.",
+      "tradeoff": "Handles messy layouts and pulls out fields in one step. Costs more, can misread, and the file goes to the provider."
+    }
+  ],
+  "prompt": "Add text extraction for uploaded documents.\n\nRequirements:\n- Support [PDF, DOCX, TXT, JPG, PNG]. Check the real file type, not just the extension.\n- For PDFs, read the text layer first. If a page has no text, [send it to OCR with Tesseract / send it to our vision model / tell the user it looks like a scan].\n- Run extraction in a background job or a separate process with a time limit, a memory limit and a size limit. Stop at [50] pages or [12,000] characters and say when the text was cut off.\n- Refuse encrypted PDFs and broken files with a plain message. Never put document text in error logs.\n- Never change the original file. Store the extracted text separately with the page count and method used.\n- If I ask for fields, return them as JSON that matches a schema, and keep the raw text so a person can check it.\n\nAcceptance checks (run each and show me the result):\n1. Upload a normal PDF, a scanned PDF, a phone photo of a page and a Word file. Each one gives readable text or a clear message.\n2. A scanned PDF with no text layer is either sent to OCR or refused with a message that says why. It never comes back as empty text with no warning.\n3. A 300 page PDF stops at the page or size limit and says the text was cut off.\n4. An encrypted or broken file is refused without crashing the worker, and the error log has no document text in it.",
+  "acceptance_checks": [
+    "Upload a normal PDF, a scanned PDF, a phone photo of a page and a Word file. Each one gives readable text or a clear message.",
+    "A scanned PDF with no text layer is either sent to OCR or refused with a message that says why. It never comes back as empty text with no warning.",
+    "A 300 page PDF stops at the page or size limit and says the text was cut off.",
+    "An encrypted or broken file is refused without crashing the worker, and the error log has no document text in it."
+  ],
+  "if_you_skip_it": "Your AI quietly answers from empty text when someone uploads a scan, and one huge or booby trapped PDF can tie up a worker or crash your app.",
+  "how_derek_runs_it": "Custody Journal reads attachments for its AI assistant in a separate worker process with memory and CPU limits and a time limit of at most 8 seconds. It reads PDFs, Word files, plain text and CSV, takes up to 50 pages of a PDF with pypdf, keeps the first 12,000 characters and marks the text as cut off, and refuses encrypted PDFs. Images are shrunk to 2048 pixels and sent to the model as images. Its agreement compare tool tells users a scanned PDF may need OCR first.",
+  "links": [
+    {
+      "title": "pypdf: extract text from a PDF",
+      "url": "https://pypdf.readthedocs.io/en/stable/user/extract-text.html"
+    },
+    {
+      "title": "Tesseract OCR",
+      "url": "https://github.com/tesseract-ocr/tesseract"
+    },
+    {
+      "title": "OpenAI: file inputs",
+      "url": "https://platform.openai.com/docs/guides/pdf-files"
+    },
+    {
+      "title": "AWS Textract",
+      "url": "https://aws.amazon.com/textract/"
+    }
+  ],
+  "page": "e/document-text-extraction/index.html",
+  "json": "api/document-text-extraction.json",
+  "updated": "2026-11-11"
+}
