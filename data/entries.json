@@ -1405,6 +1405,189 @@
     "updated": "2026-11-04"
   },
   {
+    "id": "marketplace-payouts",
+    "name": "Marketplace payouts",
+    "category": "payments",
+    "aliases": [
+      "Stripe Connect",
+      "split payments",
+      "pay sellers",
+      "platform fees",
+      "seller payouts",
+      "connected accounts"
+    ],
+    "needs": [
+      "pay the sellers on my marketplace and keep a cut",
+      "split a payment between my platform and a creator",
+      "how do I send money to users of my app"
+    ],
+    "keywords": [
+      "marketplace",
+      "payout",
+      "payouts",
+      "seller",
+      "sellers",
+      "vendor",
+      "creator",
+      "split",
+      "connect",
+      "stripe",
+      "platform",
+      "fee",
+      "commission",
+      "cut",
+      "transfer",
+      "onboarding",
+      "kyc",
+      "1099",
+      "contractor"
+    ],
+    "summary": "Taking a payment from a buyer, keeping your fee and sending the rest to the seller, creator or contractor who earned it. A payment platform onboards each seller, checks who they are and sends them their money, so you don't hold other people's funds yourself.",
+    "need_when": [
+      "Buyers pay on your site for something another person or business provides.",
+      "You want to take a percentage or a flat fee from each sale.",
+      "Sellers ask when and how they get paid."
+    ],
+    "skip_when": [
+      "You sell only your own product. Normal payments are enough."
+    ],
+    "ways": [
+      {
+        "title": "Payments to the platform, then a transfer",
+        "cost": "Payment fees plus Connect fees, depending on the setup",
+        "how": "With Stripe Connect destination charges the buyer pays your platform, and part of the money moves to the seller's connected account right away.",
+        "tradeoff": "You control checkout and the fee. Refunds and chargebacks come out of your balance first."
+      },
+      {
+        "title": "Payments straight to the seller",
+        "cost": "Payment fees, and you choose who pays them",
+        "how": "With Stripe Connect direct charges the payment lands in the seller's account and you take an application fee.",
+        "tradeoff": "Fits software where sellers run their own business. Each seller's account has to be able to take card payments."
+      },
+      {
+        "title": "Collect and pay out by hand",
+        "cost": "$0 in tools",
+        "how": "Take payments into your own account and send sellers money by bank transfer on a schedule.",
+        "tradeoff": "Fine for a handful of people you know. Holding money for others can bring licensing rules in many places, and tax forms are on you."
+      }
+    ],
+    "prompt": "Add marketplace payouts so sellers on my platform get paid and I keep a fee.\n\nRequirements:\n- Use Stripe Connect with [destination charges / direct charges]. Sellers onboard through Stripe's hosted onboarding.\n- My fee is [10%] of each order, worked out on the server. Never trust a price or fee sent from the browser.\n- Store each seller's connected account ID and their onboarding status. Don't let sellers list items for sale until onboarding is complete.\n- Save the payment ID, transfer ID and fee on every order.\n- Handle Connect webhooks for account updates and payouts, with signature checks, and process each event once.\n- Decide how refunds work: give back the seller's share, my fee, or both, and write it down in the code.\n\nAcceptance checks (run each and show me the result):\n1. A test buyer pays a test seller. The seller's balance shows the price minus your fee, and your balance shows the fee.\n2. A seller who hasn't finished onboarding can't be paid out, and the app shows them what's missing.\n3. Refund one test order in full. The seller's share and your fee are both taken back the way you chose.\n4. Each order in your database links to its payment and transfer IDs, so you can trace where the money went.",
+    "acceptance_checks": [
+      "A test buyer pays a test seller. The seller's balance shows the price minus your fee, and your balance shows the fee.",
+      "A seller who hasn't finished onboarding can't be paid out, and the app shows them what's missing.",
+      "Refund one test order in full. The seller's share and your fee are both taken back the way you chose.",
+      "Each order in your database links to its payment and transfer IDs, so you can trace where the money went."
+    ],
+    "if_you_skip_it": "You end up holding buyers' money in your own account and paying sellers by hand, which gets messy fast and can bring legal and tax problems you didn't plan for.",
+    "how_derek_runs_it": null,
+    "links": [
+      {
+        "title": "Stripe: how charges work in Connect",
+        "url": "https://docs.stripe.com/connect/charges"
+      },
+      {
+        "title": "Stripe Connect documentation",
+        "url": "https://docs.stripe.com/connect"
+      },
+      {
+        "title": "Stripe Connect: tax reporting",
+        "url": "https://docs.stripe.com/connect/tax-reporting"
+      }
+    ],
+    "updated": "2026-11-11"
+  },
+  {
+    "id": "discount-codes",
+    "name": "Discount codes",
+    "category": "payments",
+    "aliases": [
+      "coupon codes",
+      "promo codes",
+      "promotion codes",
+      "coupons",
+      "launch discount",
+      "voucher codes"
+    ],
+    "needs": [
+      "add a coupon code box to my checkout",
+      "give a launch discount for the first 100 customers",
+      "make a promo code for an influencer"
+    ],
+    "keywords": [
+      "coupon",
+      "coupons",
+      "discount",
+      "promo",
+      "promotion",
+      "code",
+      "codes",
+      "voucher",
+      "sale",
+      "percent",
+      "off",
+      "launch",
+      "influencer",
+      "affiliate",
+      "checkout",
+      "redeem",
+      "expire",
+      "limit"
+    ],
+    "summary": "Codes customers type at checkout to get money off, and the rules behind them: how much, for how long, for whom, and how many times. Payment platforms keep the rules on their side, so a code can't be faked from the browser.",
+    "need_when": [
+      "You're launching and want to reward early buyers.",
+      "You give creators or partners their own codes and want to see what each one brings in.",
+      "Your sales team gives some customers a special price."
+    ],
+    "skip_when": [
+      "You don't plan to offer discounts. Then leave the code box off your checkout."
+    ],
+    "ways": [
+      {
+        "title": "Your payment platform's promo codes",
+        "cost": "$0 extra",
+        "how": "Create coupons and promotion codes in Stripe, Paddle or Lemon Squeezy and turn on the code field in their checkout. Stripe's allow_promotion_codes adds the box.",
+        "tradeoff": "Limits, expiry and first order rules are built in. You're tied to their checkout and their rules."
+      },
+      {
+        "title": "Discounts applied by your server",
+        "cost": "$0 extra",
+        "how": "Your code decides who gets a deal and applies a coupon to their subscription or checkout, so the customer never types anything.",
+        "tradeoff": "Good for sales deals and win back offers. No shareable code, so it doesn't help with promotions."
+      },
+      {
+        "title": "Your own discount table",
+        "cost": "$0",
+        "how": "Store codes, amounts, expiry, use limits and redemptions in your database and work out the price yourself.",
+        "tradeoff": "Full control. Easy to get rounding, stacking and race conditions wrong, and the payment record has to match your math."
+      }
+    ],
+    "prompt": "Add discount codes to checkout.\n\nRequirements:\n- Use [Stripe promotion codes / Paddle discounts / Lemon Squeezy discounts]. Keep every rule on the payment platform or the server, never in the browser.\n- Codes can be a percentage or a fixed amount, last [once / for N months / forever], expire on a date and have a total use limit.\n- Support a first order only rule and codes tied to one customer.\n- Show a clear message for codes that are wrong, expired or used up, and don't change the price.\n- Save the code and the amount it took off on each order, so I can report sales per code.\n- Two people using the last remaining use of a code at the same moment: only one gets it.\n\nAcceptance checks (run each and show me the result):\n1. Enter a valid code at checkout. The total drops by the right amount before payment.\n2. Enter an expired code, a used up code and a made up code. Each one is refused with a clear message and the price doesn't change.\n3. A code limited to first orders is refused for a customer who has bought before.\n4. The order or invoice shows which code was used and how much it took off.",
+    "acceptance_checks": [
+      "Enter a valid code at checkout. The total drops by the right amount before payment.",
+      "Enter an expired code, a used up code and a made up code. Each one is refused with a clear message and the price doesn't change.",
+      "A code limited to first orders is refused for a customer who has bought before.",
+      "The order or invoice shows which code was used and how much it took off."
+    ],
+    "if_you_skip_it": "Launch deals and partner codes turn into manual refunds after the sale, and a code shared too widely can't be shut off or tracked.",
+    "how_derek_runs_it": null,
+    "links": [
+      {
+        "title": "Stripe: coupons and promotion codes",
+        "url": "https://docs.stripe.com/billing/subscriptions/coupons"
+      },
+      {
+        "title": "Stripe Checkout: add discounts",
+        "url": "https://docs.stripe.com/payments/checkout/discounts"
+      },
+      {
+        "title": "Lemon Squeezy API: discounts",
+        "url": "https://docs.lemonsqueezy.com/api/discounts"
+      }
+    ],
+    "updated": "2026-11-11"
+  },
+  {
     "id": "password-reset",
     "name": "Password reset tokens",
     "category": "auth",
@@ -3502,6 +3685,98 @@
       }
     ],
     "updated": "2026-10-21"
+  },
+  {
+    "id": "video-streaming",
+    "name": "Video upload and streaming",
+    "category": "files",
+    "aliases": [
+      "video hosting",
+      "HLS",
+      "transcoding",
+      "adaptive streaming",
+      "Mux",
+      "Cloudflare Stream"
+    ],
+    "needs": [
+      "let users upload videos and play them back smoothly",
+      "my videos buffer and take forever to load",
+      "host course videos in my app"
+    ],
+    "keywords": [
+      "video",
+      "videos",
+      "stream",
+      "streaming",
+      "hls",
+      "dash",
+      "m3u8",
+      "transcode",
+      "transcoding",
+      "encode",
+      "ffmpeg",
+      "mux",
+      "cloudflare",
+      "bunny",
+      "player",
+      "buffer",
+      "course",
+      "mp4",
+      "thumbnail"
+    ],
+    "summary": "Taking a video file, turning it into several sizes and qualities, and sending viewers small pieces that fit their connection. A plain MP4 link works for short clips, but long or user uploaded video needs encoding into a streaming format like HLS so it starts fast and doesn't stall.",
+    "need_when": [
+      "Users upload their own videos, or you host lessons, demos or recordings.",
+      "Videos are longer than a minute or two, or people watch on phones.",
+      "Some videos should only be watched by people who paid or logged in."
+    ],
+    "skip_when": [
+      "A few public marketing videos. An unlisted YouTube or Vimeo embed is free and good enough."
+    ],
+    "ways": [
+      {
+        "title": "Video API",
+        "cost": "Per minute stored and watched. Cloudflare Stream lists $5 per 1,000 minutes stored and $1 per 1,000 delivered",
+        "how": "Mux, Cloudflare Stream or Bunny Stream take the upload, encode it, and give you a playback ID and a player.",
+        "tradeoff": "Quickest to do well. Costs grow with every minute watched, and your videos live with them."
+      },
+      {
+        "title": "Encode it yourself",
+        "cost": "$0 plus servers and bandwidth",
+        "how": "A background job runs ffmpeg to make HLS renditions, stores them in object storage and serves them through a CDN.",
+        "tradeoff": "Cheapest at scale and fully yours. Encoding is slow and heavy, and you own every playback bug."
+      },
+      {
+        "title": "Embed from a video site",
+        "cost": "$0",
+        "how": "Upload to YouTube or Vimeo as unlisted and embed their player.",
+        "tradeoff": "Free and simple. Their branding and suggestions, weak privacy, and no fit for user uploads."
+      }
+    ],
+    "prompt": "Add video upload and streaming.\n\nRequirements:\n- Use [Mux / Cloudflare Stream / ffmpeg to HLS on our own storage]. Upload from the browser straight to the provider or storage, not through my server.\n- Accept [MP4, MOV, WebM] up to [2 GB] and [60 minutes]. Check type and size before the upload starts.\n- Save a video record with owner, status (uploading, processing, ready, failed), duration and provider ID. Update it from the provider's webhook.\n- Show a processing state, then the player when ready. Show a clear message if processing fails.\n- Private videos use signed playback URLs that expire. Only the owner and people allowed by [rule] can get one.\n- Deleting a video in the app deletes it from the provider or storage.\n\nAcceptance checks (run each and show me the result):\n1. Upload a 1 GB test video from a phone on a slow connection. It finishes, and the page shows processing, then ready.\n2. Play it on a phone and a laptop. Quality changes with the connection without the video stopping for long.\n3. A private video's link stops working for a logged out user or after it expires.\n4. Delete a video in the app. It's gone from storage and the player too, and stops counting toward storage costs.",
+    "acceptance_checks": [
+      "Upload a 1 GB test video from a phone on a slow connection. It finishes, and the page shows processing, then ready.",
+      "Play it on a phone and a laptop. Quality changes with the connection without the video stopping for long.",
+      "A private video's link stops working for a logged out user or after it expires.",
+      "Delete a video in the app. It's gone from storage and the player too, and stops counting toward storage costs."
+    ],
+    "if_you_skip_it": "Big uploads time out on your server, viewers on phones sit through buffering, and private videos end up on a public link anyone can share.",
+    "how_derek_runs_it": null,
+    "links": [
+      {
+        "title": "Mux: stream video files",
+        "url": "https://www.mux.com/docs/guides/stream-video-files"
+      },
+      {
+        "title": "Cloudflare Stream pricing",
+        "url": "https://developers.cloudflare.com/stream/pricing/"
+      },
+      {
+        "title": "Apple: HTTP Live Streaming",
+        "url": "https://developer.apple.com/streaming/"
+      }
+    ],
+    "updated": "2026-11-11"
   },
   {
     "id": "backups-tested-restore",
@@ -7638,6 +7913,199 @@
     ],
     "updated": "2026-11-04",
     "derek_checked": "2026-11-04"
+  },
+  {
+    "id": "document-text-extraction",
+    "name": "Text from PDFs and scans",
+    "category": "ai",
+    "aliases": [
+      "OCR",
+      "PDF parsing",
+      "document parsing",
+      "PDF text extraction",
+      "read invoices",
+      "document AI"
+    ],
+    "needs": [
+      "get the text out of uploaded PDFs so the AI can read them",
+      "my AI can't read scanned documents",
+      "pull fields out of invoices and receipts"
+    ],
+    "keywords": [
+      "pdf",
+      "pdfs",
+      "ocr",
+      "scan",
+      "scanned",
+      "extract",
+      "extraction",
+      "parse",
+      "parsing",
+      "document",
+      "documents",
+      "invoice",
+      "receipt",
+      "tesseract",
+      "textract",
+      "pypdf",
+      "docx",
+      "word",
+      "image",
+      "photo"
+    ],
+    "summary": "Turning uploaded files into text your app or an AI model can use. PDFs made on a computer have a text layer you can read directly. Scans and photos are only images, so they need OCR or a model that can read images. Either way the work should run with limits, because files from users can be huge, broken or hostile.",
+    "need_when": [
+      "Users upload documents and expect the app or the AI to understand them.",
+      "You want to pull out fields like dates, totals or names.",
+      "Some uploads are scans or phone photos."
+    ],
+    "skip_when": [
+      "You only store files and show them back. Nobody needs the text."
+    ],
+    "ways": [
+      {
+        "title": "Read the text layer",
+        "cost": "$0",
+        "how": "pypdf or pdfplumber for PDFs and the document XML for Word files.",
+        "tradeoff": "Fast, free and exact. Gets nothing from scans, and tables come out jumbled."
+      },
+      {
+        "title": "OCR",
+        "cost": "$0 with Tesseract, or paid per page with cloud OCR",
+        "how": "Run Tesseract yourself, or send pages to AWS Textract or Google Document AI, which also find tables and form fields.",
+        "tradeoff": "Reads scans. Makes mistakes on bad photos, and cloud OCR means the document leaves your servers."
+      },
+      {
+        "title": "Send the file to a vision model",
+        "cost": "Paid per page or token",
+        "how": "OpenAI and Anthropic models accept PDFs and images directly. Ask for structured output with the fields you need.",
+        "tradeoff": "Handles messy layouts and pulls out fields in one step. Costs more, can misread, and the file goes to the provider."
+      }
+    ],
+    "prompt": "Add text extraction for uploaded documents.\n\nRequirements:\n- Support [PDF, DOCX, TXT, JPG, PNG]. Check the real file type, not just the extension.\n- For PDFs, read the text layer first. If a page has no text, [send it to OCR with Tesseract / send it to our vision model / tell the user it looks like a scan].\n- Run extraction in a background job or a separate process with a time limit, a memory limit and a size limit. Stop at [50] pages or [12,000] characters and say when the text was cut off.\n- Refuse encrypted PDFs and broken files with a plain message. Never put document text in error logs.\n- Never change the original file. Store the extracted text separately with the page count and method used.\n- If I ask for fields, return them as JSON that matches a schema, and keep the raw text so a person can check it.\n\nAcceptance checks (run each and show me the result):\n1. Upload a normal PDF, a scanned PDF, a phone photo of a page and a Word file. Each one gives readable text or a clear message.\n2. A scanned PDF with no text layer is either sent to OCR or refused with a message that says why. It never comes back as empty text with no warning.\n3. A 300 page PDF stops at the page or size limit and says the text was cut off.\n4. An encrypted or broken file is refused without crashing the worker, and the error log has no document text in it.",
+    "acceptance_checks": [
+      "Upload a normal PDF, a scanned PDF, a phone photo of a page and a Word file. Each one gives readable text or a clear message.",
+      "A scanned PDF with no text layer is either sent to OCR or refused with a message that says why. It never comes back as empty text with no warning.",
+      "A 300 page PDF stops at the page or size limit and says the text was cut off.",
+      "An encrypted or broken file is refused without crashing the worker, and the error log has no document text in it."
+    ],
+    "if_you_skip_it": "Your AI quietly answers from empty text when someone uploads a scan, and one huge or booby trapped PDF can tie up a worker or crash your app.",
+    "how_derek_runs_it": "Custody Journal reads attachments for its AI assistant in a separate worker process with memory and CPU limits and a time limit of at most 8 seconds. It reads PDFs, Word files, plain text and CSV, takes up to 50 pages of a PDF with pypdf, keeps the first 12,000 characters and marks the text as cut off, and refuses encrypted PDFs. Images are shrunk to 2048 pixels and sent to the model as images. Its agreement compare tool tells users a scanned PDF may need OCR first.",
+    "links": [
+      {
+        "title": "pypdf: extract text from a PDF",
+        "url": "https://pypdf.readthedocs.io/en/stable/user/extract-text.html"
+      },
+      {
+        "title": "Tesseract OCR",
+        "url": "https://github.com/tesseract-ocr/tesseract"
+      },
+      {
+        "title": "OpenAI: file inputs",
+        "url": "https://platform.openai.com/docs/guides/pdf-files"
+      },
+      {
+        "title": "AWS Textract",
+        "url": "https://aws.amazon.com/textract/"
+      }
+    ],
+    "updated": "2026-11-11",
+    "derek_checked": "2026-11-11"
+  },
+  {
+    "id": "text-to-speech",
+    "name": "Text to speech",
+    "category": "ai",
+    "aliases": [
+      "TTS",
+      "read aloud",
+      "AI voice",
+      "voice generation",
+      "speech synthesis",
+      "narration"
+    ],
+    "needs": [
+      "add a listen button that reads my articles out loud",
+      "turn text into speech in my app",
+      "give my AI assistant a voice"
+    ],
+    "keywords": [
+      "tts",
+      "speech",
+      "voice",
+      "voices",
+      "read",
+      "aloud",
+      "listen",
+      "audio",
+      "narrate",
+      "narration",
+      "speak",
+      "elevenlabs",
+      "openai",
+      "synthesis",
+      "speechsynthesis",
+      "mp3",
+      "podcast",
+      "accessibility"
+    ],
+    "summary": "Turning written text into spoken audio, from a free voice built into the browser or a natural sounding AI voice from an API. The backend part is mostly about cost: make each piece of audio once, save it, and play the saved file after that.",
+    "need_when": [
+      "People want to listen to articles, lessons or replies instead of reading.",
+      "You're adding a voice to an AI assistant.",
+      "Accessibility matters for your users."
+    ],
+    "skip_when": [
+      "Short labels and buttons. Screen readers already handle those."
+    ],
+    "ways": [
+      {
+        "title": "Browser speech",
+        "cost": "$0",
+        "how": "The Web Speech API's speechSynthesis reads text aloud with the voices on the user's device.",
+        "tradeoff": "Free and instant. Voices differ by device and can sound robotic, and there's no file to save."
+      },
+      {
+        "title": "Voice API",
+        "cost": "Paid per character or per minute",
+        "how": "Send text from your server to OpenAI's speech endpoint, ElevenLabs or a similar service, save the audio and play it.",
+        "tradeoff": "Natural voices. Costs grow with every new piece of text, and models and voices get retired, so check before you build on one."
+      },
+      {
+        "title": "Open model on your server",
+        "cost": "$0 plus compute",
+        "how": "Run an open text to speech model such as Piper on your own machine.",
+        "tradeoff": "No per use bill and text stays with you. Lower quality than the best APIs, and you maintain it."
+      }
+    ],
+    "prompt": "Add text to speech to [articles / assistant replies].\n\nRequirements:\n- Use [the browser's speechSynthesis / OpenAI's speech API / ElevenLabs]. Call any paid API from the server only, never with a key in the browser.\n- Save generated audio in [object storage] keyed by a hash of the text, voice and model. Play the saved file when it exists.\n- Make new audio when the text changes, and delete audio that's no longer used.\n- Stream or start playback before the whole file is done for long text, or split long text into parts.\n- Limit how much text one user can turn into audio per day.\n- Tell listeners the voice is AI generated.\n\nAcceptance checks (run each and show me the result):\n1. Press play on a 500 word article. Audio starts within a few seconds and sounds right in the chosen voice.\n2. Play the same article twice. The second time comes from the saved file and makes no new API call.\n3. Edit the text and play it again. It makes new audio instead of reading the old version.\n4. With the voice service failing, the user sees a plain error and can still read the text.",
+    "acceptance_checks": [
+      "Press play on a 500 word article. Audio starts within a few seconds and sounds right in the chosen voice.",
+      "Play the same article twice. The second time comes from the saved file and makes no new API call.",
+      "Edit the text and play it again. It makes new audio instead of reading the old version.",
+      "With the voice service failing, the user sees a plain error and can still read the text."
+    ],
+    "if_you_skip_it": "Each play of the same article costs you again, a busy day turns into a surprise bill, and listeners may not know the voice isn't a person, which some providers' rules require you to say.",
+    "how_derek_runs_it": null,
+    "links": [
+      {
+        "title": "MDN: SpeechSynthesis",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis"
+      },
+      {
+        "title": "OpenAI: text to speech",
+        "url": "https://platform.openai.com/docs/guides/text-to-speech"
+      },
+      {
+        "title": "ElevenLabs documentation",
+        "url": "https://elevenlabs.io/docs"
+      },
+      {
+        "title": "Piper text to speech",
+        "url": "https://github.com/OHF-Voice/piper1-gpl"
+      }
+    ],
+    "updated": "2026-11-11"
   },
   {
     "id": "caching-invalidation",

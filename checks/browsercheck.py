@@ -43,6 +43,9 @@ DRIVERS = {
     "roll_walk": "function(d,f){return {right:(f%120)<60, left:(f%120)>=60, dash:(f%15)<1};}",
     "jump_short": "function(d,f){return {right:(f%120)<70, jump:(f%60)<5};}",
     "attack_hold": "function(d,f){return {attack:(f%90)<75};}",
+    "parry_timed": "function(d,f){var r=d.until-d.t;return {attack:d.phase==='windup' && r<110 && r>50};}",
+    "jump_pound": "function(d,f){var c=f%70;return {jump:c<12, down:c>=24&&c<28};}",
+    "spring_timed": "function(d,f){var s=d.sp;return {jump:!!(s && s.t>=60 && s.t<110)};}",
 }
 
 # Direction checks: for these demos the toggle must change behavior the way the page says.
@@ -51,6 +54,9 @@ EXPECT = {
     "running-jump": ("run_jump_hold", "on.extra.best > off.extra.best + 10"),
     "charge-shot": ("attack_hold", "on.extra.charged > 0 && off.extra.charged === 0 && on.extra.damage > off.extra.damage"),
     "hitstun": ("attack_spam", "on.stats.hitsTaken < off.stats.hitsTaken && on.extra.swings < off.extra.swings"),
+    "parry": ("parry_timed", "on.extra.parries > 0 && off.extra.parries === 0 && on.stats.hitsTaken < off.stats.hitsTaken"),
+    "ground-pound": ("jump_pound", "on.extra.pounds > 0 && off.extra.pounds === 0 && on.extra.broken > 0 && off.extra.broken === 0"),
+    "springboard": ("spring_timed", "on.extra.boosts > 0 && off.extra.boosts === 0 && on.extra.best > off.extra.best + 40"),
 }
 
 
